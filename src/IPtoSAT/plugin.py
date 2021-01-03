@@ -16,6 +16,7 @@ from Tools.Directories import fileExists
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
 
+
 def trace_error():
     import sys
     import traceback
@@ -24,6 +25,7 @@ def trace_error():
         traceback.print_exc(file=open('/tmp/IPtoSAT.log', 'a'))
     except:
         pass
+
 
 def getversioninfo():
     import os
@@ -39,7 +41,16 @@ def getversioninfo():
             pass
     return (currversion)
 
+
 Ver = getversioninfo()
+
+
+REDC = '\033[31m'
+ENDC = '\033[m'
+
+
+def cprint(text):
+    print(REDC+text+ENDC)
 
 
 class IPToSATSetup(Screen, ConfigListScreen):
@@ -50,12 +61,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget source="red_key" render="Label" position="100,388" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
 		<ePixmap position="385,418" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend" />
 		<widget source="green_key" render="Label" position="385,388" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
-		</screen>""" 
+		</screen>"""
 
     def __init__(self, session):
         Screen.__init__(self, session)
         self.skinName = ["IPToSATSetup"]
-        self.setup_title = _("IPToSAT BY ZIKO V %s" % Ver) 
+        self.setup_title = _("IPToSAT BY ZIKO V %s" % Ver)
 
         self.onChangedEntry = []
         self.list = []
@@ -76,10 +87,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
         self.onLayoutFinish.append(self.layoutFinished)
 
     def layoutFinished(self):
-        self.setTitle(_("IPToSAT BY ZIKO V %s" % Ver) )
+        self.setTitle(_("IPToSAT BY ZIKO V %s" % Ver))
 
     def createSetup(self):
-        self.list = [getConfigListEntry(_("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
+        self.list = [getConfigListEntry(
+            _("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
 
         self["config"].list = self.list
         self["config"].setList(self.list)
@@ -88,7 +100,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
         for x in self["config"].list:
             x[1].save()
         self.close()
-
 
     def changedEntry(self):
         for x in self.onChangedEntry:
@@ -107,17 +118,18 @@ class IPtoSAT(Screen):
             iPlayableService.evStopped: self.__evEnd
         })
         self.Timer = eTimer()
+        self.Timer.callback.append(self.get_channel)
         self.container = eConsoleAppContainer()
         self.ip_sat = False
 
     def __evStart(self):
-        self.get_channel()
+        self.Timer.start(2000)
         
-        
+
     def readJs(self):
         import json
         if fileExists('/etc/enigma2/iptosat.json'):
-            with open('/etc/enigma2/iptosat.json','r')as f:
+            with open('/etc/enigma2/iptosat.json', 'r')as f:
                 try:
                     return json.loads(f.read())
                 except ValueError:
@@ -133,18 +145,27 @@ class IPtoSAT(Screen):
                     self.ip_sat = True
                     cmd = 'exteplayer3 {}'.format(ch['url'])
                     self.container.execute(cmd)
+                    
 
     def get_channel(self):
         service = self.session.nav.getCurrentService()
         if service:
             info = service and service.info()
             if info:
-                isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-                if isCrypted:
-                    self.channel_name = ServiceReference(self.session.nav.getCurrentlyPlayingServiceReference()).getServiceName()
-                    self.current_channel(self.channel_name)
-
+                FeInfo = service and service.frontendInfo()
+                if FeInfo:
+                    isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
+                    if isCrypted:
+                        SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
+                        if SNR > 10 and not self.container.running():
+                            channel_name = ServiceReference(self.session.nav.getCurrentlyPlayingServiceReference()).getServiceName()
+                            self.current_channel(channel_name)
+                        elif self.container.running() and SNR <= 10:
+                            self.container.kill()
+                            self.ip_sat = False
+                            
     def __evEnd(self):
+        self.Timer.stop()
         if self.ip_sat:
             self.container.kill()
         self.ip_sat = False
@@ -156,15 +177,13 @@ def autostart(reason, **kwargs):
         IPtoSAT(session)
 
 
-def encchannelSetup(session, **kwargs):
+def iptosatSetup(session, **kwargs):
     autostart(reason=0, session=session)
     session.open(IPToSATSetup)
 
 
 def Plugins(**kwargs):
     Descriptors = []
-    Descriptors.append(PluginDescriptor(
-        where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-    Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT",icon="icon.png",
-                                        where=PluginDescriptor.WHERE_PLUGINMENU, fnc=encchannelSetup))
+    Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
+    Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT", icon="icon.png",where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
     return Descriptors
