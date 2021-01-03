@@ -145,7 +145,6 @@ class IPtoSAT(Screen):
                     self.ip_sat = True
                     cmd = 'exteplayer3 {}'.format(ch['url'])
                     self.container.execute(cmd)
-                    
 
     def get_channel(self):
         service = self.session.nav.getCurrentService()
@@ -154,20 +153,20 @@ class IPtoSAT(Screen):
             if info:
                 FeInfo = service and service.frontendInfo()
                 if FeInfo:
+                    SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
                     isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-                    if isCrypted:
-                        SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
-                        if SNR > 10 and not self.container.running():
-                            channel_name = ServiceReference(self.session.nav.getCurrentlyPlayingServiceReference()).getServiceName()
-                            self.current_channel(channel_name)
-                        elif self.container.running() and SNR <= 10:
-                            self.container.kill()
+                    if isCrypted and SNR > 10:
+                        channel_name = ServiceReference(self.session.nav.getCurrentlyPlayingServiceReference()).getServiceName()
+                        self.current_channel(channel_name)
+                    else:
+                        if self.ip_sat:
+                            self.container.sendCtrlC()
                             self.ip_sat = False
                             
     def __evEnd(self):
         self.Timer.stop()
         if self.ip_sat:
-            self.container.kill()
+            self.container.sendCtrlC()
         self.ip_sat = False
 
 
