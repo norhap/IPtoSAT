@@ -90,8 +90,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
         self.setTitle(_("IPToSAT BY ZIKO V %s" % Ver))
 
     def createSetup(self):
-        self.list = [getConfigListEntry(
-            _("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
+        self.list = [getConfigListEntry(_("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
 
         self["config"].list = self.list
         self["config"].setList(self.list)
@@ -120,6 +119,7 @@ class IPtoSAT(Screen):
         self.Timer = eTimer()
         self.Timer.callback.append(self.get_channel)
         self.container = eConsoleAppContainer()
+        
         self.ip_sat = False
 
     def __evStart(self):
@@ -142,10 +142,11 @@ class IPtoSAT(Screen):
         if channel and playlist:
             for ch in playlist['playlist']:
                 if channel == ch['channel']:
-                    self.ip_sat = True
-                    cmd = 'exteplayer3 {}'.format(ch['url'])
-                    self.container.execute(cmd)
-
+                    if not self.ip_sat:
+                        cmd = 'exteplayer3 {}'.format(ch['url'])
+                        self.container.execute(cmd)
+                        self.ip_sat = True
+                    
     def get_channel(self):
         service = self.session.nav.getCurrentService()
         if service:
@@ -167,6 +168,7 @@ class IPtoSAT(Screen):
         self.Timer.stop()
         if self.ip_sat:
             self.container.sendCtrlC()
+            
         self.ip_sat = False
 
 
