@@ -16,8 +16,8 @@ from Tools.Directories import fileExists
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default="gstplayer", choices = [
-				("gstplayer", _("GstPlayer")),
-				("exteplayer3", _("Exteplayer3")),
+                    ("gstplayer", _("GstPlayer")),
+                    ("exteplayer3", _("Exteplayer3")),
 				])
 
 def trace_error():
@@ -73,15 +73,15 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
         self.onChangedEntry = []
         self.list = []
-        ConfigListScreen.__init__(
-            self, self.list, session=session, on_change=self.changedEntry)
+        ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
 
         self["actions"] = ActionMap(["SetupActions"],
-                                    {
-            "cancel": self.keyCancel,
-            "save":   self.apply,
-            "ok":     self.apply
-        }, -2)
+            {
+                "cancel":self.keyCancel,
+                "save":self.apply,
+                "ok":self.apply,
+                
+            }, -2)
 
         self["green_key"] = StaticText(_("Save"))
         self["red_key"] = StaticText(_("Cancel"))
@@ -118,18 +118,15 @@ class IPtoSAT(Screen):
             iPlayableService.evStart: self.__evStart,
             iPlayableService.evTunedIn: self.__evStart,
             iPlayableService.evEnd: self.__evEnd,
-            iPlayableService.evStopped: self.__evEnd
+            iPlayableService.evStopped: self.__evEnd,
         })
         self.Timer = eTimer()
         self.Timer.callback.append(self.get_channel)
         self.container = eConsoleAppContainer()
         self.ip_sat = False
 
-    def __evStart(self):
-        self.Timer.start(2000)
-        
 
-    def readJs(self):
+    def getPlaylist(self):
         import json
         if fileExists('/etc/enigma2/iptosat.json'):
             with open('/etc/enigma2/iptosat.json', 'r')as f:
@@ -140,16 +137,19 @@ class IPtoSAT(Screen):
         else:
             return None
 
-    def current_channel(self, channel):
-        playlist = self.readJs()
+    def current_channel(self, channel,lastservice):
+        playlist = self.getPlaylist()
+        player = config.plugins.IPToSAT.player.value
         if channel and playlist:
             for ch in playlist['playlist']:
-                if channel == ch['channel']:
+                if channel == ch['channel'].strip():
                     if not self.ip_sat:
-                        player = config.plugins.IPToSAT.player.value
+                        self.session.nav.stopService()
                         cmd = '{} {}'.format(player,ch['url'])
                         self.container.execute(cmd)
+                        self.session.nav.playService(lastservice)
                         self.ip_sat = True
+
 
     def get_channel(self):
         service = self.session.nav.getCurrentService()
@@ -161,12 +161,16 @@ class IPtoSAT(Screen):
                     SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
                     isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
                     if isCrypted and SNR > 10:
-                        channel_name = ServiceReference(self.session.nav.getCurrentlyPlayingServiceReference()).getServiceName()
-                        self.current_channel(channel_name)
+                        lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
+                        channel_name = ServiceReference(lastservice).getServiceName()
+                        self.current_channel(channel_name,lastservice)
                     else:
                         if self.ip_sat:
                             self.container.sendCtrlC()
                             self.ip_sat = False
+
+    def __evStart(self):
+        self.Timer.start(1000)
                             
     def __evEnd(self):
         self.Timer.stop()
@@ -176,13 +180,13 @@ class IPtoSAT(Screen):
 
 
 def autostart(reason, **kwargs):
-    if config.plugins.IPToSAT.enable.value:
-        session = kwargs["session"]
-        IPtoSAT(session)
+    if reason == 0:
+        if config.plugins.IPToSAT.enable.value:
+            session = kwargs["session"]
+            IPtoSAT(session)
 
 
 def iptosatSetup(session, **kwargs):
-    autostart(reason=0, session=session)
     session.open(IPToSATSetup)
 
 
