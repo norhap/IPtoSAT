@@ -145,7 +145,7 @@ class IPtoSAT(Screen):
                 if channel == ch['channel'].strip():
                     if not self.ip_sat:
                         self.session.nav.stopService()
-                        cmd = '{} {}'.format(player,ch['url'])
+                        cmd = '{} "{}"'.format(player,ch['url'])
                         self.container.execute(cmd)
                         self.session.nav.playService(lastservice)
                         self.ip_sat = True
@@ -193,5 +193,5 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
     Descriptors = []
     Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-    Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT", icon="icon.png",where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+    Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT Setup {}".format(Ver), icon="icon.png",where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
     return Descriptors
