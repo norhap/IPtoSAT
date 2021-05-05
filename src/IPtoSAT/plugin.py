@@ -1,6 +1,5 @@
-from twisted.web.client import getPage, downloadPage
 from Screens.ChannelSelection import ChannelSelectionBase
-from Components.ServiceList import ServiceList, refreshServiceList
+from Components.ServiceList import ServiceList
 from Screens.Screen import Screen
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
@@ -14,6 +13,7 @@ from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Components.Sources.StaticText import StaticText
 from Tools.Directories import fileExists
+from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
 
@@ -97,7 +97,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
 
-		self["actions"] = ActionMap(["SetupActions"],
+		self["actions"] = ActionMap(["IPtoSATActions"],
 		{
 			"cancel": self.keyCancel,
 			"save": self.apply,
@@ -207,7 +207,7 @@ class AssignService(ChannelSelectionBase):
 		ChannelSelectionBase.__init__(self, session)
 		self["status"] = Label()
 		self["assign"] = Label()
-		self["ChannelSelectBaseActions"] = ActionMap(["SetupActions","EpgColorActions","EpgWizardActions",'PiPSetupActions','SrefColorActions'],
+		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATActions"],
 		{
 			"cancel": self.exit,
 			"ok": self.channelSelected,
@@ -362,7 +362,7 @@ class AssignService(ChannelSelectionBase):
 				if not self.exists(sref,playlist):
 					playlist['playlist'].append({'sref':sref,'channel':channel_name ,'url':url})
 					with open(PLAYLIST_PATH, 'w')as f:
-						json.dump(playlist, f)
+						json.dump(playlist, f, indent = 4 , sort_keys = False)
 					text = channel_name+' mapped successfully with '+xtream_channel
 					self.assignWidget("#008000",text)
 				else:
