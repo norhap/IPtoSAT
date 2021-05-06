@@ -3,16 +3,18 @@ from Components.ServiceList import ServiceList
 from Screens.Screen import Screen
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
+from Components.Button import Button
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.config import config, ConfigInteger, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
 from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.MenuList import MenuList
-from enigma import iPlayableService, iServiceInformation, eServiceCenter, eServiceReference, iFrontendInformation, eTimer , gRGB , eConsoleAppContainer
+from enigma import iPlayableService, iServiceInformation, eServiceCenter, eServiceReference, iFrontendInformation, eTimer , gRGB , eConsoleAppContainer , gFont
 from Components.Label import Label
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Components.Sources.StaticText import StaticText
 from Tools.Directories import fileExists
+from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
@@ -24,6 +26,7 @@ config.plugins.IPToSAT.player = ConfigSelection(default="gstplayer", choices=[
 	("exteplayer3", _("Exteplayer3")),
 ])
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
+config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 
 PLAYLIST_PATH = '/etc/enigma2/iptosat.json'
 
@@ -54,21 +57,15 @@ def getversioninfo():
 			pass
 	return (currversion)
 
-def parseColor(s):
-	return gRGB(int(s[1:], 0x10))
 
 Ver = getversioninfo()
 
 
-REDC = '\033[31m'
-ENDC = '\033[m'
+def parseColor(s):
+	return gRGB(int(s[1:], 0x10))
 
-
-def cprint(text):
-	print(REDC+text+ENDC)
 
 def getPlaylist():
-	import json
 	if fileExists(PLAYLIST_PATH):
 		with open(PLAYLIST_PATH, 'r')as f:
 			try:
@@ -79,32 +76,31 @@ def getPlaylist():
 		return None
 
 class IPToSATSetup(Screen, ConfigListScreen):
+	
 	skin = """
-        <screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
+		<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
 			<widget position="15,10" size="620,300" name="config" scrollbarMode="showOnDemand" />
 			<ePixmap position="100,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend" />
-			<widget source="red_key" render="Label" position="65,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
+			<widget name="key_red" position="65,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
 			<ePixmap position="480,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend" />
-			<widget source="green_key" render="Label" position="450,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
-        </screen>"""
+			<widget name="key_green" position="450,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
+		</screen>"""
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
 		self.setup_title = _("IPToSAT BY ZIKO V %s" % Ver)
-
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
-
 		self["actions"] = ActionMap(["IPtoSATActions"],
 		{
 			"cancel": self.keyCancel,
-			"save": self.apply,
-			"ok": self.apply,
+			"green": self.save,
+			"ok": self.ok,
 		}, -2)
-		self["green_key"] = StaticText(_("Save"))
-		self["red_key"] = StaticText(_("Cancel"))
+		self["key_red"] = Button(_("Cancel"))
+		self["key_green"] = Button(_("Save"))
 		self.createSetup()
 		self.onLayoutFinish.append(self.layoutFinished)
 
@@ -112,23 +108,28 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.setTitle(_("IPToSAT BY ZIKO V %s" % Ver))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(
-			_("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
+		self.list = [getConfigListEntry(_("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_("IPToSAT Player"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(_("Assign service to IPTV Link"), config.plugins.IPToSAT.assign))
-
+		self.list.append(getConfigListEntry(_("Reset or Remove channels from playlist"), config.plugins.IPToSAT.playlist))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 
-	def apply(self):
-		for x in self["config"].list:
-			if x[1] == config.plugins.IPToSAT.assign:
-				self.session.open(AssignService)
-			x[1].save()
-
+	def ok(self):
+		current = self["config"].getCurrent()
+		if current[1] == config.plugins.IPToSAT.assign:
+			self.session.open(AssignService)
+		elif current[1] == config.plugins.IPToSAT.playlist:
+			self.session.open(EditPlaylist)
+		
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
+
+	def save(self):
+		for x in self["config"].list:
+			x[1].save()
+		self.close(True)
 
 
 class IPtoSAT(Screen):
@@ -170,10 +171,8 @@ class IPtoSAT(Screen):
 			if info:
 				FeInfo = service and service.frontendInfo()
 				if FeInfo:
-					SNR = FeInfo.getFrontendInfo(
-						iFrontendInformation.signalQuality) / 655
-					isCrypted = info and info.getInfo(
-						iServiceInformation.sIsCrypted)
+					SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
+					isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
 					if isCrypted and SNR > 10:
 						lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 						channel_name = ServiceReference(lastservice).getServiceName()
@@ -195,18 +194,25 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,400" title="IPToSAT Service Assign">
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,460" title="IPToSAT Service Assign">
 				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
-				<widget name="status" position="850,150" size="724,28" font="Regular;24" zPosition="3"/>
-				<widget name="assign" position="15,359" size="724,28" font="Regular;24" zPosition="3"/>
+				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
+				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
+				<widget name="key_green" position="7,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="18,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
+				<widget name="key_blue" position="215,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="230,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
 			</screen>"""
 
 	def __init__(self, session, *args):
 		self.session = session
 		ChannelSelectionBase.__init__(self, session)
+		self.bouquet_mark_edit = 0
 		self["status"] = Label()
 		self["assign"] = Label()
+		self["key_green"] = Button(_("Satellites"))
+		self["key_blue"] = Button(_("Favourites"))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATActions"],
 		{
 			"cancel": self.exit,
@@ -215,6 +221,10 @@ class AssignService(ChannelSelectionBase):
 			"right": self.right,
 			"down": self.moveDown,
 			"up": self.moveUp,
+			"green": self.showSatellites,
+			"blue": self.showFavourites,
+			"nextBouquet": self.chUP,
+			"prevBouquet": self.chDOWN,
 
 		}, -2)
 		self.errortimer = eTimer()
@@ -268,6 +278,14 @@ class AssignService(ChannelSelectionBase):
 					nameStr = self.getServiceName(end_ref)
 					titleStr += nameStr
 				self.setTitle('IPtoSAT - '+titleStr)
+
+	def chUP(self):
+		if self.selectedList == self["list"]:
+			self.keyRight()
+	
+	def chDOWN(self):
+		if self.selectedList == self["list"]:
+			self.keyLeft()
 
 	def enablelist1(self):
 		instance = self["list"].instance
@@ -357,12 +375,12 @@ class AssignService(ChannelSelectionBase):
 	def addChannel(self,channel_name,stream_id,sref,xtream_channel):
 		playlist = getPlaylist()
 		if playlist:
-			if sref.startswith('1') and sref.endswith(':'):
+			if sref.startswith('1') and not 'http' in sref:
 				url = self.host+'/'+self.user+'/'+self.password+'/'+stream_id
 				if not self.exists(sref,playlist):
 					playlist['playlist'].append({'sref':sref,'channel':channel_name ,'url':url})
 					with open(PLAYLIST_PATH, 'w')as f:
-						json.dump(playlist, f, indent = 4 , sort_keys = False)
+						json.dump(playlist, f, indent = 4)
 					text = channel_name+' mapped successfully with '+xtream_channel
 					self.assignWidget("#008000",text)
 				else:
@@ -445,6 +463,85 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.close(True)
 
+class EditPlaylist(Screen):
+	
+	skin = """<screen name="IPToSAT - Edit Playlist" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
+				<widget position="18,22" size="565,350" name="list" scrollbarMode="showOnDemand"/>
+				<widget name="key_red" position="7,405" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="18,440" zPosition="5" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
+				<widget name="key_green" position="222,405" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="222,440" zPosition="5" size="500,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
+				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
+			</screen>"""
+
+	def __init__(self, session , *args):
+		self.session = session
+		Screen.__init__(self, session)
+		self["status"] = Label()
+		self["key_red"] = Button(_("Reset Playlist"))
+		self["key_green"] = Button(_("Remove Channel"))
+		self['list'] = MenuList([])
+		self["IptosatActions"] = ActionMap(["IPtoSATActions"],
+		{
+			"cancel": self.exit,
+			"red": self.keyRed,
+			"green":self.keyGreen,
+
+		}, -2)
+		self.channels = []
+		self.playlist = getPlaylist()
+		self.iniMenu()
+
+	def iniMenu(self):
+		if self.playlist:
+			list = []
+			for channel in self.playlist['playlist']:
+				try:
+					list.append(str(channel['channel']))
+				except KeyError:pass
+			if len(list) > 0:
+				self['list'].l.setList(sorted(list))
+				self.channels = sorted(list)
+				self.hideShowButtons()
+				self["status"].hide()
+			else:
+				self.hideShowButtons(True)
+				self["status"].setText('Playlist is empty')
+				self["status"].show()
+				self['list'].hide()
+		else:
+			self.hideShowButtons(True)
+			self["status"].setText('Failed to load Playlist')
+			self["status"].show()
+			self['list'].hide()
+
+	def keyGreen(self):
+		if self.playlist and len(self.channels) > 0:
+			index = self['list'].getSelectionIndex()
+			playlist = sorted(self.playlist['playlist'])
+			del playlist[index]
+			self.playlist['playlist'] = playlist
+			with open(PLAYLIST_PATH, 'w')as f:
+				json.dump(self.playlist, f , indent = 4)
+		self.iniMenu()
+
+	def hideShowButtons(self,hide=False):
+		if hide:
+			self["key_red"].hide()
+			self["key_green"].hide()
+		else:
+			self["key_red"].show()
+			self["key_green"].show()
+
+	def keyRed(self):
+		if self.playlist and len(self.channels) > 0:
+			self.playlist['playlist'] = []
+			with open(PLAYLIST_PATH, 'w')as f:
+				json.dump(self.playlist, f , indent = 4)
+		self.iniMenu()
+
+	def exit(self,ret=None):
+		self.close(True)
 
 def autostart(reason, **kwargs):
 	if reason == 0:
