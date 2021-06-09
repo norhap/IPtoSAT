@@ -18,16 +18,18 @@ from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
-import os
 
+def choices_list():
+	if fileExists('/var/lib/dpkg/status'):
+		# Fixed DreamOS by. audi06_19 , gst-play-1.0
+		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("Exteplayer3")),]
+	else:
+		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("Exteplayer3")),]
+
+default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') else "gst-play-1.0"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
-config.plugins.IPToSAT.player = ConfigSelection(default="gstplayer", choices=[
-	# Fixed DreamOS by. audi06_19
-	("gst-play-1.0", _("OE-2.5 Player")),
-	("gstplayer", _("GstPlayer")),
-	("exteplayer3", _("Exteplayer3")),
-])
+config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 
@@ -47,6 +49,7 @@ def log(data):
 	open('/tmp/IPtoSAT.log', 'a').write(now+' : '+str(data)+'\r\n')
 
 def getversioninfo():
+	import os
 	currversion = '1.0'
 	version_file = '/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/version'
 	if os.path.exists(version_file):
@@ -104,8 +107,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["key_red"] = Button(_("Cancel"))
 		self["key_green"] = Button(_("Save"))
 		self.createSetup()
-		# Fixed DreamOS by. audi06_19
-		self.onShown.append(self.dos)
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
@@ -135,31 +136,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x[1].save()
 		self.close(True)
 
-	# start Fixed DreamOS by. audi06_19
-	def dos(self):
-		self.onShown.remove(self.dos)
-		f = ''
-		if os.path.exists('/var/lib/dpkg/status'):
-			f = open('/var/lib/dpkg/status', 'r')
-		sw = f.read()
-		f.close()
-		text = _('Installing')
-		gstplay = ''
-		# gstreamer1.0-plugins-base-apps
-		if sw.find('Package: gstreamer1.0-plugins-base-meta') == -1:
-			gstplay = 'gstreamer1.0-plugins-base-meta'
-			text += ' ' + gstplay + ' '
-		if gstplay == 'gstreamer1.0-plugins-base-meta':
-			self.session.openWithCallback(self.installBinaries(gstplay), MessageBox, text, type=MessageBox.TYPE_WARNING, timeout=10)
-
-	def installBinaries(self, gstplay=''):
-		self.container = eConsoleAppContainer()
-		if os.path.exists('/var/lib/dpkg/status'):
-			cmd = 'apt-get update; apt-get install --fix-broken --yes --force-yes --assume-yes {} > /dev/null; apt-get -f -y install --force-yes; systemctl restart enigma2'.format(gstplay)
-		else:
-			print('cmd: s%' % cmd)
-		self.container.execute(cmd)
-		# finish Fixed DreamOS by. audi06_19
 
 class IPtoSAT(Screen):
 
@@ -310,11 +286,11 @@ class AssignService(ChannelSelectionBase):
 
 	def chUP(self):
 		if self.selectedList == self["list"]:
-			self.keyRight()
+			self.servicelist.instance.moveSelection(self.servicelist.instance.pageDown)
 	
 	def chDOWN(self):
 		if self.selectedList == self["list"]:
-			self.keyLeft()
+			self.servicelist.instance.moveSelection(self.servicelist.instance.pageUp)
 
 	def enablelist1(self):
 		instance = self["list"].instance
@@ -575,18 +551,10 @@ class EditPlaylist(Screen):
 def autostart(reason, **kwargs):
 	if reason == 0:
 		if config.plugins.IPToSAT.enable.value:
-			session = kwargs["session"]
-			if fileExists('/var/lib/dpkg/status'):
-				# Fixed DreamOS by. audi06_19
-				if fileExists('/usr/bin/gst-play-1.0'):
-					IPtoSAT(session)
-				else:
-					log("Cannot start IPtoSat, gst-play-1.0 not found")
+			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
+				IPtoSAT(kwargs["session"])
 			else:
-				if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
-					IPtoSAT(session)
-				else:
-					log("Cannot start IPtoSat, {} not found".format(config.plugins.IPToSAT.player.value))
+				log("Cannot start IPtoSat, {} not found".format(config.plugins.IPToSAT.player.value))
 
 
 def iptosatSetup(session, **kwargs):
