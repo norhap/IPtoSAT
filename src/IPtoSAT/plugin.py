@@ -13,11 +13,16 @@ from Components.Label import Label
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Components.Sources.StaticText import StaticText
-from Tools.Directories import fileExists
+from Components.Console import Console
+from Tools.Directories import fileContains, fileExists
 from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
+from os.path import join
+from os import listdir
+from shutil import move
+
 
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
@@ -81,7 +86,7 @@ def getPlaylist():
 		return None
 
 class IPToSATSetup(Screen, ConfigListScreen):
-	
+
 	skin = """
 		<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
 			<widget position="15,10" size="620,300" name="config" scrollbarMode="showOnDemand" />
@@ -126,7 +131,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(AssignService)
 		elif current[1] == config.plugins.IPToSAT.playlist:
 			self.session.open(EditPlaylist)
-		
+
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
@@ -207,7 +212,9 @@ class AssignService(ChannelSelectionBase):
 				<widget name="key_green" position="7,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
 				<ePixmap position="18,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
 				<widget name="key_blue" position="215,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<widget name="key_red" position="423,395" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
 				<ePixmap position="230,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
+				<ePixmap position="438,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
 			</screen>"""
 
 	def __init__(self, session, *args):
@@ -217,6 +224,7 @@ class AssignService(ChannelSelectionBase):
 		self["status"] = Label()
 		self["assign"] = Label()
 		self["key_green"] = Button(_("Satellites"))
+		self["key_red"] = Button(_("Add EPG Channel IPTV"))
 		self["key_blue"] = Button(_("Favourites"))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATActions"],
 		{
@@ -227,6 +235,7 @@ class AssignService(ChannelSelectionBase):
 			"down": self.moveDown,
 			"up": self.moveUp,
 			"green": self.showSatellites,
+			"red": self.setEPGChannel,
 			"blue": self.showFavourites,
 			"nextBouquet": self.chUP,
 			"prevBouquet": self.chDOWN,
@@ -287,7 +296,7 @@ class AssignService(ChannelSelectionBase):
 	def chUP(self):
 		if self.selectedList == self["list"]:
 			self.servicelist.instance.moveSelection(self.servicelist.instance.pageDown)
-	
+
 	def chDOWN(self):
 		if self.selectedList == self["list"]:
 			self.servicelist.instance.moveSelection(self.servicelist.instance.pageUp)
@@ -386,10 +395,10 @@ class AssignService(ChannelSelectionBase):
 					playlist['playlist'].append({'sref':sref,'channel':channel_name ,'url':url})
 					with open(PLAYLIST_PATH, 'w')as f:
 						json.dump(playlist, f, indent = 4)
-					text = channel_name+' mapped successfully with '+xtream_channel
+					text = channel_name+' mapeado correctamente con '+xtream_channel
 					self.assignWidget("#008000",text)
 				else:
-					text = channel_name+' already exist in playlist'
+					text = channel_name+' este canal ya existe en la lista.'
 					self.assignWidget("#00ff2525",text)
 			else:
 				text = "Cannot assign channel to this service"
@@ -397,6 +406,39 @@ class AssignService(ChannelSelectionBase):
 		else:
 			text = "Failed to load Playlist"
 			self.assignWidget("#00ff2525",text)
+
+	def setEPGChannel(self):
+		sref = str(self.getSref())
+		channel_name = str(ServiceReference(sref).getServiceName())
+		self.addEPGChannel(channel_name, sref)
+
+	def addEPGChannel(self, channel_name, sref):
+		for filelist in sorted([x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]):
+			bouquetiptv = join(filelist)
+			if fileContains("/etc/enigma2/" + bouquetiptv, channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, str(self.password)) and not fileContains("/etc/enigma2/" + bouquetiptv, sref):
+				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
+					lines = fr.readlines()
+					with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "w") as fw:
+						for line in lines:
+							if channel_name not in line:
+								fw.write(line)
+				with open("/etc/enigma2/" + bouquetiptv, "r") as file:
+					replacement = ""
+					for line in file:
+						line = line.strip()
+						ref = line[9:31] if "4097" in line else line[9:28]
+						if channel_name in line and self.password in line:
+							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:"+ channel_name, "0")
+							replacement = replacement + reference_epg
+				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
+					fr.write("\n" + 'CANAL CON EPG:' + "\n" + replacement)
+				move("/etc/enigma2/iptv_bouquet_epg.txt", "/etc/enigma2/" + bouquetiptv)
+				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
+					text = channel_name+" No hay referencia, verifique en su lista el nombre del canal."
+					self.assignWidget("#00ff2525",text)
+				else:
+					text = channel_name + " Canal con EPG establecida, reinicia enigma2 para aplicar los cambios."
+					self.assignWidget("#008000",text)
 
 	def exists(self,sref,playlist):
 		try:
@@ -415,7 +457,7 @@ class AssignService(ChannelSelectionBase):
 	def getSref(self):
 		ref = self.getCurrentSelection()
 		return ref.toString()
-		
+
 	def callAPI(self, url, callback):
 		self['list2'].hide()
 		self["status"].show()
@@ -469,7 +511,7 @@ class AssignService(ChannelSelectionBase):
 			self.close(True)
 
 class EditPlaylist(Screen):
-	
+
 	skin = """<screen name="IPToSAT - Edit Playlist" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
 				<widget position="18,22" size="565,350" name="list" scrollbarMode="showOnDemand"/>
 				<widget name="key_red" position="7,405" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
