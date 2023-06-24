@@ -118,10 +118,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.setTitle(_("IPToSAT BY ZIKO V %s" % Ver))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(_("Enable IPToSAT"), config.plugins.IPToSAT.enable)]
+		self.list = [getConfigListEntry(_("IPToSAT Habilitado"), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_("IPToSAT Player"), config.plugins.IPToSAT.player))
-		self.list.append(getConfigListEntry(_("Assign service to IPTV Link"), config.plugins.IPToSAT.assign))
-		self.list.append(getConfigListEntry(_("Reset or Remove channels from playlist"), config.plugins.IPToSAT.playlist))
+		self.list.append(getConfigListEntry(_("Asignar canal a IPTV"), config.plugins.IPToSAT.assign))
+		self.list.append(getConfigListEntry(_("Resetesr o eliminar canales de la lista"), config.plugins.IPToSAT.playlist))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 
@@ -204,17 +204,18 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,460" title="IPToSAT Service Assign">
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,530" title="IPToSAT Service Assign">
 				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
-				<widget name="key_green" position="7,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="18,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
-				<widget name="key_blue" position="215,414" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<widget name="key_red" position="423,395" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="230,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
-				<ePixmap position="438,450" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
+				<widget name="key_green" position="7,484" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="18,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
+				<widget name="key_blue" position="215,484" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<widget name="key_red" position="423,465" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="230,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
+				<ePixmap position="438,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
+				<widget name="description" position="633,374" size="710,170" font="Regular;24" zPosition="3"/>
 			</screen>"""
 
 	def __init__(self, session, *args):
@@ -223,8 +224,9 @@ class AssignService(ChannelSelectionBase):
 		self.bouquet_mark_edit = 0
 		self["status"] = Label()
 		self["assign"] = Label()
+		self["description"] = Label("Elija el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser el mismo al de la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter raro tipo acento (renómbrelo) o no tiene el mismo nombre. Para mapear canales elija el canal en ambas listas y pulse OK.")
 		self["key_green"] = Button(_("Satellites"))
-		self["key_red"] = Button(_("Add EPG Channel IPTV"))
+		self["key_red"] = Button(_("Añadir EPG Canal IPTV"))
 		self["key_blue"] = Button(_("Favourites"))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATActions"],
 		{
@@ -426,18 +428,21 @@ class AssignService(ChannelSelectionBase):
 					replacement = ""
 					for line in file:
 						line = line.strip()
-						ref = line[9:31] if "4097" in line else line[9:28]
+						if "4097" in line or "5001" in line or "5002" in line:
+							ref = line[9:31]
+						else:
+							ref = line[9:28]
 						if channel_name in line and self.password in line:
 							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:"+ channel_name, "0")
 							replacement = replacement + reference_epg
 				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
-					fr.write("\n" + 'CANAL CON EPG:' + "\n" + replacement)
+					fr.write("\n" + replacement)
 				move("/etc/enigma2/iptv_bouquet_epg.txt", "/etc/enigma2/" + bouquetiptv)
 				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
-					text = channel_name+" No hay referencia, verifique en su lista el nombre del canal."
+					text = channel_name+" Sin EPG, verifique nombre del canal."
 					self.assignWidget("#00ff2525",text)
 				else:
-					text = channel_name + " Canal con EPG establecida, reinicia enigma2 para aplicar los cambios."
+					text = channel_name + " EPG establecida, reinicia enigma2."
 					self.assignWidget("#008000",text)
 
 	def exists(self,sref,playlist):
