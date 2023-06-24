@@ -121,7 +121,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list = [getConfigListEntry(_("IPToSAT Habilitado"), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_("IPToSAT Player"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(_("Asignar canal o EPG a IPTV"), config.plugins.IPToSAT.assign))
-		self.list.append(getConfigListEntry(_("Resetesr o eliminar canales de la lista"), config.plugins.IPToSAT.playlist))
+		self.list.append(getConfigListEntry(_("Resetear o eliminar canales de la lista"), config.plugins.IPToSAT.playlist))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 
