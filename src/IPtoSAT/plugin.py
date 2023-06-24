@@ -436,7 +436,7 @@ class AssignService(ChannelSelectionBase):
 							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:"+ channel_name, "0")
 							replacement = replacement + reference_epg
 				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
-					fr.write("\n" + replacement)
+					fr.write("#" + "\n" + replacement)
 				move("/etc/enigma2/iptv_bouquet_epg.txt", "/etc/enigma2/" + bouquetiptv)
 				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
 					text = channel_name+" Sin EPG, verifique nombre del canal."
