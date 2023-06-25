@@ -90,10 +90,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 		<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
 			<widget position="15,10" size="620,300" name="config" scrollbarMode="showOnDemand" />
-			<ePixmap position="100,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend" />
-			<widget name="key_red" position="65,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
-			<ePixmap position="480,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend" />
-			<widget name="key_green" position="450,260" zPosition="2" size="165,30" font="Regular; 20" halign="center" valign="center" transparent="1" />
+			<ePixmap position="100,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend" />
+			<widget name="key_red" position="65,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
+			<ePixmap position="480,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend" />
+			<widget name="key_green" position="450,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
 		</screen>"""
 
 	def __init__(self, session):
@@ -209,12 +209,12 @@ class AssignService(ChannelSelectionBase):
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
-				<widget name="key_green" position="7,504" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="18,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
-				<widget name="key_blue" position="215,504" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<widget name="key_red" position="423,485" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
-				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
+				<widget name="key_green" position="7,504" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="18,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
+				<widget name="key_blue" position="215,504" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<widget name="key_red" position="423,485" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
+				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
 				<widget name="description" position="633,390" size="710,170" font="Regular;24" zPosition="3"/>
 			</screen>"""
 
@@ -519,10 +519,10 @@ class EditPlaylist(Screen):
 
 	skin = """<screen name="IPToSAT - Edit Playlist" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
 				<widget position="18,22" size="565,350" name="list" scrollbarMode="showOnDemand"/>
-				<widget name="key_red" position="7,405" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="18,440" zPosition="5" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
-				<widget name="key_green" position="222,405" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="222,440" zPosition="5" size="500,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
+				<widget name="key_red" position="7,405" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="18,440" zPosition="5" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
+				<widget name="key_green" position="222,405" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="222,440" zPosition="5" size="500,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
 				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
 			</screen>"""
 
