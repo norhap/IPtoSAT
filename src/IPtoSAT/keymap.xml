@@ -8,7 +8,8 @@
 		<key id="KEY_ESC" mapto="back" flags="m"/>
 		<key id="KEY_EXIT" mapto="cancel" flags="m"/>
 		<key id="KEY_OK" mapto="ok" flags="m"/>
-		<key id="KEY_BLUE" mapto="blue" flags="m"/>
 		<key id="KEY_RED" mapto="red" flags="m"/>
+		<key id="KEY_GREEN" mapto="green" flags="m"/>
+		<key id="KEY_BLUE" mapto="blue" flags="m"/>
 	</map>
 </keymap>
