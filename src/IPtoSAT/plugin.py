@@ -204,18 +204,18 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,530" title="IPToSAT Service Assign">
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,552" title="IPToSAT Service Assign">
 				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
-				<widget name="key_green" position="7,484" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="18,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
-				<widget name="key_blue" position="215,484" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<widget name="key_red" position="423,465" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
-				<ePixmap position="230,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
-				<ePixmap position="438,520" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
-				<widget name="description" position="633,374" size="710,170" font="Regular;24" zPosition="3"/>
+				<widget name="key_green" position="7,504" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="18,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphatest="blend"/>
+				<widget name="key_blue" position="215,504" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<widget name="key_red" position="423,485" zPosition="2" size="165,50" font="Regular;20" halign="center" valign="center" transparent="1"/>
+				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphatest="blend"/>
+				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphatest="blend"/>
+				<widget name="description" position="633,390" size="710,170" font="Regular;24" zPosition="3"/>
 			</screen>"""
 
 	def __init__(self, session, *args):
@@ -393,7 +393,7 @@ class AssignService(ChannelSelectionBase):
 		if playlist:
 			if sref.startswith('1') and not 'http' in sref:
 				url = self.host+'/'+self.user+'/'+self.password+'/'+stream_id
-				if not self.exists(sref,playlist):
+				if not fileContains("/etc/enigma2/iptosat.json", sref):
 					playlist['playlist'].append({'sref':sref,'channel':channel_name ,'url':url})
 					with open(PLAYLIST_PATH, 'w')as f:
 						json.dump(playlist, f, indent = 4)
