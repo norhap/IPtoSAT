@@ -94,6 +94,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			<widget name="key_red" position="65,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
 			<ePixmap position="480,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend" />
 			<widget name="key_green" position="450,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
+			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 		</screen>"""
 
 	def __init__(self, session):
@@ -105,8 +106,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
 		self["actions"] = ActionMap(["IPtoSATActions"],
 		{
+			"back": self.keyCancel,
+			"down": self.moveDown,
+			"up": self.moveUp,
+			"left": self.keyLeft,
+			"right": self.keyRight,
 			"cancel": self.keyCancel,
-			"green": self.save,
+			"red": self.keyCancel,
+			"green": self.keySave,
 			"ok": self.ok,
 		}, -2)
 		self["key_red"] = Button(_("Cancel"))
@@ -136,10 +143,20 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		for x in self.onChangedEntry:
 			x()
 
-	def save(self):
-		for x in self["config"].list:
-			x[1].save()
-		self.close(True)
+	def keySave(self):
+		ConfigListScreen.keySave(self)
+
+	def moveUp(self):
+		self["config"].moveUp()
+
+	def moveDown(self):
+		self["config"].moveDown()
+
+	def keyLeft(self):
+		ConfigListScreen.keyLeft(self)
+
+	def keyRight(self):
+		ConfigListScreen.keyRight(self)
 
 
 class IPtoSAT(Screen):
@@ -216,6 +233,7 @@ class AssignService(ChannelSelectionBase):
 				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
 				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
 				<widget name="description" position="633,390" size="710,170" font="Regular;24" zPosition="3"/>
+				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
 	def __init__(self, session, *args):
@@ -227,10 +245,12 @@ class AssignService(ChannelSelectionBase):
 		self["description"] = Label("Elija el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser el mismo al de la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter raro tipo acento (renómbrelo) o no tiene el mismo nombre. Para mapear canales elija el canal en ambas listas y pulse OK.")
 		self["key_green"] = Button(_("Satellites"))
 		self["key_red"] = Button(_("Añadir EPG Canal IPTV"))
+		self["key_yellow"] = StaticText("")
 		self["key_blue"] = Button(_("Favourites"))
-		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATActions"],
+		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
+			"back": self.exit,
 			"ok": self.channelSelected,
 			"left": self.left,
 			"right": self.right,
@@ -524,17 +544,19 @@ class EditPlaylist(Screen):
 				<widget name="key_green" position="222,405" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
 				<ePixmap position="222,440" zPosition="5" size="500,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
 				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
+			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
 	def __init__(self, session , *args):
 		self.session = session
 		Screen.__init__(self, session)
 		self["status"] = Label()
-		self["key_red"] = Button(_("Reset Playlist"))
-		self["key_green"] = Button(_("Remove Channel"))
+		self["key_red"] = Button(_("Eliminar lista"))
+		self["key_green"] = Button(_("Eliminar Canal"))
 		self['list'] = MenuList([])
 		self["IptosatActions"] = ActionMap(["IPtoSATActions"],
 		{
+			"back": self.close,
 			"cancel": self.exit,
 			"red": self.keyRed,
 			"green":self.keyGreen,
@@ -558,19 +580,19 @@ class EditPlaylist(Screen):
 				self["status"].hide()
 			else:
 				self.hideShowButtons(True)
-				self["status"].setText('Playlist is empty')
+				self["status"].setText('No hay lista de canales')
 				self["status"].show()
 				self['list'].hide()
 		else:
 			self.hideShowButtons(True)
-			self["status"].setText('Failed to load Playlist')
+			self["status"].setText('Falló al leer la lista')
 			self["status"].show()
 			self['list'].hide()
 
 	def keyGreen(self):
 		if self.playlist and len(self.channels) > 0:
 			index = self['list'].getSelectionIndex()
-			playlist = sorted(self.playlist['playlist'])
+			playlist = self.playlist['playlist']
 			del playlist[index]
 			self.playlist['playlist'] = playlist
 			with open(PLAYLIST_PATH, 'w')as f:
