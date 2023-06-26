@@ -540,23 +540,23 @@ class AssignService(ChannelSelectionBase):
 
 class EditPlaylist(Screen):
 
-	skin = """<screen name="IPToSAT - Edit Playlist" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
-				<widget position="18,22" size="565,350" name="list" scrollbarMode="showOnDemand"/>
-				<widget name="key_red" position="7,405" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<ePixmap position="18,440" zPosition="5" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
-				<widget name="key_green" position="222,405" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<ePixmap position="222,440" zPosition="5" size="500,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
+	skin = """<screen name="EditPlaylistIPtoSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
+				<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
+				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+				<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
-			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
 	def __init__(self, session , *args):
 		self.session = session
 		Screen.__init__(self, session)
 		self["status"] = Label()
-		self["key_red"] = Button(_("Eliminar lista"))
-		self["key_green"] = Button(_("Eliminar Canal"))
+		self.skinName = ["EditPlaylistIPtoSAT"]
+		self.setTitle(_("Editar lista de canales"))		
 		self['list'] = MenuList([])
+		self["key_red"] = StaticText("")
+		self["key_green"] = StaticText("")
 		self["IptosatActions"] = ActionMap(["IPtoSATActions"],
 		{
 			"back": self.close,
@@ -579,15 +579,14 @@ class EditPlaylist(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(sorted(list))
 				self.channels = sorted(list)
-				self.hideShowButtons()
 				self["status"].hide()
+				self["key_red"].setText(_("Eliminar lista"))
+				self["key_green"].setText(_("Eliminar Canal"))
 			else:
-				self.hideShowButtons(True)
 				self["status"].setText('No hay lista de canales')
 				self["status"].show()
 				self['list'].hide()
 		else:
-			self.hideShowButtons(True)
 			self["status"].setText('Falló al leer la lista')
 			self["status"].show()
 			self['list'].hide()
@@ -601,14 +600,6 @@ class EditPlaylist(Screen):
 			with open(PLAYLIST_PATH, 'w')as f:
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
-
-	def hideShowButtons(self,hide=False):
-		if hide:
-			self["key_red"].hide()
-			self["key_green"].hide()
-		else:
-			self["key_red"].show()
-			self["key_green"].show()
 
 	def keyRed(self):
 		if self.playlist and len(self.channels) > 0:
