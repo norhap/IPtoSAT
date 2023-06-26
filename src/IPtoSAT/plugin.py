@@ -145,6 +145,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keySave(self):
 		ConfigListScreen.keySave(self)
+		if config.plugins.IPToSAT.enable.value and fileContains("/etc/enigma2/iptosat.json", '"sref": "'):
+			from Screens.Standby import TryQuitMainloop
+			self.session.open(TryQuitMainloop, 3)
 
 	def moveUp(self):
 		self["config"].moveUp()
