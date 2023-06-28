@@ -433,6 +433,13 @@ class AssignService(ChannelSelectionBase):
 			text = "Failed to load Playlist"
 			self.assignWidget("#00ff2525",text)
 
+	def restarGUI(self, answer):
+		if answer:
+			from Screens.Standby import TryQuitMainloop
+			self.session.open(TryQuitMainloop, 3)
+		else:
+			self.channelSelected()
+
 	def setEPGChannel(self):
 		sref = str(self.getSref())
 		channel_name = str(ServiceReference(sref).getServiceName())
@@ -466,8 +473,9 @@ class AssignService(ChannelSelectionBase):
 					text = channel_name+" Sin EPG, verifique nombre del canal."
 					self.assignWidget("#00ff2525",text)
 				else:
-					text = channel_name + " EPG establecida, reinicia enigma2."
+					text = channel_name + " con EPG establecida"
 					self.assignWidget("#008000",text)
+					self.session.openWithCallback(self.restarGUI, MessageBox, _('Canal con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nElija \"NO\" para seguir añadiendo canales.'), MessageBox.TYPE_YESNO, default=False)
 
 	def exists(self,sref,playlist):
 		try:
