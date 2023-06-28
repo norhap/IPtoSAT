@@ -416,8 +416,9 @@ class AssignService(ChannelSelectionBase):
 		if playlist:
 			if sref.startswith('1') and not 'http' in sref:
 				url = self.host+'/'+self.user+'/'+self.password+'/'+stream_id
-				if not fileContains("/etc/enigma2/iptosat.json", sref):
-					playlist['playlist'].append({'sref':sref,'channel':channel_name ,'url':url})
+				if not fileContains(PLAYLIST_PATH, sref):
+					from unicodedata import normalize
+					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
 					with open(PLAYLIST_PATH, 'w')as f:
 						json.dump(playlist, f, indent = 4)
 					text = channel_name+' mapeado correctamente con '+xtream_channel
@@ -553,7 +554,7 @@ class EditPlaylist(Screen):
 		Screen.__init__(self, session)
 		self["status"] = Label()
 		self.skinName = ["EditPlaylistIPtoSAT"]
-		self.setTitle(_("Editar lista de canales"))		
+		self.setTitle(_("Editar lista de canales"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
