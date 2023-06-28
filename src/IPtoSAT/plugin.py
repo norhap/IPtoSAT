@@ -77,7 +77,7 @@ def parseColor(s):
 
 def getPlaylist():
 	if fileExists(PLAYLIST_PATH):
-		with open(PLAYLIST_PATH, 'r')as f:
+		with open(PLAYLIST_PATH, 'r') as f:
 			try:
 				return json.loads(f.read())
 			except ValueError:
@@ -419,7 +419,7 @@ class AssignService(ChannelSelectionBase):
 				if not fileContains(PLAYLIST_PATH, sref):
 					from unicodedata import normalize
 					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
-					with open(PLAYLIST_PATH, 'w')as f:
+					with open(PLAYLIST_PATH, 'w') as f:
 						json.dump(playlist, f, indent = 4)
 					text = channel_name+' mapeado correctamente con '+xtream_channel
 					self.assignWidget("#008000",text)
@@ -598,14 +598,14 @@ class EditPlaylist(Screen):
 			playlist = self.playlist['playlist']
 			del playlist[index]
 			self.playlist['playlist'] = playlist
-			with open(PLAYLIST_PATH, 'w')as f:
+			with open(PLAYLIST_PATH, 'w') as f:
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
 	def keyRed(self):
 		if self.playlist and len(self.channels) > 0:
 			self.playlist['playlist'] = []
-			with open(PLAYLIST_PATH, 'w')as f:
+			with open(PLAYLIST_PATH, 'w') as f:
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
