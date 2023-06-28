@@ -224,7 +224,7 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,552" title="IPToSAT Service Assign">
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,580" title="IPToSAT Service Assign">
 				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
@@ -235,7 +235,7 @@ class AssignService(ChannelSelectionBase):
 				<widget name="key_red" position="423,485" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
 				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
 				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
-				<widget name="description" position="633,390" size="710,170" font="Regular;24" zPosition="3"/>
+				<widget name="description" position="633,390" size="710,185" font="Regular;24" zPosition="3"/>
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
@@ -245,7 +245,7 @@ class AssignService(ChannelSelectionBase):
 		self.bouquet_mark_edit = 0
 		self["status"] = Label()
 		self["assign"] = Label()
-		self["description"] = Label("Elija el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser el mismo al de la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter raro tipo acento (renómbrelo) o no tiene el mismo nombre. Para mapear canales elija el canal en ambas listas y pulse OK.")
+		self["description"] = Label("Elija el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite y estar al final de la línea donde se ubique en la lista IPTV empezando con dos puntos. Si pulsa y no hay cambios significa que el canal tiene un caracter raro tipo acento (renombrar canal satélite) o el nombre es distinto. Para mapear canales elija el canal en ambas listas y pulse OK.")
 		self["key_green"] = Button(_("Satellites"))
 		self["key_red"] = Button(_("Añadir EPG Canal IPTV"))
 		self["key_yellow"] = StaticText("")
