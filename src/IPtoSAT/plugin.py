@@ -475,7 +475,7 @@ class AssignService(ChannelSelectionBase):
 				else:
 					text = channel_name + " con EPG establecida"
 					self.assignWidget("#008000",text)
-					self.session.openWithCallback(self.restarGUI, MessageBox, _('Canal con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nElija \"NO\" para seguir añadiendo canales.'), MessageBox.TYPE_YESNO, default=False)
+					self.session.openWithCallback(self.restarGUI, MessageBox, _('"%s" con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nElija \"NO\" para seguir añadiendo canales.') % str(channel_name), MessageBox.TYPE_YESNO, default=False)
 
 	def exists(self,sref,playlist):
 		try:
