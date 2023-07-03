@@ -445,7 +445,7 @@ class AssignService(ChannelSelectionBase):
 					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
 					with open(PLAYLIST_PATH, 'w') as f:
 						json.dump(playlist, f, indent = 4)
-					text = channel_name + " " + _(language.get(lang, "correctly mapped with")) + " " + xtream_channel
+					text = channel_name + " " + _(language.get(lang, "correctly assigned with")) + " " + xtream_channel
 					self.assignWidget("#008000",text)
 				else:
 					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list"))

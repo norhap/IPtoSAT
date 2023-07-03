@@ -1,5 +1,5 @@
 [en]
-0 = Select satellite channel (left) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite and be at the end of the line where it is located in the IPTV list, starting with a colon. If you press and there are no changes, it means that the channel has an character strange, (rename satellite channel) or the name is different. To map channels select the channel in both lists and press OK.
+0 = Select satellite channel (left) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite and be at the end of the line where it is located in the IPTV list, starting with a colon. If you press and there are no changes, it means that the channel has an character strange, (rename satellite channel) or the name is different. To assign channels select the channel in both lists and press OK.
 1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect "No" to continue adding channels.
 IPToSAT BY ZIKO = IPToSAT BY ZIKO
 Enable IPToSAT = Enable IPToSAT
@@ -10,7 +10,7 @@ Add EPG IPTV Channel = Add EPG IPTV Channel
 Something is wrong in /etc/iptosat.conf. Log in /tmp/IPtoSAT.log = Something is wrong in /etc/iptosat.conf. Log in /tmp/IPtoSAT.log
 An Unexpected HTTP Error Occurred During The API Request !! = An Unexpected HTTP Error Occurred During The API Request !!
 this channel already exists in the list = this channel already exists in the list
-correctly mapped with = correctly mapped with
+correctly assigned with = correctly assigned with
 Failed to load Playlist = Failed to load Playlist
 Cannot assign to this channel = Cannot assign to this channel
 with EPG set = with EPG set
@@ -23,7 +23,7 @@ Failed to read list = Failed to read list
 Please wait... = Please wait...
 
 [es]
-0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite y estar al final de la línea donde se ubique en la lista IPTV,  empezando con dos puntos. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc... (renombre canal satélite) o el nombre es distinto. Para mapear canales seleccione el canal en ambas listas y pulse OK.
+0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite y estar al final de la línea donde se ubique en la lista IPTV,  empezando con dos puntos. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc... (renombre canal satélite) o el nombre es distinto. Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
 1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione "No" para seguir añadiendo canales.
 IPToSAT BY ZIKO = IPToSAT POR ZIKO
 Enable IPToSAT = IPToSAT Habilitado
@@ -34,7 +34,7 @@ Add EPG IPTV Channel = Añadir EPG Canal IPTV
 Something is wrong in /etc/iptosat.conf. Log in /tmp/IPtoSAT.log = Algo anda mal en /etc/iptosat.conf. Log en /tmp/IPtoSAT.log
 An Unexpected HTTP Error Occurred During The API Request !! = ¡Ocurrió un error HTTP inesperado durante la solicitud de la API!
 this channel already exists in the list = este canal ya existe en la lista
-correctly mapped with = mapeado correctamente con
+correctly assigned with = asignado correctamente con
 Failed to load Playlist = Error al cargar la lista
 Cannot assign to this channel = No se puede asignar a este canal
 with EPG set = con EPG establecida
