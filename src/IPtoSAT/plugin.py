@@ -150,7 +150,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def createSetup(self):
 		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_(language.get(lang, "IPToSAT Player")), config.plugins.IPToSAT.player))
-		self.list.append(getConfigListEntry(_(language.get(lang, "Assign channel or EPG to IPTV")), config.plugins.IPToSAT.assign))
+		self.list.append(getConfigListEntry(_(language.get(lang, "Assign satellite channel to IPTV list")), config.plugins.IPToSAT.assign))
 		self.list.append(getConfigListEntry(_(language.get(lang, "Reset or Remove channels from playlist")), config.plugins.IPToSAT.playlist))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
@@ -247,18 +247,18 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,580" title="IPToSAT Service Assign">
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,602" title="IPToSAT Service Assign">
 				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
-				<widget name="key_green" position="7,504" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<ePixmap position="18,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
-				<widget name="key_blue" position="215,504" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<widget name="key_red" position="423,485" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<ePixmap position="230,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
-				<ePixmap position="438,540" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
-				<widget name="description" position="633,390" size="710,185" font="Regular;24" zPosition="3"/>
+				<widget name="key_green" position="7,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="18,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
+				<widget name="key_blue" position="215,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<widget name="key_red" position="423,524" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<ePixmap position="230,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
+				<ePixmap position="438,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
+				<widget name="description" position="633,390" size="710,210" font="Regular;24" zPosition="3"/>
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
@@ -448,7 +448,7 @@ class AssignService(ChannelSelectionBase):
 					text = channel_name + " " + _(language.get(lang, "correctly mapped with")) + " " + xtream_channel
 					self.assignWidget("#008000",text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list."))
+					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list"))
 					self.assignWidget("#00ff2525",text)
 			else:
 				text = _(language.get(lang, "Cannot assign to this channel"))
