@@ -611,7 +611,7 @@ class EditPlaylist(Screen):
 					list.append(str(channel['channel']))
 				except KeyError:pass
 			if len(list) > 0:
-				self['list'].l.setList(sorted(list))
+				self['list'].l.setList(list)
 				self.channels = sorted(list)
 				self["status"].hide()
 				self["key_red"].setText(_(language.get(lang, "Delete list")))
