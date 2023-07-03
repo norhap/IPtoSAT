@@ -1,6 +1,6 @@
 [en]
-0 = Choose satellite channel (left) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite and be at the end of the line where it is located in the IPTV list, starting with a colon. If you press and there are no changes, it means that the channel has an accent type character Ñ etc... (rename satellite channel) or the name is different. To map channels choose the channel in both lists and press OK.
-1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nChoose \"NO\" to continue adding channels.
+0 = Select satellite channel (left) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite and be at the end of the line where it is located in the IPTV list, starting with a colon. If you press and there are no changes, it means that the channel has an accent type character Ñ etc... (rename satellite channel) or the name is different. To map channels select the channel in both lists and press OK.
+1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect \"NO\" to continue adding channels.
 IPToSAT BY ZIKO = IPToSAT BY ZIKO
 Enable IPToSAT = Enable IPToSAT
 IPToSAT Player = IPToSAT Player
@@ -23,8 +23,8 @@ Failed to read list = Failed to read list
 Please wait... = Please wait...
 
 [es]
-0 = Elija el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite y estar al final de la línea donde se ubique en la lista IPTV,  empezando con dos puntos. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento Ñ etc... (renombrar canal satélite) o el nombre es distinto. Para mapear canales elija el canal en ambas listas y pulse OK.
-1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nElija \"NO\" para seguir añadiendo canales.
+0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite y estar al final de la línea donde se ubique en la lista IPTV,  empezando con dos puntos. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento Ñ etc... (renombrar canal satélite) o el nombre es distinto. Para mapear canales seleccione el canal en ambas listas y pulse OK.
+1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione \"NO\" para seguir añadiendo canales.
 IPToSAT BY ZIKO = IPToSAT POR ZIKO
 Enable IPToSAT = IPToSAT Habilitado
 IPToSAT Player = Reproductor IPToSAT
