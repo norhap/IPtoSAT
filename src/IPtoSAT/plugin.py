@@ -74,7 +74,7 @@ def trace_error():
 
 def log(data):
 	now = datetime.now().strftime('%Y-%m-%d %H:%M')
-	open('/tmp/IPtoSAT.log', 'a').write(now+' : '+str(data)+'\r\n')
+	open('/tmp/IPtoSAT.log', 'a').write(now + ' : ' + str(data) + '\r\n')
 
 def getversioninfo():
 	import os
@@ -340,7 +340,7 @@ class AssignService(ChannelSelectionBase):
 						titleStr += '/'
 					nameStr = self.getServiceName(end_ref)
 					titleStr += nameStr
-				self.setTitle('IPtoSAT - '+titleStr)
+				self.setTitle('IPtoSAT - ' + titleStr)
 
 	def chUP(self):
 		if self.selectedList == self["list"]:
@@ -421,13 +421,13 @@ class AssignService(ChannelSelectionBase):
 				self.enterPath(ref)
 				self.in_bouquets = True
 		elif self.selectedList == self["list2"]:
-			if self.url and self.in_channels == False and len(self.categories)>0:
+			if self.url and self.in_channels == False and len(self.categories) > 0:
 				index = self['list2'].getSelectionIndex()
 				cat_id = self.categories[index][1]
 				url = self.url
-				url += '&action=get_live_streams&category_id='+cat_id
+				url += '&action=get_live_streams&category_id=' + cat_id
 				self.callAPI(url, self.getChannels)
-			elif self.in_channels and len(self.channels)>0:
+			elif self.in_channels and len(self.channels) > 0:
 				index = self['list2'].getSelectionIndex()
 				xtream_channel = self.channels[index][0]
 				stream_id = self.channels[index][1]
@@ -439,7 +439,7 @@ class AssignService(ChannelSelectionBase):
 		playlist = getPlaylist()
 		if playlist:
 			if sref.startswith('1') and not 'http' in sref:
-				url = self.host+'/'+self.user+'/'+self.password+'/'+stream_id
+				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref):
 					from unicodedata import normalize
 					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
@@ -488,7 +488,7 @@ class AssignService(ChannelSelectionBase):
 						else:
 							ref = line[9:28]
 						if channel_name in line and self.password in line:
-							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:"+ channel_name, "0")
+							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0")
 							replacement = replacement + reference_epg
 				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
 					fr.write("#" + "\n" + replacement)
