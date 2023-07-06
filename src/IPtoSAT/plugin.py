@@ -12,9 +12,10 @@ from enigma import iPlayableService, iServiceInformation, eServiceCenter, eServi
 from Components.Label import Label
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
+from Screens.Standby import TryQuitMainloop
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
-from Tools.Directories import fileContains, fileExists
+from Tools.Directories import fileContains, fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
@@ -47,14 +48,17 @@ except:
 		pass
 
 
+
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("Exteplayer3")),]
+	elif isPluginInstalled("FastChannelChange"):
+		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("Exteplayer3")),]
 
-default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') else "gst-play-1.0"
+default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') or isPluginInstalled("FastChannelChange") else "gst-play-1.0"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
@@ -154,6 +158,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(language.get(lang, "Reset or Remove channels from playlist")), config.plugins.IPToSAT.playlist))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
+			if not config.plugins.fccsetup.activate.value:
+				config.plugins.fccsetup.activate.value = True
+				config.plugins.fccsetup.activate.save()
+				self.session.open(TryQuitMainloop, 3)
 
 	def ok(self):
 		current = self["config"].getCurrent()
@@ -168,8 +177,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keySave(self):
 		ConfigListScreen.keySave(self)
-		if config.plugins.IPToSAT.enable.value and fileContains("/etc/enigma2/iptosat.json", '"sref": "'):
-			from Screens.Standby import TryQuitMainloop
+		if config.plugins.IPToSAT.enable.value and fileContains(PLAYLIST_PATH, '"sref": "'):
 			self.session.open(TryQuitMainloop, 3)
 
 	def moveUp(self):
@@ -459,7 +467,6 @@ class AssignService(ChannelSelectionBase):
 
 	def restarGUI(self, answer):
 		if answer:
-			from Screens.Standby import TryQuitMainloop
 			self.session.open(TryQuitMainloop, 3)
 		else:
 			self.channelSelected()
