@@ -555,11 +555,34 @@ class AssignService(ChannelSelectionBase):
 		self.in_channels = False
 
 	def getChannels(self, data):
+		sref = str(self.getSref())
+		channel_satellite = str(ServiceReference(sref).getServiceName())
+		search_name = channel_satellite[2:6]  # criteria 5 bytes to search for matches
 		list = []
 		js = json.loads(data)
 		if js != []:
 			for ch in js:
-				list.append((str(ch['name']),str(ch['stream_id'])))
+				if str(search_name) in str(ch['name']):
+					list.append((str(ch['name']), str(ch['stream_id'])))
+			if list == []:
+				for match in js:
+					if str(search_name) in str(match['epg_channel_id']):
+						list.append((str(match['name']), str(match['stream_id'])))
+			if list == []:
+				for match in js:
+					search_name = channel_satellite[2:5].lower()
+					if str(search_name) in str(match['name']):
+						list.append((str(match['name']), str(match['stream_id'])))
+			if list == []:
+				for match in js:
+					search_name = channel_satellite[1:4]
+					if str(search_name) in str(match['name']):
+						list.append((str(match['name']), str(match['stream_id'])))
+			if list == []:
+				for match in js:
+					list.append((str(match['name']), str(match['stream_id'])))
+				text = channel_satellite + " " + _(language.get(lang, "2"))
+				self.assignWidget("#00e5b243",text)
 		self["status"].hide()
 		self['list2'].show()
 		self['list2'].l.setList(list)
