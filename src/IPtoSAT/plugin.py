@@ -66,6 +66,7 @@ config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _("Press OK"))]
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 
 PLAYLIST_PATH = '/etc/enigma2/iptosat.json'
+CONFIG_PATH = '/etc/enigma2/iptosat.conf'
 
 def trace_error():
 	import sys
@@ -260,15 +261,15 @@ class AssignService(ChannelSelectionBase):
 				<widget name="titlelist2" position="850,05" size="350,30" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 				<widget position="18,42" size="620,310" name="list" scrollbarMode="showOnDemand" />
 				<widget position="701,42" size="620,305" name="list2" scrollbarMode="showOnDemand" />
-				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
-				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
-				<widget name="key_green" position="7,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
+				<widget name="status" position="700,150" size="600,210" font="Regular;24" zPosition="3" />
+				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3" />
+				<widget name="key_green" position="7,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
 				<ePixmap position="18,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
-				<widget name="key_blue" position="215,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<widget name="key_red" position="423,524" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
-				<ePixmap position="230,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
-				<ePixmap position="438,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
-				<widget name="description" position="633,400" size="710,210" font="Regular;24" zPosition="3"/>
+				<widget name="key_blue" position="215,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
+				<widget name="key_red" position="423,524" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
+				<ePixmap position="230,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend" />
+				<ePixmap position="438,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend" />
+				<widget name="description" position="633,400" size="710,210" font="Regular;24" zPosition="3" />
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
@@ -404,8 +405,8 @@ class AssignService(ChannelSelectionBase):
 		self.resetWidget()
 
 	def getUserData(self):
-		if fileExists('/etc/enigma2/iptosat.conf'):
-			xtream = open('/etc/enigma2/iptosat.conf').read()
+		if fileExists(CONFIG_PATH):
+			xtream = open(CONFIG_PATH).read()
 			try:
 				self.host = xtream.split()[1].split('Host=')[1]
 				self.user = xtream.split()[2].split('User=')[1]
@@ -416,11 +417,11 @@ class AssignService(ChannelSelectionBase):
 				trace_error()
 				self.errortimer.start(200, True)
 		else:
-			log('/etc/enigma2/iptosat.conf , No such file or directory')
+			log('%s, No such file or directory' % CONFIG_PATH)
 			self.close(True)
 
 	def errorMessage(self):
-		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "Something is wrong in /etc/iptosat.conf. Log in /tmp/IPtoSAT.log")), MessageBox.TYPE_ERROR, timeout=10)
+		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "Something is wrong in /etc/enigma2/iptosat.conf. Log in /tmp/IPtoSAT.log")), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getCategories(self,url):
 		url += '&action=get_live_categories'
@@ -542,8 +543,14 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			self["status"].setText('Error!!')
-			self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "An Unexpected HTTP Error Occurred During The API Request !!")), MessageBox.TYPE_ERROR, timeout=10)
+			if fileContains(CONFIG_PATH, "Host=http://host:port"):
+				self["status"].setText(_(language.get(lang, "3")))
+				self["description"].hide()
+				self["key_red"].hide()
+			else:
+				self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
+				self["description"].hide()
+				self["key_red"].hide()
 
 	def getData(self, data):
 		list = []
