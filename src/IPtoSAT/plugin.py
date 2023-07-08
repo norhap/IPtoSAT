@@ -127,7 +127,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
-		self.setup_title = _(language.get(lang, "IPToSAT BY ZIKO") + " " + "Version %s" % Ver)
+		self.setup_title = (_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % Ver))
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -149,7 +149,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.setTitle(_(language.get(lang, "IPToSAT BY ZIKO") + " " + "Version %s" % Ver))
+		self.setTitle(_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % Ver))
 
 	def createSetup(self):
 		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
@@ -255,9 +255,11 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,602" title="IPToSAT Service Assign">
-				<widget position="18,22" size="620,310" name="list" scrollbarMode="showOnDemand" />
-				<widget position="701,22" size="620,300" name="list2" scrollbarMode="showOnDemand" />
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,632" title="IPToSAT Service Assign">
+				<widget name="titlelist" position="240,05" size="300,30" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+				<widget name="titlelist2" position="850,05" size="350,30" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+				<widget position="18,42" size="620,310" name="list" scrollbarMode="showOnDemand" />
+				<widget position="701,42" size="620,305" name="list2" scrollbarMode="showOnDemand" />
 				<widget name="status" position="850,150" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3"/>
 				<widget name="key_green" position="7,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
@@ -266,7 +268,7 @@ class AssignService(ChannelSelectionBase):
 				<widget name="key_red" position="423,524" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1"/>
 				<ePixmap position="230,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend"/>
 				<ePixmap position="438,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend"/>
-				<widget name="description" position="633,390" size="710,210" font="Regular;24" zPosition="3"/>
+				<widget name="description" position="633,400" size="710,210" font="Regular;24" zPosition="3"/>
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
@@ -274,6 +276,8 @@ class AssignService(ChannelSelectionBase):
 		self.session = session
 		ChannelSelectionBase.__init__(self, session)
 		self.bouquet_mark_edit = 0
+		self["titlelist"] = Label(_(language.get(lang, "Receiver List")))
+		self["titlelist2"] = Label(_(language.get(lang, "IPTV Subscription List")))
 		self["status"] = Label()
 		self["assign"] = Label()
 		description = _(language.get(lang, "0"))
