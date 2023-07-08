@@ -3,7 +3,6 @@ from Components.ServiceList import ServiceList
 from Screens.Screen import Screen
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
-from Components.Button import Button
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.config import config, ConfigInteger, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
 from Components.ConfigList import ConfigList, ConfigListScreen
@@ -117,11 +116,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	skin = """
 		<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
-			<widget position="15,10" size="620,300" name="config" scrollbarMode="showOnDemand" />
-			<ePixmap position="100,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend" />
-			<widget name="key_red" position="65,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
-			<ePixmap position="480,290" zPosition="1" size="100,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend" />
-			<widget name="key_green" position="450,260" zPosition="2" size="165,30" font="Regular; 20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
+			<widget name="config" itemHeight="35" position="15,10" size="620,300" scrollbarMode="showOnDemand" />
+			<widget name="key_red" position="25,260" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+			<widget name="key_green" position="210,260" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 		</screen>"""
 
@@ -144,8 +141,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			"green": self.keySave,
 			"ok": self.ok,
 		}, -2)
-		self["key_red"] = Button(_("Cancel"))
-		self["key_green"] = Button(_("Save"))
+		self["key_red"] = Label(_("Cancel"))
+		self["key_green"] = Label(_("Save"))
 		self.createSetup()
 		self.onLayoutFinish.append(self.layoutFinished)
 
@@ -256,20 +253,17 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,632" title="IPToSAT Service Assign">
-				<widget name="titlelist" position="240,05" size="300,30" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-				<widget name="titlelist2" position="850,05" size="350,30" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-				<widget position="18,42" size="620,310" name="list" scrollbarMode="showOnDemand" />
-				<widget position="701,42" size="620,305" name="list2" scrollbarMode="showOnDemand" />
-				<widget name="status" position="700,150" size="600,210" font="Regular;24" zPosition="3" />
-				<widget name="assign" position="15,359" size="1200,30" font="Regular;24" zPosition="3" />
-				<widget name="key_green" position="7,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
-				<ePixmap position="18,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/green.png" alphaTest="blend"/>
-				<widget name="key_blue" position="215,544" zPosition="2" size="165,30" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
-				<widget name="key_red" position="423,524" zPosition="2" size="165,50" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" transparent="1" />
-				<ePixmap position="230,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/blue.png" alphaTest="blend" />
-				<ePixmap position="438,580" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/icons/red.png" alphaTest="blend" />
-				<widget name="description" position="633,400" size="710,210" font="Regular;24" zPosition="3" />
+	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,682" title="IPToSAT Service Assign">
+				<widget name="titlelist" position="240,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+				<widget name="titlelist2" position="850,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+				<widget name="list" position="18,42" size="620,310" scrollbarMode="showOnDemand" />
+				<widget name="list2" position="701,42" size="620,305" scrollbarMode="showOnDemand" />
+				<widget name="assign" position="15,400" size="620,100" font="Regular;24" zPosition="3" />
+				<widget name="status" position="650,40" size="693,510" font="Regular;24" zPosition="3" />
+				<widget name="description" position="633,400" size="710,300" font="Regular;24" zPosition="3" />
+				<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="27,624" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+				<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="235,624" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="443,624" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
 
@@ -283,10 +277,11 @@ class AssignService(ChannelSelectionBase):
 		self["assign"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
-		self["key_green"] = Button(_("Satellites"))
-		self["key_red"] = Button(_(language.get(lang, "Add EPG IPTV Channel")))
+		self["key_red"] = StaticText("")
+		self["key_green"] = StaticText(_("Satellites"))
 		self["key_yellow"] = StaticText("")
-		self["key_blue"] = Button(_("Favourites"))
+		self["key_blue"] = StaticText(_("Favourites"))
+		self["key_red"].setText(_(language.get(lang, "Add EPG IPTV Channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -484,7 +479,7 @@ class AssignService(ChannelSelectionBase):
 	def addEPGChannel(self, channel_name, sref):
 		for filelist in sorted([x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]):
 			bouquetiptv = join(filelist)
-			if fileContains("/etc/enigma2/" + bouquetiptv, channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, str(self.password)) and not fileContains("/etc/enigma2/" + bouquetiptv, sref):
+			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, sref):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
 					with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "w") as fw:
@@ -499,7 +494,7 @@ class AssignService(ChannelSelectionBase):
 							ref = line[9:31]
 						else:
 							ref = line[9:28]
-						if channel_name in line and self.password in line:
+						if channel_name in line:
 							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0")
 							replacement = replacement + reference_epg
 				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
@@ -546,11 +541,8 @@ class AssignService(ChannelSelectionBase):
 			if fileContains(CONFIG_PATH, "Host=http://host:port"):
 				self["status"].setText(_(language.get(lang, "3")))
 				self["description"].hide()
-				self["key_red"].hide()
 			else:
 				self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
-				self["description"].hide()
-				self["key_red"].hide()
 
 	def getData(self, data):
 		list = []
@@ -617,8 +609,8 @@ class EditPlaylist(Screen):
 
 	skin = """<screen name="EditPlaylistIPtoSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
 				<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
-				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+				<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
 				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 			</screen>"""
