@@ -21,7 +21,6 @@ from datetime import datetime
 import json
 from os.path import join
 from os import listdir
-from shutil import move
 from configparser import ConfigParser
 try:
 	from Components.Language import language
@@ -497,9 +496,21 @@ class AssignService(ChannelSelectionBase):
 						if channel_name in line:
 							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0")
 							replacement = replacement + reference_epg
-				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "a") as fr:
-					fr.write("#" + "\n" + replacement)
-				move("/etc/enigma2/iptv_bouquet_epg.txt", "/etc/enigma2/" + bouquetiptv)
+				with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
+					with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "r") as fr:
+						lineNAME = fr.readlines()
+						for line in lineNAME:
+							if "#NAME" in line:
+								fw.write(line)
+				with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
+					fw.write(replacement + "\n")
+				with open("/etc/enigma2/" + "iptv_bouquet_epg.txt", "r") as fr:
+					linestxt = fr.readlines()
+					for line in linestxt:
+						with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
+							fw.write(line)
+				if fileExists("/etc/enigma2/iptv_bouquet_epg.txt"):
+					Console().ePopen("rm -f /etc/enigma2/iptv_bouquet_epg.txt")
 				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
 					text = channel_name + " " + _(language.get(lang, "No EPG, check channel name"))
 					self.assignWidget("#00ff2525",text)
