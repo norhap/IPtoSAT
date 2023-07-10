@@ -1,9 +1,10 @@
 [en]
 0 = Select satellite channel (left) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite, start with a colon and be at the end of the line where it is located in the IPTV list. If you press and there are no changes, it means that the channel has an accent type character, Ñ etc (satellite channel renown) or the name is different. To assign satellite channels, select the channel in both lists and press OK.
 1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect "No" to continue adding channels.
-2 = there is no match in this bouquet IPTV: Showing available channels
-3 = You have not yet configured your "iptosat.conf" file located in the /etc/enigma2/ directory\nYou have to set your URL:port as well as set your IPTV subscription username and password to be able to assign satellite channels.
-4 = HTTP error in /etc/enigma2/iptosat.conf during API request!\nIs your URL or data correct?
+2 = no match\nShowing all channels of this IPTV bouquet
+3 = You have not yet configured your "iptosat.conf" file located in the /etc/enigma2/ directory. You have to set your URL:port as well as set username and password of your IPTV subscription to be able to assign satellite channels.\nIf you can use RED button add EPG to channels in other IPTV lists as follows:\nSelect satellite channel (left ) and press red to have EPG on IPTV channel. The name of the channel must be the same as that of the satellite, start with a colon and be at the end of the line where it is located in the IPTV list. If you press and there are no changes, it means that the channel has an accent type character, Ñ etc (satellite channel renown) or the name is different.
+4 = HTTP error in /etc/enigma2/iptosat.conf during API request.\n\nAre your login details correct?
+5 = IPTV Bouquet created successfully\nDo you want to restart enigma2 to apply the changes?
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
 IPToSAT BY ZIKO Version = IPToSAT BY ZIKO Version
@@ -25,13 +26,16 @@ Delete Channel = Delete Channel
 No channel list = No channel list
 Failed to read list = Failed to read list
 Please wait... = Please wait...
+Create bouquet IPTV = Create bouquet IPTV
+Have not configured /etc/enigma2/iptosat.conf = Have not configured /etc/enigma2/iptosat.conf
 
 [es]
 0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es distinto. Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
 1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione "No" para seguir añadiendo canales.
-2 = no existe coincidencia en este bouquet IPTV: Mostrando canales disponibles.
-3 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/. Tiene que establecer su URL:puerto así como establecer usuario y contraseña de su suscripción IPTV para poder asignar canales satélite.\nSi puede usar botón ROJO añadir EPG a canales en otras listas IPTV:\nSeleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es distinto.
-4 = Error HTTP en /etc/enigma2/iptosat.conf durante la solicitud de la API!\nSu URL o datos son correctos?
+2 = no existe coincidencia\nMostrando todos los canales de este bouquet IPTV
+3 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/. Tiene que establecer su URL:puerto así como establecer usuario y contraseña de su suscripción IPTV para poder asignar canales satélite.\nSi puede usar botón ROJO añadir EPG a canales en otras listas IPTV de la siguiente forma:\nSeleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es diferente.
+4 = Error HTTP en /etc/enigma2/iptosat.conf durante la solicitud de la API.\n\n¿Son correctos sus datos de acceso?
+5 = Bouquet IPTV creado con éxito\n¿Quiere reiniciar enigma2 para aplicar los cambios?
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
 IPToSAT BY ZIKO Version = IPToSAT POR ZIKO Versión
@@ -53,6 +57,8 @@ Delete Channel = Eliminar Canal
 No channel list = No hay lista de canales
 Failed to read list = Falló al leer la lista
 Please wait... = Espere por favor...
+Create bouquet IPTV = Crear bouquet IPTV
+Have not configured /etc/enigma2/iptosat.conf = No ha configurado /etc/enigma2/iptosat.conf
 
 [tr]
 

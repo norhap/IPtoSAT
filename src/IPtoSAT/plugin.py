@@ -19,9 +19,10 @@ from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
-from os.path import join
 from os import listdir
+from os.path import join, exists
 from configparser import ConfigParser
+
 try:
 	from Components.Language import language
 	lang = language.getLanguage()
@@ -46,7 +47,6 @@ except:
 		pass
 
 
-
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
@@ -55,6 +55,7 @@ def choices_list():
 		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("Exteplayer3")),]
+
 
 default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') or isPluginInstalled("FastChannelChange") else "gst-play-1.0"
 config.plugins.IPToSAT = ConfigSubsection()
@@ -66,6 +67,7 @@ config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK")
 PLAYLIST_PATH = '/etc/enigma2/iptosat.json'
 CONFIG_PATH = '/etc/enigma2/iptosat.conf'
 
+
 def trace_error():
 	import sys
 	import traceback
@@ -75,15 +77,16 @@ def trace_error():
 	except:
 		pass
 
+
 def log(data):
 	now = datetime.now().strftime('%Y-%m-%d %H:%M')
 	open('/tmp/IPtoSAT.log', 'a').write(now + ' : ' + str(data) + '\r\n')
 
+
 def getversioninfo():
-	import os
 	currversion = '1.0'
 	version_file = '/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/version'
-	if os.path.exists(version_file):
+	if exists(version_file):
 		try:
 			fp = open(version_file, 'r').readlines()
 			for line in fp:
@@ -92,7 +95,6 @@ def getversioninfo():
 		except:
 			pass
 	return (currversion)
-
 
 Ver = getversioninfo()
 
@@ -111,15 +113,15 @@ def getPlaylist():
 	else:
 		return None
 
-class IPToSATSetup(Screen, ConfigListScreen):
 
+class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-		<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
-			<widget name="config" itemHeight="35" position="15,10" size="620,300" scrollbarMode="showOnDemand" />
-			<widget name="key_red" position="25,260" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget name="key_green" position="210,260" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-		</screen>"""
+	<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="35" position="15,10" size="620,300" scrollbarMode="showOnDemand" />
+		<widget name="key_red" position="25,260" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="key_green" position="210,260" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+	</screen>"""
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -251,20 +253,21 @@ class IPtoSAT(Screen):
 
 
 class AssignService(ChannelSelectionBase):
-
-	skin = """<screen name="IPToSAT Service Assign" position="center,center" size="1351,682" title="IPToSAT Service Assign">
-				<widget name="titlelist" position="240,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-				<widget name="titlelist2" position="850,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-				<widget name="list" position="18,42" size="620,310" scrollbarMode="showOnDemand" />
-				<widget name="list2" position="701,42" size="620,305" scrollbarMode="showOnDemand" />
-				<widget name="assign" position="15,400" size="620,100" font="Regular;24" zPosition="3" />
-				<widget name="status" position="650,40" size="693,510" font="Regular;24" zPosition="3" />
-				<widget name="description" position="633,400" size="710,300" font="Regular;24" zPosition="3" />
-				<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="27,624" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="235,624" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="443,624" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-			</screen>"""
+	skin = """
+	<screen name="IPToSAT Service Assign" position="210,center" size="1475,682" title="IPToSAT Service Assign">
+		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
+		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
+		<widget name="assign" position="18,400" size="680,100" font="Regular;24" zPosition="3" />
+		<widget name="status" position="720,40" size="710,510" font="Regular;24" zPosition="3" />
+		<widget name="description" position="720,400" size="710,281" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,624" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,624" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,624" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,624" zPosition="2" size="165,50" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+	</screen>"""
 
 	def __init__(self, session, *args):
 		self.session = session
@@ -276,11 +279,10 @@ class AssignService(ChannelSelectionBase):
 		self["assign"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
-		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText(_("Satellites"))
-		self["key_yellow"] = StaticText("")
+		self["key_yellow"] = StaticText(_(language.get(lang, "Create bouquet IPTV")))
 		self["key_blue"] = StaticText(_("Favourites"))
-		self["key_red"].setText(_(language.get(lang, "Add EPG IPTV Channel")))
+		self["key_red"] = StaticText(_(language.get(lang, "Add EPG IPTV Channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -292,6 +294,7 @@ class AssignService(ChannelSelectionBase):
 			"up": self.moveUp,
 			"green": self.showSatellites,
 			"red": self.setEPGChannel,
+			"yellow": self.createBouquetIPTV,
 			"blue": self.showFavourites,
 			"nextBouquet": self.chUP,
 			"prevBouquet": self.chDOWN,
@@ -475,6 +478,34 @@ class AssignService(ChannelSelectionBase):
 		channel_name = str(ServiceReference(sref).getServiceName())
 		self.addEPGChannel(channel_name, sref)
 
+	def createBouquetIPTV(self):
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+			try:
+				fp = open(CONFIG_PATH, "r").readlines()
+				for line in fp:
+					if "80" in line:
+						hostport = line.split("Host=")[1].strip()
+						if hostport:
+							Console().ePopen('wget -O /etc/enigma2/iptv.sh "%s/get.php?username=%s&password=%s&type=enigma22_script&output=mpegts" && chmod 755 /etc/enigma2/iptv.sh' % (hostport, self.user, self.password))
+							if exists("/etc/enigma2/iptv.sh"):
+								with open("/etc/enigma2/iptv.sh", "r") as fr:
+									replacement = ""
+									riptvsh = fr.readlines()
+									for line in riptvsh:
+										if "bouquet=" in line:
+											bouquetNAME = line.split("bouquet=")[1].split(";")[0]
+											if " " in str(bouquetNAME):
+												with open("/etc/enigma2/iptv.sh", "w") as fw:
+													bouquetRENAME = str(bouquetNAME).replace(' ', '__')
+													replacement = line.replace(bouquetNAME, bouquetRENAME)
+													fw.write(replacement)
+											if bouquetNAME:
+												self.session.openWithCallback(self.restarGUI, MessageBox, str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, default=False)
+			except Exception as err:
+				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+		else:
+			self.session.open(MessageBox, _(language.get(lang, "Have not configured /etc/enigma2/iptosat.conf")), MessageBox.TYPE_ERROR, default=False, timeout=5)
+
 	def addEPGChannel(self, channel_name, sref):
 		for filelist in sorted([x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]):
 			bouquetiptv = join(filelist)
@@ -616,15 +647,16 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.close(True)
 
-class EditPlaylist(Screen):
 
-	skin = """<screen name="EditPlaylistIPtoSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
-				<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
-				<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-				<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
-				<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-			</screen>"""
+class EditPlaylist(Screen):
+	skin = """
+	<screen name="EditPlaylistIPtoSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
+		<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="status" position="175,185" size="250,28" font="Regular;24" zPosition="3"/>
+		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+	</screen>"""
 
 	def __init__(self, session , *args):
 		self.session = session
@@ -688,6 +720,7 @@ class EditPlaylist(Screen):
 
 	def exit(self,ret=None):
 		self.close(True)
+
 
 def autostart(reason, **kwargs):
 	if reason == 0:
