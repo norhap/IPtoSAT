@@ -437,7 +437,7 @@ class AssignService(ChannelSelectionBase):
 	def errorMessage(self):
 		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "Something is wrong in /etc/enigma2/iptosat.conf. Log in /tmp/IPtoSAT.log")), MessageBox.TYPE_ERROR, timeout=10)
 
-	def getCategories(self,url):
+	def getCategories(self, url):
 		url += '&action=get_live_categories'
 		self.callAPI(url,self.getData)
 
@@ -462,7 +462,7 @@ class AssignService(ChannelSelectionBase):
 				channel_name = ServiceReference(sref).getServiceName()
 				self.addChannel(channel_name,stream_id,sref,xtream_channel)
 
-	def addChannel(self,channel_name,stream_id,sref,xtream_channel):
+	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
 		playlist = getPlaylist()
 		if playlist:
 			if sref.startswith('1') and not 'http' in sref:
@@ -473,16 +473,16 @@ class AssignService(ChannelSelectionBase):
 					with open(PLAYLIST_PATH, 'w') as f:
 						json.dump(playlist, f, indent = 4)
 					text = channel_name + " " + _(language.get(lang, "correctly assigned with")) + " " + xtream_channel
-					self.assignWidget("#008000",text)
+					self.assignWidget("#008000", text)
 				else:
 					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list"))
-					self.assignWidget("#00ff2525",text)
+					self.assignWidget("#00ff2525", text)
 			else:
 				text = _(language.get(lang, "Cannot assign to this channel"))
-				self.assignWidget("#00ff2525",text)
+				self.assignWidget("#00ff2525", text)
 		else:
 			text = _(language.get(lang, "Failed to load Playlist"))
-			self.assignWidget("#00ff2525",text)
+			self.assignWidget("#00ff2525", text)
 
 	def restarGUI(self, answer):
 		if answer:
@@ -495,7 +495,7 @@ class AssignService(ChannelSelectionBase):
 			Console().ePopen("rm -f /etc/enigma2/iptv.sh")
 			if not exists("/etc/enigma2/iptv.sh"):
 				text = _(language.get(lang, 'The code has been removed.'))
-				self.assignWidgetScript("#008000",text)
+				self.assignWidgetScript("#008000", text)
 
 	def createBouquetIPTV(self):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
@@ -568,25 +568,25 @@ class AssignService(ChannelSelectionBase):
 					Console().ePopen("rm -f /etc/enigma2/iptv_bouquet_epg.txt")
 				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
 					text = channel_name + " " + _(language.get(lang, "No EPG, check channel name"))
-					self.assignWidget("#00ff2525",text)
+					self.assignWidget("#00ff2525", text)
 				else:
 					text = channel_name + " " + _(language.get(lang, "with EPG set"))
-					self.assignWidget("#008000",text)
+					self.assignWidget("#008000", text)
 					message = _(language.get(lang, "1"))
 					self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
 
-	def exists(self,sref,playlist):
+	def exists(self, sref, playlist):
 		try:
 			refs = [ref['sref'] for ref in playlist['playlist']]
 			return False if not sref in refs else True
 		except KeyError:
 			pass
 
-	def assignWidget(self,color,text):
+	def assignWidget(self, color, text):
 		self['assign'].setText(text)
 		self['assign'].instance.setForegroundColor(parseColor(color))
 
-	def assignWidgetScript(self,color,text):
+	def assignWidgetScript(self, color, text):
 		self['assignscript'].setText(text)
 		self['assignscript'].instance.setForegroundColor(parseColor(color))
 
@@ -655,7 +655,7 @@ class AssignService(ChannelSelectionBase):
 				for match in js:
 					list.append((str(match['name']), str(match['stream_id'])))
 				text = channel_satellite + " " + _(language.get(lang, "2"))
-				self.assignWidget("#00e5b243",text)
+				self.assignWidget("#00e5b243", text)
 		self["status"].hide()
 		self['list2'].show()
 		self['list2'].l.setList(list)
@@ -663,7 +663,7 @@ class AssignService(ChannelSelectionBase):
 		self.channels = list
 		self.in_channels = True
 
-	def exit(self,ret=None):
+	def exit(self, ret=None):
 		if ret:
 			self.close(True)
 		if self.selectedList == self['list'] and self.in_bouquets:
@@ -686,7 +686,7 @@ class EditPlaylist(Screen):
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
-	def __init__(self, session , *args):
+	def __init__(self, session, *args):
 		self.session = session
 		Screen.__init__(self, session)
 		self["status"] = Label()
@@ -746,7 +746,7 @@ class EditPlaylist(Screen):
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
-	def exit(self,ret=None):
+	def exit(self, ret=None):
 		self.close(True)
 
 
