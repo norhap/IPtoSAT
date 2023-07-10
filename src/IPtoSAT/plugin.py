@@ -516,7 +516,7 @@ class AssignService(ChannelSelectionBase):
 													replacement = line.replace(bouquetNAME, bouquetRENAME)
 													fw.write(replacement)
 											if bouquetNAME:
-												self.session.openWithCallback(self.restarGUI, MessageBox, str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, default=False)
+												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, default=False)
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
