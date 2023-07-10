@@ -499,9 +499,9 @@ class AssignService(ChannelSelectionBase):
 									for line in riptvsh:
 										if "bouquet=" in line:
 											bouquetNAME = line.split("bouquet=")[1].split(";")[0]
-											if " " in str(bouquetNAME):
+											if " " in str(bouquetNAME) or "  " in str(bouquetNAME):
 												with open("/etc/enigma2/iptv.sh", "w") as fw:
-													bouquetRENAME = str(bouquetNAME).replace(' ', '__')
+													bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
 													replacement = line.replace(bouquetNAME, bouquetRENAME)
 													fw.write(replacement)
 											if bouquetNAME:
