@@ -265,11 +265,11 @@ class AssignService(ChannelSelectionBase):
 		<widget name="assignscript" position="18,623" size="506,33" font="Regular;24" zPosition="3" />
 		<widget name="statusript" position="18,425" size="680,195" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="710,320" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,657" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,657" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,657" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,657" zPosition="2" size="165,50" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="description" position="720,355" size="710,352" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,657" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,657" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,657" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,657" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_menu" conditional="key_menu" render="Label" position="526,623" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -291,7 +291,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
 		self["key_yellow"] = StaticText(_(language.get(lang, "Create bouquet IPTV")))
 		self["key_blue"] = StaticText(_(language.get(lang, "Favourites")))
-		self["key_red"] = StaticText(_(language.get(lang, "Add EPG IPTV Channel")))
+		self["key_red"] = StaticText(_(language.get(lang, "Assign EPG IPTV channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
