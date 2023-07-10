@@ -29,11 +29,8 @@ LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
 
 try:
-	if config.osd.language.value not in ("es_ES", "en_US"):
-		osd = open(LANGUAGE_PATH, "r").readlines()
-		for line in osd:
-			if not "[" + config.osd.language.value[:-3] + "]" in line:
-				lang = "en"
+	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
+		lang = "en"
 	else:
 		from Components.Language import language
 		lang = language.getLanguage()
