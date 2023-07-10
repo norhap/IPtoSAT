@@ -259,18 +259,23 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="210,center" size="1475,682" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="210,center" size="1475,715" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
-		<widget name="assign" position="18,400" size="680,100" font="Regular;24" zPosition="3" />
+		<widget name="assign" position="18,357" size="680,65" font="Regular;24" zPosition="3" />
+		<widget name="assignscript" position="18,623" size="506,33" font="Regular;24" zPosition="3" />
+		<widget name="statusript" position="18,425" size="680,195" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
 		<widget name="description" position="720,355" size="710,320" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,624" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,624" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,624" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,624" zPosition="2" size="165,50" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,657" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,657" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,657" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,657" zPosition="2" size="165,50" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_menu" conditional="key_menu" render="Label" position="526,623" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -281,7 +286,9 @@ class AssignService(ChannelSelectionBase):
 		self["titlelist"] = Label(_(language.get(lang, "Receiver List")))
 		self["titlelist2"] = Label(_(language.get(lang, "IPTV Subscription List")))
 		self["status"] = Label()
+		self["statusript"] = Label()
 		self["assign"] = Label()
+		self["assignscript"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
 		self["key_green"] = StaticText(_("Satellites"))
@@ -303,9 +310,14 @@ class AssignService(ChannelSelectionBase):
 			"blue": self.showFavourites,
 			"nextBouquet": self.chUP,
 			"prevBouquet": self.chDOWN,
+			"menu": self.removeScript,
 
 		}, -2)
 		self.errortimer = eTimer()
+		if exists("/etc/enigma2/iptv.sh"):
+			self["key_menu"] = StaticText("MENU")
+			self["statusript"].setText(_(language.get(lang, "6")))
+
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except:
@@ -478,10 +490,12 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.channelSelected()
 
-	def setEPGChannel(self):
-		sref = str(self.getSref())
-		channel_name = str(ServiceReference(sref).getServiceName())
-		self.addEPGChannel(channel_name, sref)
+	def removeScript(self):
+		if exists("/etc/enigma2/iptv.sh"):
+			Console().ePopen("rm -f /etc/enigma2/iptv.sh")
+			if not exists("/etc/enigma2/iptv.sh"):
+				text = _(language.get(lang, 'The code has been removed.'))
+				self.assignWidgetScript("#008000",text)
 
 	def createBouquetIPTV(self):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
@@ -510,6 +524,11 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
 			self.session.open(MessageBox, _(language.get(lang, "Have not configured /etc/enigma2/iptosat.conf")), MessageBox.TYPE_ERROR, default=False, timeout=5)
+
+	def setEPGChannel(self):
+		sref = str(self.getSref())
+		channel_name = str(ServiceReference(sref).getServiceName())
+		self.addEPGChannel(channel_name, sref)
 
 	def addEPGChannel(self, channel_name, sref):
 		for filelist in sorted([x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]):
@@ -566,6 +585,10 @@ class AssignService(ChannelSelectionBase):
 	def assignWidget(self,color,text):
 		self['assign'].setText(text)
 		self['assign'].instance.setForegroundColor(parseColor(color))
+
+	def assignWidgetScript(self,color,text):
+		self['assignscript'].setText(text)
+		self['assignscript'].instance.setForegroundColor(parseColor(color))
 
 	def resetWidget(self):
 		self['assign'].setText('')

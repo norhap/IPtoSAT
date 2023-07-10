@@ -5,6 +5,7 @@
 3 = You have not yet configured your "iptosat.conf" file located in the /etc/enigma2/ directory. You have to set your URL:port as well as set username and password of your IPTV subscription to be able to assign satellite channels.\n\nIf you can use RED button add EPG to channels in other IPTV lists as follows:\n\nSelect channel satellite (left) and press red to have EPG in IPTV channel. The name of the channel must be the same as that of the satellite, start with a colon and be at the end of the line where it is located in the IPTV list.\n\nIf you press and there are no changes, it means that the channel has an accent type character, Ñ etc (satellite channel renown) or the name is different.
 4 = HTTP error in /etc/enigma2/iptosat.conf during API request.\n\nAre your login details correct?
 5 = IPTV bouquet created successfully.\n\nDo you want to restart enigma2 to apply the changes?
+6 = You have a code in your system for the automatic creation of an IPTV bouquet. This code is created when you press the YELLOW button. If it is present, even if you delete your IPTV bouquet, it creates another automatic one updated on enigma2 reboots, you will also lose the EPG if it was assigned with the RED button. Press MENU if you don't want to have it.
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
 IPToSAT By Ziko Version = IPToSAT By Ziko Version
@@ -30,6 +31,7 @@ Create bouquet IPTV = Create bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = Have not configured /etc/enigma2/iptosat.conf
 Press OK = Press OK
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap
+The code has been removed. = The code has been removed.
 
 [es]
 0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV.\nSi pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es diferente.\nPara asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
@@ -38,6 +40,7 @@ Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sync
 3 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/. Tiene que establecer su URL:puerto así como establecer usuario y contraseña de su suscripción IPTV para poder asignar canales satélite.\n\nSi puede usar botón ROJO añadir EPG a canales en otras listas IPTV de la siguiente forma:\n\nSeleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV.\n\nSi pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es diferente.
 4 = Error HTTP en /etc/enigma2/iptosat.conf durante la solicitud de la API.\n\n¿Son correctos sus datos de acceso?
 5 = bouquet IPTV creado con éxito.\n\n¿Quiere reiniciar enigma2 para aplicar los cambios?
+6 = Tiene en su sistema un código para creación automática de bouquet IPTV, dicho código se crea cuando pulsa botón AMARILLO. Si está presente aunque elimine su bouquet IPTV crea otro automático actualizado en los reinicios enigma2, también perderá la EPG en este bouquet si se la asignó con botón ROJO. Pulse MENU si no desea tenerlo.
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
 IPToSAT By Ziko Version = IPToSAT Por Ziko Versión
@@ -63,3 +66,4 @@ Create bouquet IPTV = Crear bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = No ha configurado /etc/enigma2/iptosat.conf
 Press OK = Pulse OK
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 1.9 por norhap
+The code has been removed. = Se ha eliminado el código.
