@@ -256,21 +256,21 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="210,center" size="1475,715" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="210,center" size="1475,750" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
-		<widget name="assign" position="18,357" size="680,65" font="Regular;24" zPosition="3" />
-		<widget name="assignscript" position="18,623" size="506,33" font="Regular;24" zPosition="3" />
-		<widget name="statusript" position="18,425" size="680,195" font="Regular;24" zPosition="3" />
+		<widget name="assign" position="18,357" size="680,100" font="Regular;24" zPosition="3" />
+		<widget name="codestatus" position="18,460" size="680,195" font="Regular;24" zPosition="3" />
+		<widget name="codeassign" position="18,658" size="506,33" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
 		<widget name="description" position="720,355" size="710,352" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,657" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,657" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,657" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,657" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_menu" conditional="key_menu" render="Label" position="526,623" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,693" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,693" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,693" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,693" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_menu" conditional="key_menu" render="Label" position="526,658" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -283,9 +283,9 @@ class AssignService(ChannelSelectionBase):
 		self["titlelist"] = Label(_(language.get(lang, "Receiver List")))
 		self["titlelist2"] = Label(_(language.get(lang, "IPTV Subscription List")))
 		self["status"] = Label()
-		self["statusript"] = Label()
+		self["codestatus"] = Label()
 		self["assign"] = Label()
-		self["assignscript"] = Label()
+		self["codeassign"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
 		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
@@ -313,7 +313,7 @@ class AssignService(ChannelSelectionBase):
 		self.errortimer = eTimer()
 		if exists("/etc/enigma2/iptv.sh"):
 			self["key_menu"] = StaticText("MENU")
-			self["statusript"].setText(_(language.get(lang, "6")))
+			self["codestatus"].setText(_(language.get(lang, "6")))
 
 		try:
 			self.errortimer.callback.append(self.errorMessage)
@@ -472,7 +472,7 @@ class AssignService(ChannelSelectionBase):
 					text = channel_name + " " + _(language.get(lang, "correctly assigned with")) + " " + xtream_channel
 					self.assignWidget("#008000", text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list"))
+					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list, if you want to re assign it enter the MENU 'Reset or remove channels from the list'."))
 					self.assignWidget("#00ff2525", text)
 			else:
 				text = _(language.get(lang, "Cannot assign to this channel"))
@@ -584,8 +584,8 @@ class AssignService(ChannelSelectionBase):
 		self['assign'].instance.setForegroundColor(parseColor(color))
 
 	def assignWidgetScript(self, color, text):
-		self['assignscript'].setText(text)
-		self['assignscript'].instance.setForegroundColor(parseColor(color))
+		self['codeassign'].setText(text)
+		self['codeassign'].instance.setForegroundColor(parseColor(color))
 
 	def resetWidget(self):
 		self['assign'].setText('')
