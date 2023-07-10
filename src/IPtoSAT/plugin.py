@@ -29,9 +29,15 @@ LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
 
 try:
-	from Components.Language import language
-	lang = language.getLanguage()
-	lang = lang[:2]
+	if config.osd.language.value not in ("es_ES", "en_US"):
+		osd = open(LANGUAGE_PATH, "r").readlines()
+		for line in osd:
+			if not "[" + config.osd.language.value[:-3] + "]" in line:
+				lang = "en"
+	else:
+		from Components.Language import language
+		lang = language.getLanguage()
+		lang = lang[:2]
 except:
 	try:
 		lang = config.osd.language.value[:-3]
@@ -64,8 +70,8 @@ default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') or isPlug
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
-config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
-config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
+config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
+config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
 
 
 def trace_error():

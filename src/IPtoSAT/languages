@@ -28,6 +28,7 @@ Failed to read list = Failed to read list
 Please wait... = Please wait...
 Create bouquet IPTV = Create bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = Have not configured /etc/enigma2/iptosat.conf
+Press OK = Press OK
 
 [es]
 0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV. Si pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es distinto. Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
@@ -59,22 +60,4 @@ Failed to read list = Falló al leer la lista
 Please wait... = Espere por favor...
 Create bouquet IPTV = Crear bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = No ha configurado /etc/enigma2/iptosat.conf
-
-[tr]
-
-[ru]
-
-[ar]
-
-[de]
-
-[fr]
-
-[it]
-
-[pt]
-
-[pl]
-
-[el]
-
+Press OK = Pulse OK
