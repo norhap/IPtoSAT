@@ -291,9 +291,9 @@ class AssignService(ChannelSelectionBase):
 		self["assignscript"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
-		self["key_green"] = StaticText(_("Satellites"))
+		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
 		self["key_yellow"] = StaticText(_(language.get(lang, "Create bouquet IPTV")))
-		self["key_blue"] = StaticText(_("Favourites"))
+		self["key_blue"] = StaticText(_(language.get(lang, "Favourites")))
 		self["key_red"] = StaticText(_(language.get(lang, "Add EPG IPTV Channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{

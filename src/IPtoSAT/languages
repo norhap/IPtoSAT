@@ -32,6 +32,8 @@ Have not configured /etc/enigma2/iptosat.conf = Have not configured /etc/enigma2
 Press OK = Press OK
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap
 The code has been removed. = The code has been removed.
+Satellites = Satellites
+Favourites = Favourites
 
 [es]
 0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV.\nSi pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es diferente.\nPara asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
@@ -67,3 +69,5 @@ Have not configured /etc/enigma2/iptosat.conf = No ha configurado /etc/enigma2/i
 Press OK = Pulse OK
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 1.9 por norhap
 The code has been removed. = Se ha eliminado el código.
+Satellites = Satélites
+Favourites = Favoritos
