@@ -14,7 +14,7 @@ from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
-from Tools.Directories import fileContains, fileExists, isPluginInstalled
+from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
 from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
@@ -22,6 +22,11 @@ import json
 from os import listdir
 from os.path import join, exists
 from configparser import ConfigParser
+
+PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
+CONFIG_PATH = "/etc/enigma2/iptosat.conf"
+LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
+VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
 
 try:
 	from Components.Language import language
@@ -33,16 +38,14 @@ except:
 	except:
 		lang = "en"
 
-language_path = r"/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/languages"
-
 try:
 	language = ConfigParser()
-	language.read(language_path, encoding="utf8")
+	language.read(LANGUAGE_PATH, encoding="utf8")
 except:
 	try:
 		lang="en"
 		language = ConfigParser()
-		language.read(language_path, encoding="utf8")
+		language.read(LANGUAGE_PATH, encoding="utf8")
 	except:
 		pass
 
@@ -64,9 +67,6 @@ config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _("Press OK"))], default = "1")
 
-PLAYLIST_PATH = '/etc/enigma2/iptosat.json'
-CONFIG_PATH = '/etc/enigma2/iptosat.conf'
-
 
 def trace_error():
 	import sys
@@ -85,10 +85,9 @@ def log(data):
 
 def getversioninfo():
 	currversion = '1.0'
-	version_file = '/usr/lib/enigma2/python/Plugins/Extensions/IPtoSAT/version'
-	if exists(version_file):
+	if exists(VERSION_PATH):
 		try:
-			fp = open(version_file, 'r').readlines()
+			fp = open(VERSION_PATH, 'r').readlines()
 			for line in fp:
 				if 'version' in line:
 					currversion = line.split('=')[1].strip()
@@ -96,7 +95,7 @@ def getversioninfo():
 			pass
 	return (currversion)
 
-Ver = getversioninfo()
+VERSION = getversioninfo()
 
 
 def parseColor(s):
@@ -126,7 +125,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
-		self.setup_title = (_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % Ver))
+		self.setup_title = (_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % VERSION))
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -148,7 +147,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.setTitle(_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % Ver))
+		self.setTitle(_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % VERSION))
 
 	def createSetup(self):
 		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
@@ -738,5 +737,5 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-	Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT Setup {}".format(Ver), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT Setup {}".format(VERSION), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	return Descriptors
