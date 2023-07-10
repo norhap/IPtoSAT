@@ -131,7 +131,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
-		self.setup_title = (_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % VERSION))
+		self.setup_title = (_(language.get(lang, "IPToSAT By Ziko Version") + " " + "%s" % VERSION))
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -153,7 +153,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.setTitle(_(language.get(lang, "IPToSAT BY ZIKO Version") + " " + "%s" % VERSION))
+		self.setTitle(_(language.get(lang, "IPToSAT By Ziko Version") + " " + "%s" % VERSION))
 
 	def createSetup(self):
 		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
@@ -743,5 +743,5 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-	Descriptors.append(PluginDescriptor(name="IPtoSAT", description="IPtoSAT Setup {}".format(VERSION), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	Descriptors.append(PluginDescriptor(name="IPtoSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " "  + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	return Descriptors

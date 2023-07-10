@@ -7,7 +7,7 @@
 5 = IPTV Bouquet created successfully\nDo you want to restart enigma2 to apply the changes?
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
-IPToSAT BY ZIKO Version = IPToSAT BY ZIKO Version
+IPToSAT By Ziko Version = IPToSAT By Ziko Version
 Enable IPToSAT = Enable IPToSAT
 IPToSAT Player = IPToSAT Player
 Assign satellite channel to IPTV list = Assign satellite channel to IPTV list
@@ -29,6 +29,7 @@ Please wait... = Please wait...
 Create bouquet IPTV = Create bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = Have not configured /etc/enigma2/iptosat.conf
 Press OK = Press OK
+Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap
 
 [es]
 0 = Seleccione el canal del satélite (izquierda) y pulse rojo para tener EPG en el canal IPTV. El nombre del canal debe ser igual al del satélite, comenzar con dos puntos y estar al final de la línea donde se ubique en la lista IPTV.\nSi pulsa y no hay cambios significa que el canal tiene un caracter tipo acento, Ñ etc (renombre canal satélite) o el nombre es diferente.\nPara asignar canales satélites, seleccione el canal en ambas listas y pulse OK.
@@ -39,7 +40,7 @@ Press OK = Press OK
 5 = Bouquet IPTV creado con éxito\n¿Quiere reiniciar enigma2 para aplicar los cambios?
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
-IPToSAT BY ZIKO Version = IPToSAT POR ZIKO Versión
+IPToSAT By Ziko Version = IPToSAT Por Ziko Versión
 Enable IPToSAT = IPToSAT Habilitado
 IPToSAT Player = Reproductor IPToSAT
 Assign satellite channel to IPTV list = Asignar canal satélite con lista IPTV
@@ -61,3 +62,4 @@ Please wait... = Espere por favor...
 Create bouquet IPTV = Crear bouquet IPTV
 Have not configured /etc/enigma2/iptosat.conf = No ha configurado /etc/enigma2/iptosat.conf
 Press OK = Pulse OK
+Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 1.9 por norhap
