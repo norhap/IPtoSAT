@@ -265,8 +265,8 @@ class AssignService(ChannelSelectionBase):
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
 		<widget name="assign" position="18,400" size="680,100" font="Regular;24" zPosition="3" />
-		<widget name="status" position="720,40" size="710,510" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,400" size="710,281" font="Regular;24" zPosition="3" />
+		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
+		<widget name="description" position="720,355" size="710,320" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,624" zPosition="2" size="165,50" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,624" zPosition="2" size="165,50" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,624" zPosition="2" size="165,50" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
