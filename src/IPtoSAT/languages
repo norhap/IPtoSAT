@@ -6,6 +6,7 @@
 4 = HTTP error in /etc/enigma2/iptosat.conf during API request.\n\nAre your login details correct?
 5 = IPTV successfully created in your channel list.\n\nDo you want to restart enigma2 to apply the changes?
 6 = You have a code in your system for the automatic creation of an IPTV bouquet. This code is created when you press the YELLOW button. If it is present, even if you delete your IPTV bouquet, it creates another automatic one updated on enigma2 reboots, you will also lose the EPG if it was assigned with the RED button. Press MENU if you don't want to have it.
+7 = Are you sure you want to delete the entire list?\n\nAll assigned channels will be deleted.
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
 IPToSAT By Ziko Version = IPToSAT By Ziko Version
@@ -43,6 +44,7 @@ Favourites = Favourites
 4 = Error HTTP en /etc/enigma2/iptosat.conf durante la solicitud de la API.\n\n¿Son correctos sus datos de acceso?
 5 = IPTV creado con éxito en su lista de canales.\n\n¿Quiere reiniciar enigma2 para aplicar los cambios?
 6 = Tiene en su sistema un código para creación automática de bouquet IPTV, dicho código se crea cuando pulsa botón AMARILLO. Si está presente aunque elimine su bouquet IPTV crea otro automático actualizado en los reinicios enigma2, también perderá la EPG en este bouquet si se la asignó con botón ROJO. Pulse MENU si no desea tenerlo.
+7 = ¿Está seguro que quiere eliminar la lista completa?\n\nSe eliminarán todos los canales asignados.
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
 IPToSAT By Ziko Version = IPToSAT Por Ziko Versión

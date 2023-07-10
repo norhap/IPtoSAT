@@ -736,12 +736,19 @@ class EditPlaylist(Screen):
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
-	def keyRed(self):
-		if self.playlist and len(self.channels) > 0:
+	def deleteList(self, answer):
+		if answer:
 			self.playlist['playlist'] = []
 			with open(PLAYLIST_PATH, 'w') as f:
 				json.dump(self.playlist, f , indent = 4)
-		self.iniMenu()
+			self.iniMenu()
+		else:
+			self.iniMenu()
+
+	def keyRed(self):
+		message = _(language.get(lang, "7"))
+		if self.playlist and len(self.channels) > 0:
+			self.session.openWithCallback(self.deleteList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def exit(self, ret=None):
 		self.close(True)
