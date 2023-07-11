@@ -729,7 +729,7 @@ class EditPlaylist(Screen):
 				self["key_red"].setText(_(language.get(lang, "Delete list")))
 				self["key_green"].setText(_(language.get(lang, "Delete Channel")))
 			else:
-				self["status"].setText(_(language.get(lang, "No channel list")))
+				self["status"].setText(_(language.get(lang, "No assigned channel list")))
 				self["status"].show()
 				self['list'].hide()
 		else:
