@@ -7,6 +7,7 @@
 5 = IPTV successfully created in your channel list.
 6 = You have a code in your system for the automatic creation of an IPTV bouquet. This code is created when you press the YELLOW button. If it is present, even if you delete your IPTV bouquet, it creates another automatic one updated on enigma2 reboots, you will also lose the EPG if it was assigned with the RED button. Press MENU if you don't want to have it.
 7 = Are you sure you want to delete the entire list?\n\nAll assigned channels will be deleted.
+8 = Your URL has been detected to have problems downloading and updating your IPTV channels, your subscription returns a bouquet with no name.\n\nThe automatic update code will be removed, if you want to update your IPTV channels you must do it automatically manual pressing YELLOW button.\n\nWe will try to create a bouquet called IPTV_IPToSAT. This operation will take a few minutes, please be patient.\n\nDo you want us to try to update your IPTV channel list?
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
 IPToSAT By Ziko Version = IPToSAT By Ziko Version
@@ -45,6 +46,7 @@ Favourites = Favourites
 5 = IPTV creado con éxito en su lista de canales.
 6 = Tiene en su sistema un código para creación automática de bouquet IPTV, dicho código se crea cuando pulsa botón AMARILLO. Si está presente aunque elimine su bouquet IPTV crea otro automático actualizado en los reinicios enigma2, también perderá la EPG en este bouquet si se la asignó con botón ROJO. Pulse MENU si no desea tenerlo.
 7 = ¿Está seguro que quiere eliminar la lista completa?\n\nSe eliminarán todos los canales asignados.
+8 = Se ha detectado que su URL presenta problemas a la hora de descargar y actualizar sus canales IPTV, su suscripción arroja un bouquet sin nombre.\n\nSe eliminará el código de actualización automática, si quiere actualizar sus canales IPTV debe hacerlo de forma manual pulsando botón AMARILLO.\n\nIntentaremos crear un bouquet llamado IPTV_IPToSAT. Esta operación tardará unos minutos sea paciente.\n\n¿Quiere que intentemos actualizar su lista de canales IPTV?
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
 IPToSAT By Ziko Version = IPToSAT Por Ziko Versión
