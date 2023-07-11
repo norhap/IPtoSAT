@@ -270,7 +270,9 @@ class AssignService(ChannelSelectionBase):
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,693" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,693" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,693" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,693" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,693" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget source="key_menu" conditional="key_menu" render="Label" position="526,658" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -290,8 +292,8 @@ class AssignService(ChannelSelectionBase):
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
 		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
-		self["key_yellow"] = StaticText(_(language.get(lang, "Create bouquet IPTV")))
 		self["key_blue"] = StaticText(_(language.get(lang, "Favourites")))
+		self["key_yellow"] = StaticText("")
 		self["key_red"] = StaticText(_(language.get(lang, "Assign EPG IPTV channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
@@ -315,6 +317,8 @@ class AssignService(ChannelSelectionBase):
 		if exists("/etc/enigma2/iptv.sh"):
 			self["key_menu"] = StaticText("MENU")
 			self["codestatus"].setText(_(language.get(lang, "6")))
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+			self["key_yellow"].setText(_(language.get(lang, "Create bouquet IPTV")))
 
 		try:
 			self.errortimer.callback.append(self.errorMessage)
