@@ -22,6 +22,7 @@ import json
 from os import listdir
 from os.path import join, exists
 from configparser import ConfigParser
+from time import sleep
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
@@ -502,8 +503,11 @@ class AssignService(ChannelSelectionBase):
 					if "80" in line:
 						hostport = line.split("Host=")[1].strip()
 						if hostport:
-							Console().ePopen('wget -O /etc/enigma2/iptv.sh "%s/get.php?username=%s&password=%s&type=enigma22_script&output=mpegts" && chmod 755 /etc/enigma2/iptv.sh' % (hostport, self.user, self.password))
-							if exists("/etc/enigma2/iptv.sh"):
+							eConsoleAppContainer().execute('wget -O /etc/enigma2/iptv.sh' + " " + '"' + hostport + '/get.php?username=' + self.user + '&password=' + self.password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 /etc/enigma2/iptv.sh')
+							sleep(1)
+							if not exists("/etc/enigma2/iptv.sh"):
+								sleep(1)
+							else:
 								with open("/etc/enigma2/iptv.sh", "r") as fr:
 									replacement = ""
 									riptvsh = fr.readlines()
@@ -515,8 +519,11 @@ class AssignService(ChannelSelectionBase):
 													bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
 													replacement = line.replace(bouquetNAME, bouquetRENAME)
 													fw.write(replacement)
+													eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+											else:
+												eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 											if bouquetNAME:
-												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, default=False)
+												self.session.open(MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_INFO, timeout=5)
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
@@ -736,7 +743,7 @@ class EditPlaylist(Screen):
 				json.dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
-	def deleteList(self, answer):
+	def deletelistJSON(self, answer):
 		if answer:
 			self.playlist['playlist'] = []
 			with open(PLAYLIST_PATH, 'w') as f:
@@ -748,7 +755,7 @@ class EditPlaylist(Screen):
 	def keyRed(self):
 		message = _(language.get(lang, "7"))
 		if self.playlist and len(self.channels) > 0:
-			self.session.openWithCallback(self.deleteList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+			self.session.openWithCallback(self.deletelistJSON, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def exit(self, ret=None):
 		self.close(True)
