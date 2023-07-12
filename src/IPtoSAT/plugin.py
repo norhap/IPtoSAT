@@ -509,6 +509,8 @@ class AssignService(ChannelSelectionBase):
 			if not exists("/etc/enigma2/iptv.sh"):
 				text = _(language.get(lang, 'The code has been removed.'))
 				self.assignWidgetScript("#008000", text)
+				self['codestatus'].hide()
+				self["key_menu"].setText("")
 
 	def tryToUpdateIPTVChannels(self, answer):
 		if answer:
