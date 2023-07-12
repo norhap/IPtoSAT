@@ -263,8 +263,8 @@ class AssignService(ChannelSelectionBase):
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
 		<widget name="assign" position="18,357" size="680,100" font="Regular;24" zPosition="3" />
-		<widget name="codestatus" position="18,460" size="680,195" font="Regular;24" zPosition="3" />
-		<widget name="codeassign" position="18,658" size="506,33" font="Regular;24" zPosition="3" />
+		<widget name="codestatus" position="18,460" size="680,230" font="Regular;24" zPosition="4" />
+		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
 		<widget name="help" position="720,355" size="750,425" font="Regular;24" zPosition="3" />
 		<widget name="description" position="720,355" size="710,150" font="Regular;24" zPosition="3" />
@@ -510,7 +510,7 @@ class AssignService(ChannelSelectionBase):
 		if exists("/etc/enigma2/iptv.sh"):
 			Console().ePopen("rm -f /etc/enigma2/iptv.sh")
 			if not exists("/etc/enigma2/iptv.sh"):
-				text = _(language.get(lang, 'The code has been removed.'))
+				text = _(language.get(lang, 'Your list will not be updated on receiver restarts.'))
 				self.assignWidgetScript("#008000", text)
 				self['codestatus'].hide()
 				self["key_menu"].setText("")
