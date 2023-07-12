@@ -30,11 +30,6 @@ LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
 
 try:
-	USRURL = True if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port") else False
-except:
-	pass
-
-try:
 	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
 		lang = "en"
 	else:
@@ -262,7 +257,7 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="210,center" size="1475,750" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="210,center" size="1475,785" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
@@ -271,16 +266,18 @@ class AssignService(ChannelSelectionBase):
 		<widget name="codestatus" position="18,460" size="680,195" font="Regular;24" zPosition="3" />
 		<widget name="codeassign" position="18,658" size="506,33" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="710,352" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,693" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,693" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,693" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,693" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget name="help" position="720,355" size="750,425" font="Regular;24" zPosition="3" />
+		<widget name="description" position="720,355" size="710,150" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,728" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,728" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,728" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,728" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="526,658" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_menu" conditional="key_menu" render="Label" position="526,693" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
+		<widget source="key_help" render="Label" objectTypes="key_help,StaticText" position="690,728" zPosition="2" size="330,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -293,6 +290,7 @@ class AssignService(ChannelSelectionBase):
 		self["status"] = Label()
 		self["codestatus"] = Label()
 		self["assign"] = Label()
+		self["help"] = Label()
 		self["codeassign"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
@@ -316,12 +314,12 @@ class AssignService(ChannelSelectionBase):
 			"nextBouquet": self.chUP,
 			"prevBouquet": self.chDOWN,
 			"menu": self.removeScript,
+			"help": self.showHelpEPG,
 
 		}, -2)
 		self.errortimer = eTimer()
-		if USRURL:
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
 			self["key_yellow"].setText(_(language.get(lang, "Create bouquet IPTV")))
-
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except:
@@ -336,6 +334,11 @@ class AssignService(ChannelSelectionBase):
 		self.getUserData()
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
+
+	def showHelpEPG(self):
+		epghelp = _(language.get(lang, "9"))
+		self["description"].hide()
+		self["help"].setText(epghelp)
 
 	def onWindowShow(self):
 		self.onShown.remove(self.onWindowShow)
@@ -428,7 +431,7 @@ class AssignService(ChannelSelectionBase):
 			self["codestatus"].setText(_(language.get(lang, "6")))
 		else:
 			self["codestatus"].hide()
-		if USRURL:
+		if fileExists(CONFIG_PATH):
 			xtream = open(CONFIG_PATH).read()
 			try:
 				self.host = xtream.split()[1].split('Host=')[1]
@@ -541,7 +544,7 @@ class AssignService(ChannelSelectionBase):
 				eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 
 	def createBouquetIPTV(self):
-		if USRURL:
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
 			try:
 				fp = open(CONFIG_PATH, "r").readlines()
 				for line in fp:
@@ -658,7 +661,7 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			if not USRURL:
+			if fileContains(CONFIG_PATH, "Host=http://host:port"):
 				self["status"].setText(_(language.get(lang, "3")))
 				self["description"].hide()
 			else:

@@ -30,5 +30,6 @@
 		<key id="KEY_CHANNELUP" mapto="nextBouquet" flags="m" />
 		<key id="KEY_CHANNELDOWN" mapto="prevBouquet" flags="m" />
 		<key id="KEY_MENU" mapto="menu" flags="m" />
+		<key id="KEY_HELP" mapto="help" flags="m" />
 	</map>
 </keymap>
