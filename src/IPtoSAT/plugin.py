@@ -57,14 +57,14 @@ except:
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("Exteplayer3")),]
+		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
 	elif isPluginInstalled("FastChannelChange"):
 		return [("gstplayer", _("GstPlayer"))]
 	else:
-		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("Exteplayer3")),]
+		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
 
 
-default_player = "gstplayer" if not fileExists('/var/lib/dpkg/status') or isPluginInstalled("FastChannelChange") else "gst-play-1.0"
+default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
@@ -176,11 +176,21 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
+			
+	def restarGUI(self, answer):
+		if answer:
+			self.session.open(TryQuitMainloop, 3)
+		else:
+			self.close(True)
 
 	def keySave(self):
-		ConfigListScreen.keySave(self)
-		if config.plugins.IPToSAT.enable.value and fileContains(PLAYLIST_PATH, '"sref": "'):
-			self.session.open(TryQuitMainloop, 3)
+		for x in self["config"].list:
+			x[1].save()
+		if not config.plugins.IPToSAT.enable.value:
+			self.close(True)
+		else:
+			if fileContains(PLAYLIST_PATH, '"sref": "'):
+				self.session.openWithCallback(self.restarGUI, MessageBox, _(language.get(lang, "10")), MessageBox.TYPE_YESNO, timeout=10)
 
 	def moveUp(self):
 		self["config"].moveUp()

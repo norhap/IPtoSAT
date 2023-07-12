@@ -9,6 +9,7 @@
 7 = Are you sure you want to delete the entire list?\n\nAll assigned channels will be deleted.
 8 = Your URL has been detected to have problems downloading and updating your IPTV channels, your subscription returns a bouquet with no name.\n\nThe automatic update code will be removed, if you want to update your IPTV channels you must do it automatically manual pressing YELLOW button.\n\nWe will try to create a bouquet called IPTV_IPToSAT. This operation takes time so be patient.\n\nDo you want us to try to update your IPTV channel list?
 9 = To assign EPG to IPTV channels follow these steps:\nSelect satellite channel (left) and press RED to have EPG on IPTV channel. It will assign EPG to any channel in bouquet it finds.\nThe channel name must start with a colon, be equal to the satellite and be at the end of the line where it is located in the IPTV bouquet (you must edit it manually).\nIf you press and there are no changes means that the name is different or the channel already has an EPG or there is a strange character such as an accent, Ñ etc.. (rename the satellite channel).\nIf you use the YELLOW button you will lose the EPG of the subscription bouquet (not in the rest of the bouquets), the channel update will overwrite their data.
+10 = It has been detected that you have assigned channels.\nIt is advisable to restart enigma2 to synchronize them.\n\nDo you want to restart?
 Receiver List = Receiver List
 IPTV Subscription List = IPTV Subscription List
 IPToSAT By Ziko Version = IPToSAT By Ziko Version
@@ -49,6 +50,7 @@ Favourites = Favourites
 7 = ¿Está seguro que quiere eliminar la lista completa?\n\nSe eliminarán todos los canales asignados.
 8 = Se ha detectado que su URL presenta problemas a la hora de descargar y actualizar sus canales IPTV, su suscripción arroja un bouquet sin nombre.\n\nSe eliminará el código de actualización automática, si quiere actualizar sus canales IPTV debe hacerlo de forma manual pulsando botón AMARILLO.\n\nIntentaremos crear un bouquet llamado IPTV_IPToSAT. Esta operación toma su tiempo sea paciente.\n\n¿Quiere que intentemos actualizar su lista de canales IPTV?
 9 = Para asignar EPG a canales IPTV siga estos pasos:\nSeleccione el canal del satélite (izquierda) y pulse ROJO para tener EPG en el canal IPTV. Asignará EPG a cualquier canal en bouquet que encuentre.\nEl nombre del canal debe comenzar con dos puntos ser igual al del satélite y estar al final de la línea donde se ubique en el bouquet IPTV (debe editarlo de forma manual).\nSi pulsa y no hay cambios significa que el nombre es diferente o el canal ya tiene EPG o existe un caracter raro tipo acento, Ñ etc..(renombre el canal satélite).\nSi hace uso del botón AMARILLO perderá la EPG del bouquet de suscripción (no del resto de bouquets), la actualización de canales sobreescribirá sus datos.
+10 = Se ha detectado que tiene canales asignados.\nEs recomendable reiniciar enigma2 para sincronizarlos.\n\n¿Desea reiniciar?
 Receiver List = Lista Receptor
 IPTV Subscription List = Lista Suscripción IPTV
 IPToSAT By Ziko Version = IPToSAT Por Ziko Versión
