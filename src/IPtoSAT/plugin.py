@@ -30,6 +30,11 @@ LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
 
 try:
+	USRURL = True if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port") else False
+except:
+	pass
+
+try:
 	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
 		lang = "en"
 	else:
@@ -314,7 +319,7 @@ class AssignService(ChannelSelectionBase):
 
 		}, -2)
 		self.errortimer = eTimer()
-		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+		if USRURL:
 			self["key_yellow"].setText(_(language.get(lang, "Create bouquet IPTV")))
 
 		try:
@@ -423,7 +428,7 @@ class AssignService(ChannelSelectionBase):
 			self["codestatus"].setText(_(language.get(lang, "6")))
 		else:
 			self["codestatus"].hide()
-		if fileExists(CONFIG_PATH):
+		if USRURL:
 			xtream = open(CONFIG_PATH).read()
 			try:
 				self.host = xtream.split()[1].split('Host=')[1]
@@ -517,7 +522,7 @@ class AssignService(ChannelSelectionBase):
 			replacement = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
-			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and ".tv" in x]:
+			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and ".tv" in x and not ".del" in x]:
 				bouquetiptv = join(filelist)
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
@@ -534,7 +539,7 @@ class AssignService(ChannelSelectionBase):
 				eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 
 	def createBouquetIPTV(self):
-		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+		if USRURL:
 			try:
 				fp = open(CONFIG_PATH, "r").readlines()
 				for line in fp:
@@ -550,18 +555,17 @@ class AssignService(ChannelSelectionBase):
 									replacement = ""
 									riptvsh = fr.readlines()
 									for line in riptvsh:
-										if not 'bouquet=""' in line:
-											bouquetNAME = line.split("bouquet=")[1].split(";")[0]
-											if " " in str(bouquetNAME) or "  " in str(bouquetNAME):
-												with open("/etc/enigma2/iptv.sh", "w") as fw:
-													bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
-													replacement = line.replace(bouquetNAME, bouquetRENAME)
-													fw.write(replacement)
-													eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-											else:
+										bouquetNAME = line.split("bouquet=")[1].split(";")[0]
+										if " " in str(bouquetNAME) or "  " in str(bouquetNAME):
+											with open("/etc/enigma2/iptv.sh", "w") as fw:
+												bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
+												replacement = line.replace(bouquetNAME, bouquetRENAME)
+												fw.write(replacement)
 												eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-											if bouquetNAME:
-												self.session.open(MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_INFO, timeout=5)
+												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
+										elif not 'bouquet=""' in line:
+											eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+											self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
 										else:
 											self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
 			except Exception as err:
@@ -652,7 +656,7 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			if fileContains(CONFIG_PATH, "Host=http://host:port"):
+			if not USRURL:
 				self["status"].setText(_(language.get(lang, "3")))
 				self["description"].hide()
 			else:
