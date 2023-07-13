@@ -538,11 +538,14 @@ class AssignService(ChannelSelectionBase):
 					lines = fr.readlines()
 					for content in lines:
 						createNAMEBOUQUET = content.replace("#NAME", "#NAME IPTV_IPToSAT")
+						BouquetIPToSAT = createNAMEBOUQUET.replace("#NAME IPTV_IPToSAT", "IPTV_IPToSAT")
 						replacement = replacement + createNAMEBOUQUET
 						with open("/etc/enigma2/" + bouquetiptv, "w",) as fw:
 							fw.write(replacement + "\n" + content)
 							if exists("/etc/enigma2/iptv.sh"):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
+							if "IPTV_IPToSAT" in BouquetIPToSAT:
+								self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + " " + _(language.get(lang, "successfully created in your favorites.")), MessageBox.TYPE_INFO, simple=True, timeout=5)
 		else:
 			self.channelSelected()
 			if exists("/etc/enigma2/iptv.sh"):
