@@ -1,7 +1,3 @@
 {
-    "playlist":[{
-        "channel":"TEST",
-        "url":"http://URL/USER/PASS/CH_ID"
-
-    }]
+	"playlist": []
 }

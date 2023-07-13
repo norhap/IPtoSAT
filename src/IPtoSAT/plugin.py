@@ -66,7 +66,7 @@ def choices_list():
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
-config.plugins.IPToSAT.enable = ConfigYesNo(default=False)
+config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
@@ -119,8 +119,8 @@ def getPlaylist():
 
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-	<screen name="IPToSATSetup" position="center,center" size="850,350" title="IPToSATSetup settings">
-		<widget name="config" itemHeight="45" position="15,10" size="820,300" scrollbarMode="showOnDemand" />
+	<screen name="IPToSATSetup" position="center,center" size="950,350" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="45" position="15,10" size="920,300" scrollbarMode="showOnDemand" />
 		<widget name="key_red" position="25,310" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="210,310" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -180,20 +180,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		for x in self.onChangedEntry:
 			x()
 
-	def restarGUI(self, answer):
-		if answer:
-			self.session.open(TryQuitMainloop, 3)
-		else:
-			self.close(True)
-
 	def keySave(self):
-		for x in self["config"].list:
-			x[1].save()
-		if not config.plugins.IPToSAT.enable.value:
-			self.close(True)
-		else:
-			if fileContains(PLAYLIST_PATH, '"sref": "'):
-				self.session.openWithCallback(self.restarGUI, MessageBox, _(language.get(lang, "10")), MessageBox.TYPE_YESNO, timeout=10)
+		ConfigListScreen.keySave(self)
 
 	def moveUp(self):
 		self["config"].moveUp()
