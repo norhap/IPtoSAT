@@ -119,10 +119,10 @@ def getPlaylist():
 
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-	<screen name="IPToSATSetup" position="center,center" size="650,300" title="IPToSATSetup settings">
-		<widget name="config" itemHeight="35" position="15,10" size="620,300" scrollbarMode="showOnDemand" />
-		<widget name="key_red" position="25,260" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget name="key_green" position="210,260" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+	<screen name="IPToSATSetup" position="center,center" size="850,350" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="45" position="15,10" size="820,300" scrollbarMode="showOnDemand" />
+		<widget name="key_red" position="25,310" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="key_green" position="210,310" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -162,9 +162,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
 			if not config.plugins.fccsetup.activate.value:
-				config.plugins.fccsetup.activate.value = True
-				config.plugins.fccsetup.activate.save()
-				self.session.open(TryQuitMainloop, 3)
+				try:
+					config.plugins.fccsetup.activate.value = True
+					config.plugins.fccsetup.activate.save()
+					self.session.open(TryQuitMainloop, 3)
+				except:
+					pass
 
 	def ok(self):
 		current = self["config"].getCurrent()
@@ -176,7 +179,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
-			
+
 	def restarGUI(self, answer):
 		if answer:
 			self.session.open(TryQuitMainloop, 3)
@@ -267,27 +270,29 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="210,center" size="1475,785" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="210,center" size="1475,855" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
 		<widget name="assign" position="18,357" size="680,100" font="Regular;24" zPosition="3" />
-		<widget name="codestatus" position="18,460" size="680,230" font="Regular;24" zPosition="4" />
+		<widget name="codestatus" position="18,460" size="680,250" font="Regular;24" zPosition="4" />
 		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="3" />
-		<widget name="status" position="720,40" size="710,635" font="Regular;24" zPosition="3" />
-		<widget name="help" position="720,355" size="750,425" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="710,150" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,728" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,728" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,728" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,728" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget name="status" position="720,40" size="710,680" font="Regular;24" zPosition="3" />
+		<widget name="help" position="720,355" size="750,495" font="Regular;24" zPosition="3" />
+		<widget name="description" position="720,355" size="710,495" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,798" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,798" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,798" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,798" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="526,693" size="165,30" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_help" render="Label" conditional="key_help" position="699,798" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" objectTypes="key_help,StaticText" position="690,728" zPosition="2" size="330,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_menu" conditional="key_menu" render="Label" position="526,755" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -307,6 +312,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
 		self["key_blue"] = StaticText(_(language.get(lang, "Favourites")))
 		self["key_yellow"] = StaticText("")
+		self["key_help"] = StaticText("HELP")
 		self["key_red"] = StaticText(_(language.get(lang, "Assign EPG IPTV channel")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
@@ -349,6 +355,7 @@ class AssignService(ChannelSelectionBase):
 		epghelp = _(language.get(lang, "9"))
 		self["description"].hide()
 		self["help"].setText(epghelp)
+		self["key_help"].setText("")
 
 	def onWindowShow(self):
 		self.onShown.remove(self.onWindowShow)
