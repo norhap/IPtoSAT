@@ -322,7 +322,7 @@ class AssignService(ChannelSelectionBase):
 
 		}, -2)
 		self.errortimer = eTimer()
-		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			self["key_yellow"].setText(_(language.get(lang, "Create bouquet IPTV")))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
@@ -552,7 +552,7 @@ class AssignService(ChannelSelectionBase):
 				eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 
 	def createBouquetIPTV(self):
-		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "Host=http://host:port"):
+		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
 				fp = open(CONFIG_PATH, "r").readlines()
 				for line in fp:
@@ -584,7 +584,7 @@ class AssignService(ChannelSelectionBase):
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
-			self.session.open(MessageBox, _(language.get(lang, "Have not configured /etc/enigma2/iptosat.conf")), MessageBox.TYPE_ERROR, default=False, timeout=5)
+			self.session.open(MessageBox, _(language.get(lang, "You haven't configured the file yet iptosat.conf")), MessageBox.TYPE_ERROR, default=False, timeout=5)
 
 	def setEPGChannel(self):
 		sref = str(self.getSref())
@@ -669,7 +669,7 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			if fileContains(CONFIG_PATH, "Host=http://host:port"):
+			if fileContains(CONFIG_PATH, "pass"):
 				self["status"].setText(_(language.get(lang, "3")))
 				self["description"].hide()
 			else:
