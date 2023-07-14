@@ -68,8 +68,8 @@ default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPl
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
-config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
-config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "Press OK")))], default = "1")
+config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
+config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
 
 
 def trace_error():
@@ -129,7 +129,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
-		self.setup_title = (_(language.get(lang, "IPToSAT By Ziko Version") + " " + "%s" % VERSION))
+		self.setup_title = (_(language.get(lang, "13") + " " + "%s" % VERSION))
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -151,13 +151,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.setTitle(_(language.get(lang, "IPToSAT By Ziko Version") + " " + "%s" % VERSION))
+		self.setTitle(_(language.get(lang, "13") + " " + "%s" % VERSION))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
-		self.list.append(getConfigListEntry(_(language.get(lang, "Assign satellite channel and IPTV list manager")), config.plugins.IPToSAT.assign))
-		self.list.append(getConfigListEntry(_(language.get(lang, "Reset or Remove channels from playlist")), config.plugins.IPToSAT.playlist))
-		self.list.append(getConfigListEntry(_(language.get(lang, "IPToSAT Player")), config.plugins.IPToSAT.player))
+		self.list = [getConfigListEntry(_(language.get(lang, "14")), config.plugins.IPToSAT.enable)]
+		self.list.append(getConfigListEntry(_(language.get(lang, "15")), config.plugins.IPToSAT.assign))
+		self.list.append(getConfigListEntry(_(language.get(lang, "16")), config.plugins.IPToSAT.playlist))
+		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
@@ -288,8 +288,8 @@ class AssignService(ChannelSelectionBase):
 		self.session = session
 		ChannelSelectionBase.__init__(self, session)
 		self.bouquet_mark_edit = 0
-		self["titlelist"] = Label(_(language.get(lang, "Receiver List")))
-		self["titlelist2"] = Label(_(language.get(lang, "IPTV Subscription List")))
+		self["titlelist"] = Label(_(language.get(lang, "11")))
+		self["titlelist2"] = Label(_(language.get(lang, "12")))
 		self["status"] = Label()
 		self["codestatus"] = Label()
 		self["assign"] = Label()
@@ -297,11 +297,11 @@ class AssignService(ChannelSelectionBase):
 		self["codeassign"] = Label()
 		description = _(language.get(lang, "0"))
 		self["description"] = Label(description)
-		self["key_green"] = StaticText(_(language.get(lang, "Satellites")))
-		self["key_blue"] = StaticText(_(language.get(lang, "Favourites")))
+		self["key_green"] = StaticText(_(language.get(lang, "36")))
+		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
 		self["key_help"] = StaticText("HELP")
-		self["key_red"] = StaticText(_(language.get(lang, "Assign EPG IPTV channel")))
+		self["key_red"] = StaticText(_(language.get(lang, "18")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -323,7 +323,7 @@ class AssignService(ChannelSelectionBase):
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
-			self["key_yellow"].setText(_(language.get(lang, "Create bouquet IPTV")))
+			self["key_yellow"].setText(_(language.get(lang, "32")))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except:
@@ -452,7 +452,7 @@ class AssignService(ChannelSelectionBase):
 			self.close(True)
 
 	def errorMessage(self):
-		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "Something is wrong in /etc/enigma2/iptosat.conf. Log in /tmp/IPtoSAT.log")), MessageBox.TYPE_ERROR, timeout=10)
+		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "19")), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getCategories(self, url):
 		url += '&action=get_live_categories'
@@ -493,16 +493,16 @@ class AssignService(ChannelSelectionBase):
 					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
 					with open(PLAYLIST_PATH, 'w') as f:
 						json.dump(playlist, f, indent = 4)
-					text = channel_name + " " + _(language.get(lang, "correctly assigned with")) + " " + xtream_channel
+					text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
 					self.assignWidget("#008000", text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "this channel already exists in the list, if you want to re assign it enter the MENU 'Reset or remove channels from the list'."))
+					text = channel_name + " " + _(language.get(lang, "20"))
 					self.assignWidget("#00ff2525", text)
 			else:
-				text = _(language.get(lang, "Cannot assign to this channel"))
+				text = _(language.get(lang, "23"))
 				self.assignWidget("#00ff2525", text)
 		else:
-			text = _(language.get(lang, "Failed to load Playlist"))
+			text = _(language.get(lang, "22"))
 			self.assignWidget("#00ff2525", text)
 
 	def restarGUI(self, answer):
@@ -515,7 +515,7 @@ class AssignService(ChannelSelectionBase):
 		if exists("/etc/enigma2/iptv.sh"):
 			Console().ePopen("rm -f /etc/enigma2/iptv.sh")
 			if not exists("/etc/enigma2/iptv.sh"):
-				text = _(language.get(lang, 'Your list will not be updated on receiver restarts.'))
+				text = _(language.get(lang, "35"))
 				self.assignWidgetScript("#008000", text)
 				self['codestatus'].hide()
 				self["key_menu"].setText("")
@@ -545,7 +545,7 @@ class AssignService(ChannelSelectionBase):
 							if exists("/etc/enigma2/iptv.sh"):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 							if "IPTV_IPToSAT" in BouquetIPToSAT:
-								self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + " " + _(language.get(lang, "successfully created in your favorites.")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+								self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + " " + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=5)
 		else:
 			self.channelSelected()
 			if exists("/etc/enigma2/iptv.sh"):
@@ -584,7 +584,7 @@ class AssignService(ChannelSelectionBase):
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
-			self.session.open(MessageBox, _(language.get(lang, "You haven't configured the file yet iptosat.conf")), MessageBox.TYPE_ERROR, default=False, timeout=5)
+			self.session.open(MessageBox, _(language.get(lang, "33")), MessageBox.TYPE_ERROR, default=False, timeout=5)
 
 	def setEPGChannel(self):
 		sref = str(self.getSref())
@@ -628,10 +628,10 @@ class AssignService(ChannelSelectionBase):
 				if fileExists("/etc/enigma2/iptv_bouquet_epg.txt"):
 					Console().ePopen("rm -f /etc/enigma2/iptv_bouquet_epg.txt")
 				if not fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
-					text = channel_name + " " + _(language.get(lang, "No EPG, check channel name"))
+					text = channel_name + " " + _(language.get(lang, "25"))
 					self.assignWidget("#00ff2525", text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "with EPG set"))
+					text = channel_name + " " + _(language.get(lang, "24"))
 					self.assignWidget("#008000", text)
 					message = _(language.get(lang, "1"))
 					self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
@@ -661,7 +661,7 @@ class AssignService(ChannelSelectionBase):
 	def callAPI(self, url, callback):
 		self['list2'].hide()
 		self["status"].show()
-		self["status"].setText(_(language.get(lang, "Please wait...")))
+		self["status"].setText(_(language.get(lang, "31")))
 		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
 	def error(self, error=None):
@@ -756,7 +756,7 @@ class EditPlaylist(Screen):
 		Screen.__init__(self, session)
 		self["status"] = Label()
 		self.skinName = ["EditPlaylistIPtoSAT"]
-		self.setTitle(_(language.get(lang, "Edit channel list")))
+		self.setTitle(_(language.get(lang, "26")))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
@@ -783,14 +783,14 @@ class EditPlaylist(Screen):
 				self['list'].l.setList(list)
 				self.channels = sorted(list)
 				self["status"].hide()
-				self["key_red"].setText(_(language.get(lang, "Delete list")))
-				self["key_green"].setText(_(language.get(lang, "Delete Channel")))
+				self["key_red"].setText(_(language.get(lang, "27")))
+				self["key_green"].setText(_(language.get(lang, "28")))
 			else:
-				self["status"].setText(_(language.get(lang, "No assigned channel list")))
+				self["status"].setText(_(language.get(lang, "29")))
 				self["status"].show()
 				self['list'].hide()
 		else:
-			self["status"].setText(_(language.get(lang, "Failed to read list")))
+			self["status"].setText(_(language.get(lang, "30")))
 			self["status"].show()
 			self['list'].hide()
 
