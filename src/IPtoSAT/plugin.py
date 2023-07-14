@@ -155,9 +155,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def createSetup(self):
 		self.list = [getConfigListEntry(_(language.get(lang, "Enable IPToSAT")), config.plugins.IPToSAT.enable)]
-		self.list.append(getConfigListEntry(_(language.get(lang, "IPToSAT Player")), config.plugins.IPToSAT.player))
-		self.list.append(getConfigListEntry(_(language.get(lang, "Assign satellite channel to IPTV list")), config.plugins.IPToSAT.assign))
+		self.list.append(getConfigListEntry(_(language.get(lang, "Assign satellite channel and IPTV list manager")), config.plugins.IPToSAT.assign))
 		self.list.append(getConfigListEntry(_(language.get(lang, "Reset or Remove channels from playlist")), config.plugins.IPToSAT.playlist))
+		self.list.append(getConfigListEntry(_(language.get(lang, "IPToSAT Player")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
