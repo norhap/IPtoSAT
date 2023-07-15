@@ -1,6 +1,6 @@
 [en]
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap
-0 = To assign satellite channels, select the channel in both lists and press OK.\n\nTo show detailed help how to assign EPG press HELP.
+0 = To assign satellite channels, select the channel in both lists and press OK.\n\nTo show detailed help how to assign EPG press HELP.\n\nTo be able to use a second list of your subscription and switch between the two lists press VOLUME +.\nYou must have at least one storage device available and not Network mounted.
 1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect "No" to continue adding channels.
 2 = no match\nShowing all channels of this IPTV bouquet
 3 = You have not yet configured your "iptosat.conf" file located in the /etc/enigma2/\nYou have to set your URL:port in this file as well as set your IPTV subscription username and password to be able to assign satellite channels.\ n\nIf you can use RED button assign EPG to IPTV channels.\nPress HELP button will show an explanation how to do it.
@@ -39,10 +39,16 @@ Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sync
 36 = Satellites
 37 = Favourites
 38 = successfully created in your favorites.
+39 = VOLUME +
+40 = The iptosat.conf file does not exist in:
+41 = Enter your second subscription file in that path.
+42 = file that existed
+43 = Your new file entered
+44 = Both files cannot exist.\nWe keep your last entered file iptosat.conf\nPress VOL + key again
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 1.9 por norhap
-0 = Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.\n\nPara mostrar ayuda detallada como asignar EPG pulse HELP.
+0 = Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.\n\nPara mostrar ayuda detallada como asignar EPG pulse HELP.\n\nPara poder usar una segunda lista de su suscripción e ir alternando las dos listas pulse VOLUMEN +.\nDebe tener al menos un dispositivo de almacenamiento disponible y que no esté montado en Red.
 1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione "No" para seguir añadiendo canales.
 2 = no existe coincidencia\nMostrando todos los canales de este bouquet IPTV
 3 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/\nTiene que establecer en este archivo su URL:puerto así como establecer usuario y contraseña de su suscripción IPTV para poder asignar canales satélite.\n\nSi puede hacer uso del botón ROJO asignar EPG a canales IPTV.\nPulse botón HELP mostrará una explicación de como hacerlo.
@@ -81,3 +87,9 @@ Synchronize and view satellite channels through IPTV. Setup 1.9 by norhap = Sinc
 36 = Satélites
 37 = Favoritos
 38 = creado con éxito en sus favoritos
+39 = VOLUMEN +
+40 = El archivo iptosat.conf no existe en:
+41 = Ingrese el archivo de su segunda suscripción en esa ruta.
+42 = Archivo que existía
+43 = Su nuevo archivo ingresado
+44 = No puede existir ambos archivos.\nMantenemos su último archivo ingresado iptosat.conf\nVuelva a pulsar tecla VOL +

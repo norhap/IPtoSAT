@@ -19,8 +19,8 @@ from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
 import json
-from os import listdir
-from os.path import join, exists
+from os import listdir, makedirs, remove
+from os.path import join, exists, normpath
 from configparser import ConfigParser
 from time import sleep
 
@@ -278,6 +278,9 @@ class AssignService(ChannelSelectionBase):
 		<widget source="key_help" render="Label" conditional="key_help" position="699,798" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="872,798" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget source="key_menu" conditional="key_menu" render="Label" position="526,755" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -300,8 +303,9 @@ class AssignService(ChannelSelectionBase):
 		self["key_green"] = StaticText(_(language.get(lang, "36")))
 		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
-		self["key_help"] = StaticText("HELP")
 		self["key_red"] = StaticText(_(language.get(lang, "18")))
+		self["key_help"] = StaticText("HELP")
+		self["key_volumeup"] = StaticText(_(language.get(lang, "39")))
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -319,6 +323,7 @@ class AssignService(ChannelSelectionBase):
 			"prevBouquet": self.chDOWN,
 			"menu": self.removeScript,
 			"help": self.showHelpEPG,
+			"volumeUp": self.toggleSecondList,
 
 		}, -2)
 		self.errortimer = eTimer()
@@ -344,6 +349,7 @@ class AssignService(ChannelSelectionBase):
 		self["description"].hide()
 		self["help"].setText(epghelp)
 		self["key_help"].setText("")
+		self["key_volumeup"].setText("")
 
 	def onWindowShow(self):
 		self.onShown.remove(self.onWindowShow)
@@ -635,6 +641,36 @@ class AssignService(ChannelSelectionBase):
 					self.assignWidget("#008000", text)
 					message = _(language.get(lang, "1"))
 					self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
+
+	def toggleSecondList(self):
+		try:
+			from Components.Harddisk import harddiskmanager
+			from shutil import move
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				fileconf = join("/etc/enigma2", "iptosat.conf")
+				folderconfig = join(path, "IPToSAT")
+				iptosatconf= join(folderconfig, "iptosat.conf")
+				iptosat2conf = join(folderconfig, "iptosat2.conf")
+				if exists(iptosatconf) and exists(iptosat2conf):
+					self.session.open(MessageBox, iptosat2conf + " " + _(language.get(lang, "42")) + "\n" + iptosatconf + " " + _(language.get(lang, "43")) + "\n" + _(language.get(lang, "44")), MessageBox.TYPE_ERROR, default=False, timeout=25)
+					remove(iptosat2conf)
+					break
+				if path != "/" and not "net" in path and not "autofs" in path:
+					if not exists(folderconfig):
+						makedirs(folderconfig)
+					if not exists(iptosatconf) and not exists(iptosat2conf):
+						self.session.open(MessageBox,  _(language.get(lang, "40")) + "\n" + folderconfig + "/" + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_ERROR, timeout=25)
+					if exists(CONFIG_PATH) and exists(iptosatconf):
+						move(CONFIG_PATH, iptosatconf.replace(".conf", "2.conf"))
+						move(iptosatconf, fileconf)
+						break
+					if exists(CONFIG_PATH) and exists(iptosat2conf):
+						move(CONFIG_PATH, iptosatconf)
+						move(iptosat2conf, fileconf)
+			self.getUserData()
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def exists(self, sref, playlist):
 		try:
