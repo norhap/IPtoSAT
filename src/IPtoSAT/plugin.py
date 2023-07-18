@@ -258,30 +258,40 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="210,center" size="1475,855" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="200,center" size="1520,905" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="titlelist2" position="925,05" size="350,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="list" position="18,42" size="680,310" scrollbarMode="showOnDemand" />
-		<widget name="list2" position="720,42" size="710,305" scrollbarMode="showOnDemand" />
-		<widget name="assign" position="18,357" size="680,100" font="Regular;24" zPosition="3" />
-		<widget name="codestatus" position="18,460" size="680,250" font="Regular;24" zPosition="4" />
+		<widget name="titlelist2" position="930,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="list" position="18,42" size="695,310" scrollbarMode="showOnDemand" />
+		<widget name="list2" position="720,42" size="750,305" scrollbarMode="showOnDemand" />
+		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="3" />
+		<widget name="codestatus" position="18,460" size="695,340" font="Regular;24" zPosition="4" />
 		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="3" />
-		<widget name="status" position="720,40" size="710,680" font="Regular;24" zPosition="3" />
-		<widget name="help" position="720,355" size="750,495" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="710,495" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="7,798" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="180,798" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="353,798" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="526,798" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget name="status" position="720,40" size="710,695" font="Regular;24" zPosition="3" />
+		<widget name="help" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
+		<widget name="play" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
+		<widget name="description" position="720,355" size="710,488" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="2,848" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="171,848" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="339,848" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="507,848" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" conditional="key_help" position="699,798" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_help" render="Label" conditional="key_help" position="675,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="872,798" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_play" render="Label" conditional="key_play" position="843,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="526,755" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1011,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1179,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_stop" render="Label" conditional="key_stop" position="1347,848" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_menu" conditional="key_menu" render="Label" position="2,805" size="165,35" zPosition="4" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -291,21 +301,25 @@ class AssignService(ChannelSelectionBase):
 		self.session = session
 		ChannelSelectionBase.__init__(self, session)
 		self.bouquet_mark_edit = 0
+		self.secondSuscription = False
 		self["titlelist"] = Label(_(language.get(lang, "11")))
-		self["titlelist2"] = Label(_(language.get(lang, "12")))
+		self["titlelist2"] = Label()
 		self["status"] = Label()
 		self["codestatus"] = Label()
 		self["assign"] = Label()
 		self["help"] = Label()
+		self["play"] = Label()
+		self["key_volumeup"] = StaticText("")
+		self["key_volumedown"] = StaticText("")
+		self["key_stop"] = StaticText("")
 		self["codeassign"] = Label()
-		description = _(language.get(lang, "0"))
-		self["description"] = Label(description)
+		self["description"] = Label(_(language.get(lang, "0")))
 		self["key_green"] = StaticText(_(language.get(lang, "36")))
 		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
 		self["key_red"] = StaticText(_(language.get(lang, "18")))
 		self["key_help"] = StaticText("HELP")
-		self["key_volumeup"] = StaticText(_(language.get(lang, "39")))
+		self["key_play"] = StaticText("PLAY")
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -323,8 +337,10 @@ class AssignService(ChannelSelectionBase):
 			"prevBouquet": self.chDOWN,
 			"menu": self.removeScript,
 			"help": self.showHelpEPG,
+			"play": self.showHelpChangeList,
 			"volumeUp": self.toggleSecondList,
-
+			"volumeDown": self.setChangeList,
+			"stop": self.purge,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -344,12 +360,22 @@ class AssignService(ChannelSelectionBase):
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
 
+	def showHelpChangeList(self):
+		changelisthelp = _(language.get(lang, "58"))
+		self["description"].hide()
+		self["help"].hide()
+		self["play"].setText(changelisthelp)
+		self["play"].show()
+		self["key_volumeup"].setText(_(language.get(lang, "39")))
+		self["key_volumedown"].setText(_(language.get(lang, "47")))
+		self["key_stop"].setText(_(language.get(lang, "51")))
+
 	def showHelpEPG(self):
 		epghelp = _(language.get(lang, "9"))
 		self["description"].hide()
+		self["play"].hide()
 		self["help"].setText(epghelp)
-		self["key_help"].setText("")
-		self["key_volumeup"].setText("")
+		self["help"].show()
 
 	def onWindowShow(self):
 		self.onShown.remove(self.onWindowShow)
@@ -437,6 +463,10 @@ class AssignService(ChannelSelectionBase):
 		self.resetWidget()
 
 	def getUserData(self):
+		if not self.secondSuscription:
+			self["titlelist2"].setText(_(language.get(lang, "12")))
+		else:
+			self["titlelist2"].setText(_(language.get(lang, "44")))
 		if exists("/etc/enigma2/iptv.sh"):
 			self["key_menu"] = StaticText("MENU")
 			self["codestatus"].setText(_(language.get(lang, "6")))
@@ -642,33 +672,176 @@ class AssignService(ChannelSelectionBase):
 					message = _(language.get(lang, "1"))
 					self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
 
+	def purge(self):
+		from Components.Harddisk import harddiskmanager
+		from shutil import move
+		for partition in harddiskmanager.getMountedPartitions():
+			path = normpath(partition.mountpoint)
+			alternateFolder = join(path, "IPToSAT/AlternateList")
+			changeFolder = join(path, "IPToSAT/ChangeList")
+			iptosatconf = join(alternateFolder, "iptosat.conf")
+			iptosat2conf = join(changeFolder, "iptosat.conf")
+			if path != "/" and not "net" in path and not "autofs" in path:
+				if exists(iptosatconf) or exists(iptosat2conf):
+					self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, _(language.get(lang, "57")), MessageBox.TYPE_YESNO, default=False)
+				else:
+					self.session.open(MessageBox, _(language.get(lang, "43")), MessageBox.TYPE_INFO)
+
+	def purgeDeviceFiles(self, answer):
+		from Components.Harddisk import harddiskmanager
+		from shutil import move
+		if answer:
+			try:
+				for partition in harddiskmanager.getMountedPartitions():
+					path = normpath(partition.mountpoint)
+					alternateFolder = join(path, "IPToSAT/AlternateList")
+					changeFolder = join(path, "IPToSAT/ChangeList")
+					iptosatconf = join(alternateFolder, "iptosat.conf")
+					iptosat2conf = join(changeFolder, "iptosat.conf")
+					if path != "/" and not "net" in path and not "autofs" in path:
+						if exists(iptosatconf):
+							remove(iptosatconf)
+						if exists(iptosat2conf):
+							remove(iptosat2conf)
+						if not exists(iptosatconf) or not exists(iptosat2conf):
+							self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
+			except Exception as err:
+				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
 	def toggleSecondList(self):
+		from Components.Harddisk import harddiskmanager
+		from shutil import move
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				fileconf = join("/etc/enigma2", "iptosat.conf")
+				alternateFolder = join(path, "IPToSAT/AlternateList")
+				iptosat2conf = join(alternateFolder, "iptosat.conf")
+				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
+				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
+				if path != "/" and not "net" in path and not "autofs" in path:
+					if exists(iptosat2conf):
+						if exists(iptosatLIST2conf) or exists(iptosatLIST1conf):
+							remove(iptosat2conf)
+					if not exists(alternateFolder):
+						makedirs(alternateFolder)
+					if not exists(iptosat2conf) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf):
+						self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + alternateFolder + "/", MessageBox.TYPE_INFO)
+					if exists(CONFIG_PATH) and exists(iptosat2conf):
+						move(CONFIG_PATH, iptosatLIST1conf)
+						move(iptosat2conf, fileconf)
+						self.secondSuscription = True
+						break
+					if exists(CONFIG_PATH) and exists(iptosatLIST2conf):
+						move(CONFIG_PATH, iptosatLIST1conf)
+						move(iptosatLIST2conf, fileconf)
+						self.secondSuscription = True
+						break
+					if exists(CONFIG_PATH) and exists(iptosatLIST1conf):
+						move(CONFIG_PATH, iptosatLIST2conf)
+						move(iptosatLIST1conf, fileconf)
+						self.secondSuscription = False
+						break
+			self.getUserData()
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
+	def doChangeList(self, answer):
+		from Components.Harddisk import harddiskmanager
+		from shutil import move
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				alternateFolder = join(path, "IPToSAT/AlternateList")
+				changeFolder = join(path, "IPToSAT/ChangeList")
+				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
+				iptosat2Change = join(changeFolder, "iptosat.conf")
+				iptosatconf = join(alternateFolder, "iptosat.conf")
+				fileconf = join("/etc/enigma2", "iptosat.conf")
+				if path != "/" and not "net" in path and not "autofs" in path:
+					if answer:
+						if exists(iptosat2Change):
+							move(iptosat2Change, iptosatLIST1conf)
+					else:
+						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
+	def doChangeList2(self, answer):
+		from Components.Harddisk import harddiskmanager
+		from shutil import move
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				fileconf = join("/etc/enigma2", "iptosat.conf")
+				alternateFolder = join(path, "IPToSAT/AlternateList")
+				changeFolder = join(path, "IPToSAT/ChangeList")
+				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
+				iptosat2Change = join(changeFolder, "iptosat.conf")
+				iptosatconf = join(alternateFolder, "iptosat.conf")
+				if path != "/" and not "net" in path and not "autofs" in path:
+					if answer:
+						move(iptosat2Change, iptosatLIST2conf)
+					else:
+						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
+	def setChangeList(self):
 		try:
 			from Components.Harddisk import harddiskmanager
 			from shutil import move
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
 				fileconf = join("/etc/enigma2", "iptosat.conf")
-				folderconfig = join(path, "IPToSAT")
-				iptosatconf= join(folderconfig, "iptosat.conf")
-				iptosat2conf = join(folderconfig, "iptosat2.conf")
-				if exists(iptosatconf) and exists(iptosat2conf):
-					self.session.open(MessageBox, iptosat2conf + " " + _(language.get(lang, "42")) + "\n" + iptosatconf + " " + _(language.get(lang, "43")) + "\n" + _(language.get(lang, "44")), MessageBox.TYPE_ERROR, default=False, timeout=25)
-					remove(iptosat2conf)
-					break
+				alternateFolder = join(path, "IPToSAT/AlternateList")
+				changeFolder = join(path, "IPToSAT/ChangeList")
+				iptosat2Change = join(changeFolder, "iptosat.conf")
+				iptosatconf = join(alternateFolder, "iptosat.conf")
+				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
+				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
-					if not exists(folderconfig):
-						makedirs(folderconfig)
-					if not exists(iptosatconf) and not exists(iptosat2conf):
-						self.session.open(MessageBox,  _(language.get(lang, "40")) + "\n" + folderconfig + "/" + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_ERROR, timeout=25)
-					if exists(CONFIG_PATH) and exists(iptosatconf):
-						move(CONFIG_PATH, iptosatconf.replace(".conf", "2.conf"))
-						move(iptosatconf, fileconf)
+					if not exists(changeFolder):
+						makedirs(changeFolder)
+					if not exists(alternateFolder):
+						makedirs(alternateFolder)
+					if exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
+						move(fileconf, iptosatLIST1conf)
+						move(iptosat2Change, fileconf)
+						self.getUserData()
+						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
 						break
-					if exists(CONFIG_PATH) and exists(iptosat2conf):
-						move(CONFIG_PATH, iptosatconf)
-						move(iptosat2conf, fileconf)
-			self.getUserData()
+					if not exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
+						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
+						break
+					if exists(iptosatconf) and exists(iptosat2Change):
+						if exists(iptosatLIST1conf):
+							remove(iptosatconf)
+						if exists(iptosatLIST2conf):
+							remove(iptosatconf)
+						if exists(iptosatconf):
+							self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2Change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
+							break
+					if exists(iptosatconf) and not exists(iptosat2Change):
+						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/", MessageBox.TYPE_INFO)
+						break
+					if exists(iptosatLIST1conf) and exists(iptosat2Change):
+						host = open(iptosatLIST1conf).read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+						break
+					if exists(iptosatLIST1conf) and not exists(iptosat2Change):
+						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changeFolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+						break
+					if exists(iptosatLIST2conf) and exists(iptosat2Change):
+						host = open(iptosatLIST2conf).read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+						self.session.openWithCallback(self.doChangeList2, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+						break
+					if exists(iptosatLIST2conf) and not exists(iptosat2Change):
+						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changeFolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+						break
+				self.getUserData()
 		except Exception as err:
 			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 

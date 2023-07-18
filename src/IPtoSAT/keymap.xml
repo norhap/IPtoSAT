@@ -32,5 +32,9 @@
 		<key id="KEY_MENU" mapto="menu" flags="m" />
 		<key id="KEY_HELP" mapto="help" flags="m" />
 		<key id="KEY_VOLUMEUP" mapto="volumeUp" flags="mr" />
+		<key id="KEY_VOLUMEDOWN" mapto="volumeDown" flags="mr" />
+		<key id="KEY_STOP" mapto="stop" flags="m" />
+		<key id="KEY_PLAY" mapto="play" flags="m" />
+		<key id="KEY_PLAYPAUSE" mapto="play" flags="m" />
 	</map>
 </keymap>
