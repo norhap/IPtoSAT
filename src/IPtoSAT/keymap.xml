@@ -36,5 +36,8 @@
 		<key id="KEY_STOP" mapto="stop" flags="m" />
 		<key id="KEY_PLAY" mapto="play" flags="m" />
 		<key id="KEY_PLAYPAUSE" mapto="play" flags="m" />
+		<key id="KEY_TV" mapto="showTv" flags="m" />
+		<key id="KEY_RADIO" mapto="radio" flags="m" />
+		<key id="KEY_RECORD" mapto="rec" flags="m" />
 	</map>
 </keymap>

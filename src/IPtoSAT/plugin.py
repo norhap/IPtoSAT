@@ -23,6 +23,8 @@ from os import listdir, makedirs, remove
 from os.path import join, exists, normpath
 from configparser import ConfigParser
 from time import sleep
+from Components.Harddisk import harddiskmanager
+from shutil import move, copy
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
@@ -258,40 +260,50 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="200,center" size="1520,905" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="200,center" size="1520,940" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="930,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="695,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="720,42" size="750,305" scrollbarMode="showOnDemand" />
 		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="3" />
-		<widget name="codestatus" position="18,460" size="695,340" font="Regular;24" zPosition="4" />
+		<widget name="codestatus" position="18,460" size="695,300" font="Regular;24" zPosition="4" />
+		<widget name="copychannels" position="18,765" size="695,35" font="Regular;24" zPosition="4" />
 		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="3" />
 		<widget name="status" position="720,40" size="710,695" font="Regular;24" zPosition="3" />
 		<widget name="help" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
 		<widget name="play" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="710,488" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="2,848" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="171,848" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="339,848" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="507,848" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget name="description" position="720,355" size="790,480" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="2,883" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="171,883" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="339,883" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="507,883" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" conditional="key_help" position="675,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_help" render="Label" conditional="key_help" position="675,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_play" render="Label" conditional="key_play" position="843,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_play" render="Label" conditional="key_play" position="843,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1011,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1011,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1179,848" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1179,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_stop" render="Label" conditional="key_stop" position="1347,848" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_stop" render="Label" conditional="key_stop" position="1347,883" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="2,805" size="165,35" zPosition="4" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_radio" render="Label" conditional="key_radio" position="507,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_tv" render="Label" conditional="key_tv" position="171,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_rec" render="Label" conditional="key_rec" position="339,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_menu" conditional="key_menu" render="Label" position="2,843" size="165,35" zPosition="4" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -302,10 +314,12 @@ class AssignService(ChannelSelectionBase):
 		ChannelSelectionBase.__init__(self, session)
 		self.bouquet_mark_edit = 0
 		self.secondSuscription = False
+		self.storage = False
 		self["titlelist"] = Label(_(language.get(lang, "11")))
 		self["titlelist2"] = Label()
 		self["status"] = Label()
 		self["codestatus"] = Label()
+		self["copychannels"] = Label()
 		self["assign"] = Label()
 		self["help"] = Label()
 		self["play"] = Label()
@@ -320,6 +334,9 @@ class AssignService(ChannelSelectionBase):
 		self["key_red"] = StaticText(_(language.get(lang, "18")))
 		self["key_help"] = StaticText("HELP")
 		self["key_play"] = StaticText("PLAY")
+		self["key_tv"] = StaticText("")
+		self["key_rec"] = StaticText("")
+		self["key_radio"] = StaticText("")
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -341,10 +358,32 @@ class AssignService(ChannelSelectionBase):
 			"volumeUp": self.toggleSecondList,
 			"volumeDown": self.setChangeList,
 			"stop": self.purge,
+			"showTv": self.backupChannelsList,
+			"radio": self.deleteChannelsList,
+			"rec": self.installChannelsList,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			self["key_yellow"].setText(_(language.get(lang, "32")))
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				if path != "/" and not "net" in path and not "autofs" in path:
+					self.storage = True
+					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+					backupfiles = ""
+					for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
+						backupfiles = join(backupdirectory, files)
+						if backupfiles:
+							self["key_radio"].setText("RADIO")
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+		if self.storage:
+			self["key_tv"].setText("TV")
+			self["key_rec"].setText("REC")
+			self["description"].setText(_(language.get(lang, "60")))
+		else:
+			self["description"] = Label(_(language.get(lang, "0")))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except:
@@ -361,7 +400,12 @@ class AssignService(ChannelSelectionBase):
 		self.onShown.append(self.onWindowShow)
 
 	def showHelpChangeList(self):
-		changelisthelp = _(language.get(lang, "58"))
+		if self.storage:
+			changelisthelp = _(language.get(lang, "58"))
+		else:
+			changelisthelp = _(language.get(lang, "58"))
+			text = _(language.get(lang, "61"))
+			self.assignWidget("#00ff2525", text)
 		self["description"].hide()
 		self["help"].hide()
 		self["play"].setText(changelisthelp)
@@ -556,6 +600,118 @@ class AssignService(ChannelSelectionBase):
 				self['codestatus'].hide()
 				self["key_menu"].setText("")
 
+	def doinstallChannelsList(self, answer):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+				enigma2directory = "/etc/enigma2"
+				backupfiles = ""
+				enigma2files = ""
+				if answer:
+					if path != "/" and not "net" in path and not "autofs" in path:
+						for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							backupfiles = join(backupdirectory, files)
+						for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							enigma2files = join(enigma2directory, fileschannelslist)
+							if enigma2files and backupfiles:
+								eConsoleAppContainer().execute('killall -9 enigma2 && rm -f' + " " + enigma2files + " " + '&& cp' + " " + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + '&& sbin/init 3')
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def installChannelsList(self):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+				backupfiles = ""
+				if path != "/" and not "net" in path and not "autofs" in path:
+					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						backupfiles = join(backupdirectory, files)
+						if backupfiles:
+							self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
+							break
+						else:
+							self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
+							break
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def doDeleteChannelsList(self, answer):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+				backupfiles = ""
+				if answer:
+					if path != "/" and not "net" in path and not "autofs" in path:
+						for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							backupfiles = join(backupdirectory, files)
+							remove(backupfiles)
+							self["copychannels"].setText(_(language.get(lang, "68")))
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def deleteChannelsList(self):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				if path != "/" and not "net" in path and not "autofs" in path:
+					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+					backupfiles = ""
+					for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
+						backupfiles = join(backupdirectory, files)
+						if backupfiles:
+							self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
+							break
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def dobackupChannelsList(self, answer):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+				enigma2directory = "/etc/enigma2"
+				backupfiles = ""
+				enigma2files = ""
+				if answer:
+					if path != "/" and not "net" in path and not "autofs" in path:
+						for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							backupfiles = join(backupdirectory, files)
+							remove(backupfiles)
+						for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							enigma2files = join(enigma2directory, fileschannelslist)
+							if enigma2files:
+								copy(enigma2files, backupdirectory)
+						self["copychannels"].setText(_(language.get(lang, "66")))
+				else:
+					self.showFavourites()
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def backupChannelsList(self):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+				enigma2directory = "/etc/enigma2"
+				backupfiles = ""
+				enigma2files = ""
+				if path != "/" and not "net" in path and not "autofs" in path:
+					if not exists(backupdirectory):
+						makedirs(backupdirectory)
+					for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						backupfiles = join(backupdirectory, backupfiles)
+					if backupfiles:
+						self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
+						break
+					else:
+						self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "65")), MessageBox.TYPE_YESNO)
+						break
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
 	def tryToUpdateIPTVChannels(self, answer):
 		if answer:
 			with open("/etc/enigma2/iptv.sh", "r") as fr:
@@ -580,8 +736,8 @@ class AssignService(ChannelSelectionBase):
 							fw.write(replacement + "\n" + content)
 							if exists("/etc/enigma2/iptv.sh"):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
-							if "IPTV_IPToSAT" in BouquetIPToSAT:
-								self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + " " + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+						if "IPTV_IPToSAT" in BouquetIPToSAT:
+							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=10)
 		else:
 			self.channelSelected()
 			if exists("/etc/enigma2/iptv.sh"):
@@ -673,8 +829,6 @@ class AssignService(ChannelSelectionBase):
 					self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
 
 	def purge(self):
-		from Components.Harddisk import harddiskmanager
-		from shutil import move
 		for partition in harddiskmanager.getMountedPartitions():
 			path = normpath(partition.mountpoint)
 			alternateFolder = join(path, "IPToSAT/AlternateList")
@@ -688,8 +842,6 @@ class AssignService(ChannelSelectionBase):
 					self.session.open(MessageBox, _(language.get(lang, "43")), MessageBox.TYPE_INFO)
 
 	def purgeDeviceFiles(self, answer):
-		from Components.Harddisk import harddiskmanager
-		from shutil import move
 		if answer:
 			try:
 				for partition in harddiskmanager.getMountedPartitions():
@@ -706,11 +858,9 @@ class AssignService(ChannelSelectionBase):
 						if not exists(iptosatconf) or not exists(iptosat2conf):
 							self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
 			except Exception as err:
-				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+				print("ERROR: %s" % str(err))
 
 	def toggleSecondList(self):
-		from Components.Harddisk import harddiskmanager
-		from shutil import move
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
@@ -720,6 +870,7 @@ class AssignService(ChannelSelectionBase):
 				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
 				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
+					self.storage = True
 					if exists(iptosat2conf):
 						if exists(iptosatLIST2conf) or exists(iptosatLIST1conf):
 							remove(iptosat2conf)
@@ -744,11 +895,9 @@ class AssignService(ChannelSelectionBase):
 						break
 			self.getUserData()
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			print("ERROR: %s" % str(err))
 
 	def doChangeList(self, answer):
-		from Components.Harddisk import harddiskmanager
-		from shutil import move
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
@@ -765,11 +914,9 @@ class AssignService(ChannelSelectionBase):
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			print("ERROR: %s" % str(err))
 
 	def doChangeList2(self, answer):
-		from Components.Harddisk import harddiskmanager
-		from shutil import move
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
@@ -785,12 +932,10 @@ class AssignService(ChannelSelectionBase):
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			print("ERROR: %s" % str(err))
 
 	def setChangeList(self):
 		try:
-			from Components.Harddisk import harddiskmanager
-			from shutil import move
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
 				fileconf = join("/etc/enigma2", "iptosat.conf")
@@ -801,6 +946,7 @@ class AssignService(ChannelSelectionBase):
 				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
 				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
+					self.storage = True
 					if not exists(changeFolder):
 						makedirs(changeFolder)
 					if not exists(alternateFolder):
@@ -843,7 +989,7 @@ class AssignService(ChannelSelectionBase):
 						break
 				self.getUserData()
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			print("ERROR: %s" % str(err))
 
 	def exists(self, sref, playlist):
 		try:
