@@ -967,7 +967,9 @@ class AssignService(ChannelSelectionBase):
 						move(fileconf, iptosatLIST1conf)
 						move(iptosat2Change, fileconf)
 						self.getUserData()
-						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
+						host = open(fileconf).read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" +  _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
 						break
 					if not exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
 						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)

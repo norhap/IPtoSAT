@@ -135,7 +135,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 56 = \n\nPara cambiar su lista debe colocar en esa ruta el archivo.
 57 = ¿Quiere eliminar los archivos iptosat.conf que se encuentren en su dispositivo?
 58 = Debe tener al menos un dispositivo de almacenamiento disponible y que no esté montado en Red para realizar estas acciones que detallamos:\n\nPara poder usar una segunda lista de su suscripción e ir alternando las dos listas pulse VOLUMEN +\n\nSi desea cambiar su lista pulse VOLUMEN - No es necesario tener dos listas de suscripción, se guardará una copia del archivo iptosat.conf la primera vez que se ejecuta, después se gestionan alternándolas.\n\nPara limpieza de archivos iptosat.conf en dispositivos pulse STOP.
-59 = Se ha guardado una copia de su primera lista en:\n\n
+59 = Se ha guardado una copia de su antigua lista en:\n\n
 60 = Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.\n\nPara mostrar ayuda detallada como asignar EPG pulse HELP.\n\nPara mostrar ayuda detallada como cambiar de lista y usar dos suscripciones pulse PLAY.\n\nSe ha detectado que tiene un dispositivo de almacenamiento:\n\n   - Puede hacer copia de su lista de canales. Pulse TV.\n   - Puede instalar su lista de canales. Pulse REC.\n   - Si realiza una copia de su lista y quiere eliminarla. Pulse RADIO.\n   (*) Los botones RADIO y REC solo se mostrarán si tiene copia.
 61 = Hemos detectado que no dispone de dispositivo de almacenamiento. Para algunas funciones del programa necesitamos un dispositivo no montado en Red.
 62 = No existe copia de su lista de canales.\¿Quiere realizar una copia de su lista?
@@ -149,3 +149,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 70 = No existe copia de su lista de canales.
 71 = ¿Quiere instalar su copia de lista de canales?
 72 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/\nTiene que establecer en ese archivo lo siguiente:\nHost=URL:puerto (URL de su suscripcion más el puerto)\nUser=usuario (asignado por su suscripción).\nPass=contraseña (asignada por su suscripción).\n\nMostramos el detalle de la función que puede realizar:\n   - Puede hacer uso del botón ROJO asignar EPG a canales IPTV.\n\n(*) No puede realizar más funciones ya que no tiene dispositivo de almacenamiento.
+73 = Esta es su nueva URL de suscripción:\n\n
