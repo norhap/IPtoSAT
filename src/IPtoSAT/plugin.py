@@ -260,50 +260,50 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="200,center" size="1520,940" title="IPToSAT Service Assign">
+	<screen name="IPToSAT Service Assign" position="200,95" size="1540,960" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="titlelist2" position="930,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="list" position="18,42" size="695,310" scrollbarMode="showOnDemand" />
-		<widget name="list2" position="720,42" size="750,305" scrollbarMode="showOnDemand" />
-		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="3" />
-		<widget name="codestatus" position="18,460" size="695,300" font="Regular;24" zPosition="4" />
-		<widget name="copychannels" position="18,765" size="695,35" font="Regular;24" zPosition="4" />
-		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="3" />
-		<widget name="status" position="720,40" size="710,695" font="Regular;24" zPosition="3" />
-		<widget name="help" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
-		<widget name="play" position="720,355" size="750,490" font="Regular;24" zPosition="3" />
-		<widget name="description" position="720,355" size="790,480" font="Regular;24" zPosition="3" />
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="2,883" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="171,883" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="339,883" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="507,883" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget name="titlelist2" position="950,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="list" position="18,42" size="715,310" scrollbarMode="showOnDemand" />
+		<widget name="list2" position="745,42" size="770,305" scrollbarMode="showOnDemand" />
+		<widget name="status" position="18,357" size="725,540" font="Regular;24" zPosition="11" />
+		<widget name="please" position="18,805" size="725,35" font="Regular;24" zPosition="5" />
+		<widget name="description" position="745,355" size="790,460" font="Regular;24" zPosition="10" />
+		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="1" />
+		<widget name="codestatus" position="18,500" size="695,300" font="Regular;24" zPosition="11" />
+		<widget name="codeassign" position="18,460" size="700,35" font="Regular;24" zPosition="11" />
+		<widget name="help" position="745,355" size="750,490" font="Regular;24" zPosition="3" />
+		<widget name="play" position="745,355" size="750,490" font="Regular;24" zPosition="3" />
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,903" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="181,903" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="349,903" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="517,903" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" conditional="key_help" position="675,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_help" render="Label" conditional="key_help" position="685,903" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_play" render="Label" conditional="key_play" position="843,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_play" render="Label" conditional="key_play" position="853,903" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1011,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1021,903" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1179,883" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1189,903" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_stop" render="Label" conditional="key_stop" position="1347,883" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_stop" render="Label" conditional="key_stop" position="1357,903" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_radio" render="Label" conditional="key_radio" position="507,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_menu" conditional="key_menu" render="Label" position="12,863" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_tv" render="Label" conditional="key_tv" position="171,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_tv" render="Label" conditional="key_tv" position="181,863" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_rec" render="Label" conditional="key_rec" position="339,843" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_rec" render="Label" conditional="key_rec" position="349,863" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="2,843" size="165,35" zPosition="4" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_radio" render="Label" conditional="key_radio" position="517,863" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -315,25 +315,27 @@ class AssignService(ChannelSelectionBase):
 		self.bouquet_mark_edit = 0
 		self.secondSuscription = False
 		self.storage = False
+		self.backupChannelsListStorage = False
 		self["titlelist"] = Label(_(language.get(lang, "11")))
 		self["titlelist2"] = Label()
 		self["status"] = Label()
-		self["codestatus"] = Label()
-		self["copychannels"] = Label()
+		self["please"] = Label()
+		self["description"] = Label()
 		self["assign"] = Label()
+		self["codestatus"] = Label()
+		self["codeassign"] = Label()
 		self["help"] = Label()
 		self["play"] = Label()
 		self["key_volumeup"] = StaticText("")
 		self["key_volumedown"] = StaticText("")
 		self["key_stop"] = StaticText("")
-		self["codeassign"] = Label()
-		self["description"] = Label(_(language.get(lang, "0")))
 		self["key_green"] = StaticText(_(language.get(lang, "36")))
 		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
 		self["key_red"] = StaticText(_(language.get(lang, "18")))
 		self["key_help"] = StaticText("HELP")
 		self["key_play"] = StaticText("PLAY")
+		self["key_menu"] = StaticText("")
 		self["key_tv"] = StaticText("")
 		self["key_rec"] = StaticText("")
 		self["key_radio"] = StaticText("")
@@ -376,11 +378,13 @@ class AssignService(ChannelSelectionBase):
 						backupfiles = join(backupdirectory, files)
 						if backupfiles:
 							self["key_radio"].setText("RADIO")
+							self.backupChannelsListStorage = True
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		if self.backupChannelsListStorage:
+			self["key_rec"].setText("REC")
 		if self.storage:
 			self["key_tv"].setText("TV")
-			self["key_rec"].setText("REC")
 			self["description"].setText(_(language.get(lang, "60")))
 		else:
 			self["description"] = Label(_(language.get(lang, "0")))
@@ -403,9 +407,8 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			changelisthelp = _(language.get(lang, "58"))
 		else:
-			changelisthelp = _(language.get(lang, "58"))
-			text = _(language.get(lang, "61"))
-			self.assignWidget("#00ff2525", text)
+			changelisthelp = _(language.get(lang, "61"))
+			self.assignWidget("#00ff2525", changelisthelp)
 		self["description"].hide()
 		self["help"].hide()
 		self["play"].setText(changelisthelp)
@@ -511,8 +514,17 @@ class AssignService(ChannelSelectionBase):
 			self["titlelist2"].setText(_(language.get(lang, "12")))
 		else:
 			self["titlelist2"].setText(_(language.get(lang, "44")))
+		if not fileContains(CONFIG_PATH, "pass") and self.storage:
+			self["status"].hide()
+			self["description"].show()
+			self["description"].setText(_(language.get(lang, "60")))
+		if fileContains(CONFIG_PATH, "pass") and not self.storage:
+			self["status"].show()
+			self["status"].setText(_(language.get(lang, "72")))
+			self["description"].hide()
 		if exists("/etc/enigma2/iptv.sh"):
 			self["key_menu"] = StaticText("MENU")
+			self["codestatus"].show()
 			self["codestatus"].setText(_(language.get(lang, "6")))
 		else:
 			self["codestatus"].hide()
@@ -648,7 +660,7 @@ class AssignService(ChannelSelectionBase):
 						for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 							backupfiles = join(backupdirectory, files)
 							remove(backupfiles)
-							self["copychannels"].setText(_(language.get(lang, "68")))
+							self.assignWidgetScript("#008000", _(language.get(lang, "68")))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -684,7 +696,7 @@ class AssignService(ChannelSelectionBase):
 							enigma2files = join(enigma2directory, fileschannelslist)
 							if enigma2files:
 								copy(enigma2files, backupdirectory)
-						self["copychannels"].setText(_(language.get(lang, "66")))
+						self.assignWidgetScript("#008000", _(language.get(lang, "66")))
 				else:
 					self.showFavourites()
 		except Exception as err:
@@ -1001,6 +1013,9 @@ class AssignService(ChannelSelectionBase):
 	def assignWidget(self, color, text):
 		self['assign'].setText(text)
 		self['assign'].instance.setForegroundColor(parseColor(color))
+		self['play'].setText(text)
+		self['play'].instance.setForegroundColor(parseColor(color))
+		self['status'].hide()
 
 	def assignWidgetScript(self, color, text):
 		self['codeassign'].setText(text)
@@ -1015,8 +1030,8 @@ class AssignService(ChannelSelectionBase):
 
 	def callAPI(self, url, callback):
 		self['list2'].hide()
-		self["status"].show()
-		self["status"].setText(_(language.get(lang, "31")))
+		self["please"].show()
+		self["please"].setText(_(language.get(lang, "31")))
 		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
 	def error(self, error=None):
@@ -1024,10 +1039,14 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			if fileContains(CONFIG_PATH, "pass"):
+			if fileContains(CONFIG_PATH, "pass") and self.backupChannelsListStorage:
 				self["status"].setText(_(language.get(lang, "3")))
+				self["please"].hide()
+			if fileContains(CONFIG_PATH, "pass") and not self.storage:
 				self["description"].hide()
-			else:
+				self["status"].setText(_(language.get(lang, "72")))
+				self["codestatus"].hide()
+			if not fileContains(CONFIG_PATH, "pass"):
 				self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getData(self, data):
@@ -1037,7 +1056,7 @@ class AssignService(ChannelSelectionBase):
 			for cat in js:
 				list.append((str(cat['category_name']),
 							 str(cat['category_id'])))
-		self["status"].hide()
+		self["please"].hide()
 		self['list2'].show()
 		self['list2'].l.setList(list)
 		self.categories = list
