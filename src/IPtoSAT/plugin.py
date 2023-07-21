@@ -680,6 +680,8 @@ class AssignService(ChannelSelectionBase):
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
 								self.assignWidgetScript("#008000", _(language.get(lang, "68")))
+								self["key_rec"].setText("")
+								self["key_radio"].setText("")
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -717,6 +719,8 @@ class AssignService(ChannelSelectionBase):
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
 							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
+							self["key_rec"].setText("REC")
+							self["key_radio"].setText("RADIO")
 					else:
 						self.showFavourites()
 			except Exception as err:
