@@ -267,7 +267,7 @@ class AssignService(ChannelSelectionBase):
 		<widget name="titlelist2" position="950,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="715,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="745,42" size="770,305" scrollbarMode="showOnDemand" />
-		<widget name="status" position="18,357" size="725,540" font="Regular;24" zPosition="11" />
+		<widget name="status" position="18,357" size="725,458" font="Regular;24" zPosition="10" />
 		<widget name="description" position="745,355" size="790,530" font="Regular;24" zPosition="6" />
 		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="695,300" font="Regular;24" zPosition="10" />
@@ -410,14 +410,15 @@ class AssignService(ChannelSelectionBase):
 
 	def showHelpChangeList(self):
 		if self.storage:
-			changelisthelp = _(language.get(lang, "58"))
+			self["play"].setText(_(language.get(lang, "58")))
 		else:
-			changelisthelp = _(language.get(lang, "61"))
-			self.assignWidget("#00ff2525", changelisthelp)
+			self["play"].setText(_(language.get(lang, "61")))
+			self["key_volumeup"] = StaticText("")
+			self["key_volumedown"] = StaticText("")
+			self["key_stop"] = StaticText("")
 		self["description"].hide()
 		self["help"].hide()
 		self["helpbouquetepg"].hide()
-		self["play"].setText(changelisthelp)
 		self["play"].show()
 		self["key_volumeup"].setText(_(language.get(lang, "39")))
 		self["key_volumedown"].setText(_(language.get(lang, "47")))
@@ -435,6 +436,7 @@ class AssignService(ChannelSelectionBase):
 		self["helpbouquetepg"].setText(helpbouquetepg)
 		self["assign"].hide()
 		self["codestatus"].hide()
+		self["status"].hide()
 
 	def onWindowShow(self):
 		self.onShown.remove(self.onWindowShow)
@@ -506,6 +508,11 @@ class AssignService(ChannelSelectionBase):
 		self["play"].hide()
 		self["help"].hide()
 		self["helpbouquetepg"].hide()
+		if not fileContains(CONFIG_PATH, "pass"):
+			self["description"].show()
+			self["codestatus"].show()
+		else:
+			self["status"].show()
 
 	def right(self):
 		if self.selectedList.getCurrent():
@@ -680,6 +687,8 @@ class AssignService(ChannelSelectionBase):
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
 								self.assignWidgetScript("#008000", _(language.get(lang, "68")))
+								if fileContains(CONFIG_PATH, "pass"):
+									self["status"].show()
 								self["key_rec"].setText("")
 								self["key_radio"].setText("")
 			except Exception as err:
@@ -718,6 +727,8 @@ class AssignService(ChannelSelectionBase):
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
+								if fileContains(CONFIG_PATH, "pass"):
+									self["status"].show()
 							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
 							self["key_rec"].setText("REC")
 							self["key_radio"].setText("RADIO")
@@ -964,6 +975,7 @@ class AssignService(ChannelSelectionBase):
 						self.secondSuscription = False
 						break
 			self.getUserData()
+			self["codestatus"].hide()
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1060,6 +1072,7 @@ class AssignService(ChannelSelectionBase):
 						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changeFolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
 						break
 				self.getUserData()
+			self["codestatus"].hide()
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1073,8 +1086,6 @@ class AssignService(ChannelSelectionBase):
 	def assignWidget(self, color, text):
 		self['assign'].setText(text)
 		self['assign'].instance.setForegroundColor(parseColor(color))
-		self['play'].setText(text)
-		self['play'].instance.setForegroundColor(parseColor(color))
 		self['status'].hide()
 
 	def assignWidgetScript(self, color, text):
@@ -1099,13 +1110,16 @@ class AssignService(ChannelSelectionBase):
 			log(error)
 			self['list2'].hide()
 			self["status"].show()
-			if fileContains(CONFIG_PATH, "pass") and self.backupChannelsListStorage:
+			if fileContains(CONFIG_PATH, "pass") and self.storage:
 				self["status"].setText(_(language.get(lang, "3")))
 				self["please"].hide()
+				self["codestatus"].hide()
+				self["key_menu"].setText("")
 			if fileContains(CONFIG_PATH, "pass") and not self.storage:
 				self["description"].hide()
 				self["status"].setText(_(language.get(lang, "72")))
 				self["codestatus"].hide()
+				self["key_menu"].setText("")
 			if not fileContains(CONFIG_PATH, "pass"):
 				self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
 
@@ -1159,7 +1173,7 @@ class AssignService(ChannelSelectionBase):
 		self.in_channels = True
 		self["please"].hide()
 		self.left()
-		sleep(0.1)
+		sleep(0.2)
 		self.right()
 
 	def exit(self, ret=None):
