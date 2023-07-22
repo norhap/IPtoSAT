@@ -297,7 +297,7 @@ class AssignService(ChannelSelectionBase):
 		<widget source="key_stop" render="Label" conditional="key_stop" position="1421,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_radio" render="Label" conditional="key_radio" position="1597,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_audio" render="Label" conditional="key_audio" position="1597,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget source="key_rec" render="Label" conditional="key_tv" position="1677,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
@@ -342,7 +342,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_menu"] = StaticText("")
 		self["key_tv"] = StaticText("")
 		self["key_rec"] = StaticText("")
-		self["key_radio"] = StaticText("")
+		self["key_audio"] = StaticText("")
 		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -365,7 +365,7 @@ class AssignService(ChannelSelectionBase):
 			"volumeDown": self.setChangeList,
 			"stop": self.purge,
 			"showTv": self.backupChannelsList,
-			"radio": self.deleteChannelsList,
+			"audio": self.deleteChannelsList,
 			"rec": self.installChannelsList,
 		}, -2)
 		self.errortimer = eTimer()
@@ -382,7 +382,7 @@ class AssignService(ChannelSelectionBase):
 						for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
 							backupfiles = join(backupdirectory, files)
 							if backupfiles:
-								self["key_radio"].setText("RADIO")
+								self["key_audio"].setText("AUDIO")
 								self.backupChannelsListStorage = True
 		except Exception as err:
 			print("ERROR: %s" % str(err))
@@ -690,7 +690,7 @@ class AssignService(ChannelSelectionBase):
 								if fileContains(CONFIG_PATH, "pass"):
 									self["status"].show()
 								self["key_rec"].setText("")
-								self["key_radio"].setText("")
+								self["key_audio"].setText("")
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -731,7 +731,7 @@ class AssignService(ChannelSelectionBase):
 									self["status"].show()
 							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
 							self["key_rec"].setText("REC")
-							self["key_radio"].setText("RADIO")
+							self["key_audio"].setText("AUDIO")
 					else:
 						self.showFavourites()
 			except Exception as err:
