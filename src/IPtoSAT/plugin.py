@@ -645,7 +645,7 @@ class AssignService(ChannelSelectionBase):
 							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files and backupfiles:
-									eConsoleAppContainer().execute('killall -9 enigma2 && rm -f' + " " + enigma2files + " " + '&& cp' + " " + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + '&& sbin/init 3')
+									eConsoleAppContainer().execute('killall -9 enigma2 && rm -f' + " " + enigma2files + " " + '&& cp' + " " + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + " " + '&& sbin/init 3')
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
