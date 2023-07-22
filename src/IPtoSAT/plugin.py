@@ -1158,6 +1158,9 @@ class AssignService(ChannelSelectionBase):
 		self.channels = list
 		self.in_channels = True
 		self["please"].hide()
+		self.left()
+		sleep(0.1)
+		self.right()
 
 	def exit(self, ret=None):
 		if ret:
