@@ -723,7 +723,7 @@ class AssignService(ChannelSelectionBase):
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
-							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
@@ -749,7 +749,7 @@ class AssignService(ChannelSelectionBase):
 					if path != "/" and not "net" in path and not "autofs" in path:
 						if not exists(backupdirectory):
 							makedirs(backupdirectory)
-						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 							backupfiles = join(backupdirectory, backupfiles)
 						if backupfiles:
 							self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
@@ -888,6 +888,8 @@ class AssignService(ChannelSelectionBase):
 					for line in linestxt:
 						with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
 							fw.write(line)
+							if exists("/etc/enigma2/iptv_bouquets_epg.txt"):
+								Console().ePopen("rm -f /etc/enigma2/iptv_bouquets_epg.txt")
 					# no need to restart GUI we load commands reloads services and bouquets
 					# self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
 				if not fileContains("/etc/enigma2/bouquets.tv", "IPTV_IPToSAT_EPG"):
@@ -906,8 +908,6 @@ class AssignService(ChannelSelectionBase):
 			if fileContains(IPTV_IPToSAT_EPG_PATH, channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPTV_IPToSAT_EPG):
 				self.session.open(MessageBox, channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
 				break
-			if exists("/etc/enigma2/iptv_bouquets_epg.txt"):
-				Console().ePopen("rm -f /etc/enigma2/iptv_bouquets_epg.txt")
 
 	def purge(self):
 		for partition in harddiskmanager.getMountedPartitions():
