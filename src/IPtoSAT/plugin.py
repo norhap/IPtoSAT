@@ -123,10 +123,10 @@ def getPlaylist():
 
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-	<screen name="IPToSATSetup" position="center,center" size="950,350" title="IPToSATSetup settings">
-		<widget name="config" itemHeight="45" position="15,10" size="920,300" scrollbarMode="showOnDemand" />
-		<widget name="key_red" position="25,310" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget name="key_green" position="210,310" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+	<screen name="IPToSATSetup" position="center,center" size="1150,450" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="50" position="15,10" size="1120,300" scrollbarMode="showOnDemand" />
+		<widget name="key_red" position="25,410" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="key_green" position="210,410" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -262,51 +262,51 @@ class IPtoSAT(Screen):
 
 class AssignService(ChannelSelectionBase):
 	skin = """
-	<screen name="IPToSAT Service Assign" position="200,85" size="1540,980" title="IPToSAT Service Assign">
-		<widget name="titlelist" position="250,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="titlelist2" position="950,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="list" position="18,42" size="715,310" scrollbarMode="showOnDemand" />
-		<widget name="list2" position="745,42" size="770,305" scrollbarMode="showOnDemand" />
+	<screen name="IPToSAT Service Assign" position="40,85" size="1840,980" title="IPToSAT Service Assign">
+		<widget name="titlelist" position="355,05" size="300,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="titlelist2" position="1225,05" size="580,35" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+		<widget name="list" position="18,42" size="875,310" scrollbarMode="showOnDemand" />
+		<widget name="list2" position="935,42" size="875,305" scrollbarMode="showOnDemand" />
 		<widget name="status" position="18,357" size="725,458" font="Regular;24" zPosition="10" />
-		<widget name="description" position="745,355" size="790,530" font="Regular;24" zPosition="6" />
+		<widget name="description" position="935,355" size="790,530" font="Regular;24" zPosition="6" />
 		<widget name="assign" position="18,357" size="695,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="695,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="18,355" size="725,495" font="Regular;24" zPosition="6" />
 		<widget name="please" position="18,820" size="725,35" font="Regular;24" zPosition="10" />
 		<widget name="managerlistchannels" position="18,820" size="700,35" font="Regular;24" zPosition="10" />
-		<widget name="help" position="745,355" size="750,530" font="Regular;24" zPosition="3" />
-		<widget name="play" position="745,355" size="750,530" font="Regular;24" zPosition="3" />
+		<widget name="help" position="935,355" size="750,530" font="Regular;24" zPosition="3" />
+		<widget name="play" position="935,355" size="750,530" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="181,923" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="349,923" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="517,923" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,923" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="365,923" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,923" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" conditional="key_help" position="685,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_help" render="Label" conditional="key_help" position="717,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_play" render="Label" conditional="key_play" position="853,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_play" render="Label" conditional="key_play" position="893,923" zosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1021,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1069,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1189,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1245,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_stop" render="Label" conditional="key_stop" position="1357,923" zPosition="4" size="167,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_stop" render="Label" conditional="key_stop" position="1421,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="12,883" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_radio" render="Label" conditional="key_radio" position="1597,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_tv" render="Label" conditional="key_tv" position="181,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_rec" render="Label" conditional="key_tv" position="1677,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_rec" render="Label" conditional="key_rec" position="349,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_tv" render="Label" conditional="key_rec" position="1757,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_radio" render="Label" conditional="key_radio" position="517,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_menu" conditional="key_menu" render="Label" position="12,866" size="165,52" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
