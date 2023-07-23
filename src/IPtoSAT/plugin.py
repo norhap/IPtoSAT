@@ -267,12 +267,12 @@ class AssignService(ChannelSelectionBase):
 		<widget name="titlelist2" position="1075,05" size="580,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="list" position="18,42" size="875,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
+		<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
 		<widget name="status" position="18,357" size="870,458" font="Regular;24" zPosition="10" />
 		<widget name="description" position="925,355" size="880,530" font="Regular;24" zPosition="6" />
 		<widget name="assign" position="18,357" size="870,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="870,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="18,355" size="870,495" font="Regular;24" zPosition="6" />
-		<widget name="please" position="18,820" size="870,35" font="Regular;24" zPosition="12" />
 		<widget name="managerlistchannels" position="18,820" size="870,35" font="Regular;24" zPosition="10" />
 		<widget name="help" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
