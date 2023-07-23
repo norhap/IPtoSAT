@@ -272,7 +272,7 @@ class AssignService(ChannelSelectionBase):
 		<widget name="assign" position="18,357" size="870,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="870,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="18,355" size="870,495" font="Regular;24" zPosition="6" />
-		<widget name="please" position="18,820" size="870,35" font="Regular;24" zPosition="10" />
+		<widget name="please" position="18,820" size="870,35" font="Regular;24" zPosition="12" />
 		<widget name="managerlistchannels" position="18,820" size="870,35" font="Regular;24" zPosition="10" />
 		<widget name="help" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
@@ -1138,8 +1138,8 @@ class AssignService(ChannelSelectionBase):
 			for cat in js:
 				list.append((str(cat['category_name']),
 							 str(cat['category_id'])))
-		self["please"].hide()
 		self['list2'].show()
+		self["please"].hide()
 		self['list2'].l.setList(list)
 		self.categories = list
 		self.in_channels = False
@@ -1175,11 +1175,11 @@ class AssignService(ChannelSelectionBase):
 				self.assignWidget("#00e5b243", text)
 		self["status"].hide()
 		self['list2'].show()
+		self["please"].hide()
 		self['list2'].l.setList(list)
 		self["list2"].moveToIndex(0)
 		self.channels = list
 		self.in_channels = True
-		self["please"].hide()
 		self.left()
 		sleep(0.2)
 		self.right()
