@@ -273,7 +273,7 @@ class AssignService(ChannelSelectionBase):
 		<widget name="assign" position="18,357" size="870,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="870,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="18,355" size="870,495" font="Regular;24" zPosition="6" />
-		<widget name="managerlistchannels" position="18,820" size="870,35" font="Regular;24" zPosition="10" />
+		<widget name="managerlistchannels" position="18,820" size="870,100" font="Regular;24" zPosition="10" />
 		<widget name="help" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1172,7 +1172,7 @@ class AssignService(ChannelSelectionBase):
 				for match in js:
 					list.append((str(match['name']), str(match['stream_id'])))
 				text = channel_satellite + " " + _(language.get(lang, "2"))
-				self.assignWidget("#00e5b243", text)
+				self.assignWidgetScript("#00e5b243", text)
 		self["status"].hide()
 		self['list2'].show()
 		self["please"].hide()
