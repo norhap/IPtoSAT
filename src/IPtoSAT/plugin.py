@@ -1191,7 +1191,7 @@ class AssignService(ChannelSelectionBase):
 			ref = self.getCurrentSelection()
 			self.showFavourites()
 			self.in_bouquets = False
-		elif self.selectedList == self["list2"] and self.in_channels:
+		elif self.selectedList == self["list2"] and self.in_channels and not fileContains(CONFIG_PATH, "pass"):
 			self.getCategories(self.url)
 		else:
 			self.close(True)
