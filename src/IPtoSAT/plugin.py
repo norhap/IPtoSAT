@@ -641,8 +641,9 @@ class AssignService(ChannelSelectionBase):
 			self.Console.ePopen("rm -f /etc/enigma2/iptv.sh")
 			if not exists("/etc/enigma2/iptv.sh"):
 				text = _(language.get(lang, "35"))
-				self.assignWidgetScript("#008000", text)
 				self['codestatus'].hide()
+				self['managerlistchannels'].show()
+				self.assignWidgetScript("#008000", text)
 				self["key_menu"].setText("")
 
 	def doinstallBouquetIPToSATEPG(self, answer):
@@ -746,6 +747,7 @@ class AssignService(ChannelSelectionBase):
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
+								self['managerlistchannels'].show()
 								self.assignWidgetScript("#008000", _(language.get(lang, "68")))
 								if fileContains(CONFIG_PATH, "pass"):
 									self["status"].show()
@@ -789,6 +791,7 @@ class AssignService(ChannelSelectionBase):
 									copy(enigma2files, backupdirectory)
 								if fileContains(CONFIG_PATH, "pass"):
 									self["status"].show()
+							self['managerlistchannels'].show()
 							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
 							self["key_rec"].setText("REC")
 							self["key_audio"].setText("AUDIO")
@@ -1192,6 +1195,7 @@ class AssignService(ChannelSelectionBase):
 							 str(cat['category_id'])))
 		self['list2'].show()
 		self["please"].hide()
+		self['managerlistchannels'].hide()
 		self['list2'].l.setList(list)
 		self.categories = list
 		self.in_channels = False
@@ -1223,6 +1227,7 @@ class AssignService(ChannelSelectionBase):
 			if list == []:
 				for match in js:
 					list.append((str(match['name']), str(match['stream_id'])))
+				self['managerlistchannels'].show()
 				text = channel_satellite + " " + _(language.get(lang, "2"))
 				self.assignWidgetScript("#00e5b243", text)
 		self["status"].hide()
