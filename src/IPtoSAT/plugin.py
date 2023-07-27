@@ -30,8 +30,8 @@ PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
-IPTV_IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.IPTV_IPToSAT_EPG.tv"
-FILE_IPTV_IPToSAT_EPG = "userbouquet.IPTV_IPToSAT_EPG.tv"
+IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.IPToSAT_EPG.tv"
+FILE_IPToSAT_EPG = "userbouquet.IPToSAT_EPG.tv"
 
 try:
 	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
@@ -268,12 +268,12 @@ class AssignService(ChannelSelectionBase):
 		<widget name="list" position="18,42" size="875,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
 		<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
-		<widget name="status" position="18,357" size="870,458" font="Regular;24" zPosition="10" />
+		<widget name="status" position="18,357" size="870,400" font="Regular;24" zPosition="10" />
 		<widget name="description" position="925,355" size="880,530" font="Regular;24" zPosition="6" />
 		<widget name="assign" position="18,357" size="870,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="18,500" size="870,300" font="Regular;24" zPosition="10" />
-		<widget name="helpbouquetepg" position="18,355" size="870,495" font="Regular;24" zPosition="6" />
-		<widget name="managerlistchannels" position="18,820" size="870,100" font="Regular;24" zPosition="10" />
+		<widget name="helpbouquetepg" position="18,355" size="870,510" font="Regular;24" zPosition="6" />
+		<widget name="managerlistchannels" position="18,785" size="870,85" font="Regular;24" zPosition="10" />
 		<widget name="help" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -282,31 +282,34 @@ class AssignService(ChannelSelectionBase):
 		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,923" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_help" render="Label" conditional="key_help" position="717,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_epg" render="Label" conditional="key_epg" position="717,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_play" render="Label" conditional="key_play" position="893,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_help" render="Label" conditional="key_help" position="893,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1069,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_play" render="Label" conditional="key_play" position="1069,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1245,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1245,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_stop" render="Label" conditional="key_stop" position="1421,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_audio" render="Label" conditional="key_audio" position="1597,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_tv" render="Label" conditional="key_rec" position="1772,923" zPosition="12" size="60,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_rec" render="Label" conditional="key_tv" position="1677,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_stop" render="Label" conditional="key_stop" position="1597,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_tv" render="Label" conditional="key_rec" position="1757,923" zPosition="12" size="75,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_menu" conditional="key_menu" render="Label" position="12,883" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="12,866" size="165,52" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_audio" render="Label" conditional="key_audio" position="189,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_rec" render="Label" conditional="key_tv" position="365,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -338,6 +341,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
 		self["key_red"] = StaticText(_(language.get(lang, "18")))
+		self["key_epg"] = StaticText("EPG")
 		self["key_help"] = StaticText("HELP")
 		self["key_play"] = StaticText("PLAY")
 		self["key_menu"] = StaticText("")
@@ -354,7 +358,7 @@ class AssignService(ChannelSelectionBase):
 			"down": self.moveDown,
 			"up": self.moveUp,
 			"green": self.showSatellites,
-			"red": self.setEPGChannel,
+			"epg": self.setEPGChannel,
 			"yellow": self.createBouquetIPTV,
 			"blue": self.showFavourites,
 			"nextBouquet": self.chUP,
@@ -368,6 +372,7 @@ class AssignService(ChannelSelectionBase):
 			"showTv": self.backupChannelsList,
 			"audio": self.deleteChannelsList,
 			"rec": self.installChannelsList,
+			"red": self.installBouquetIPToSATEPG,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -640,6 +645,53 @@ class AssignService(ChannelSelectionBase):
 				self['codestatus'].hide()
 				self["key_menu"].setText("")
 
+	def doinstallBouquetIPToSATEPG(self, answer):
+		if answer:
+			try:
+				for partition in harddiskmanager.getMountedPartitions():
+					path = normpath(partition.mountpoint)
+					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+					enigma2directory = "/etc/enigma2"
+					IPToSAT_EPG = join(backupdirectory, FILE_IPToSAT_EPG)
+					if path != "/" and not "net" in path and not "autofs" in path:
+						if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
+							with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
+								newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
+								with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
+										bouquetstvread = bouquetstvread.readlines()
+										for linesbouquet in bouquetstvread:
+											if "#NAME User - Bouquets (TV)" not in linesbouquet:
+												newbouquetstvwrite.write(linesbouquet)
+							move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
+							copy(IPToSAT_EPG, enigma2directory)
+							eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
+							self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+							break
+						else:
+							self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
+							break
+			except Exception as err:
+				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
+	def installBouquetIPToSATEPG(self):
+		if self.storage:
+			try:
+				for partition in harddiskmanager.getMountedPartitions():
+					path = normpath(partition.mountpoint)
+					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
+					IPToSAT_EPG = ""
+					if path != "/" and not "net" in path and not "autofs" in path:
+						for file in [x for x in listdir(backupdirectory) if FILE_IPToSAT_EPG in x]:
+							IPToSAT_EPG = join(backupdirectory, file)
+						if IPToSAT_EPG:
+							self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_YESNO)
+							break
+						else:
+							self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
+							break
+			except Exception as err:
+				print("ERROR: %s" % str(err))
+
 	def doinstallChannelsList(self, answer):
 		if self.storage:
 			try:
@@ -845,7 +897,7 @@ class AssignService(ChannelSelectionBase):
 			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, sref):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
-					with open("/etc/enigma2/" + "iptv_bouquets_epg.txt", "w") as fw:
+					with open("/etc/enigma2/" + "iptosat_epg", "w") as fw:
 						for line in lines:
 							if channel_name not in line:
 								fw.write(line)
@@ -860,49 +912,49 @@ class AssignService(ChannelSelectionBase):
 						if channel_name in line:
 							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0")
 							replacement = replacement + reference_epg
-				if not fileContains(IPTV_IPToSAT_EPG_PATH, channel_name) and not fileContains("/etc/enigma2/bouquets.tv", FILE_IPTV_IPToSAT_EPG):
+				if not fileContains(IPToSAT_EPG_PATH, channel_name) and not fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
-						with open("/etc/enigma2/" + "iptv_bouquets_epg.txt", "r") as fr:
+						with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
 							lineNAME = fr.readlines()
 							for line in lineNAME:
 								if "#NAME" in line:
 									fw.write(line)
 				with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 					fw.write(replacement + "\n")
-				with open(IPTV_IPToSAT_EPG_PATH, "a") as fw:
-					if not fileContains(IPTV_IPToSAT_EPG_PATH, '#NAME IPTV_IPToSAT_EPG'):
-						fw.write('#NAME IPTV_IPToSAT_EPG' + "\n" + replacement + "\n")
+				with open(IPToSAT_EPG_PATH, "a") as fw:
+					if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
+						fw.write('#NAME IPToSAT_EPG' + "\n" + replacement + "\n")
 					else:
 						fw.write(replacement + "\n")
-				if exists(IPTV_IPToSAT_EPG_PATH) and not fileContains(IPTV_IPToSAT_EPG_PATH, channel_name):
-					with open(IPTV_IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
-						with open(IPTV_IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
+				if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, channel_name):
+					with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
+						with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
 							bouquetiptosat = bouquetiptvtosatread.readlines()
 							for line in bouquetiptosat:
 								replacement = line.split(":" + channel_name)[0].replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0")
 								linereplace = replacement + ":" + channel_name
 								bouquetiptvtosatwrite.write("\n" + linereplace)
-				if not exists(IPTV_IPToSAT_EPG_PATH):
-					with open(IPTV_IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
-						with open(IPTV_IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
+				if not exists(IPToSAT_EPG_PATH):
+					with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
+						with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
 							bouquetiptosat = bouquetiptvtosatread.readlines()
 							for line in bouquetiptosat:
 								linereplace = ""
 								replacement = line.split(":" + channel_name)[0]
 								linereplace = linereplace + replacement + ":" + channel_name
-								bouquetiptvtosatwrite.write('#NAME IPTV_IPToSAT_EPG' + "\n" + linereplace)
-				with open("/etc/enigma2/" + "iptv_bouquets_epg.txt", "r") as fr:
+								bouquetiptvtosatwrite.write('#NAME IPToSAT_EPG' + "\n" + linereplace)
+				with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
 					linestxt = fr.readlines()
 					for line in linestxt:
 						with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
 							fw.write(line)
-							if exists("/etc/enigma2/iptv_bouquets_epg.txt"):
-								self.Console.ePopen("rm -f /etc/enigma2/iptv_bouquets_epg.txt")
+				if exists("/etc/enigma2/iptosat_epg"):
+					self.Console.ePopen("rm -f /etc/enigma2/iptosat_epg")
 					# no need to restart GUI we load commands reloads services and bouquets
 					# self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
-				if not fileContains("/etc/enigma2/bouquets.tv", "IPTV_IPToSAT_EPG"):
+				if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
 					with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
-						newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPTV_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
+						newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
 						with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
 								bouquetstvread = bouquetstvread.readlines()
 								for linesbouquet in bouquetstvread:
@@ -910,10 +962,10 @@ class AssignService(ChannelSelectionBase):
 										newbouquetstvwrite.write(linesbouquet)
 					move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 				eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-				if fileContains(IPTV_IPToSAT_EPG_PATH, channel_name):
-					self.session.open(MessageBox, _(language.get(lang, "24")) + channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPTV_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_INFO)
+				if fileContains(IPToSAT_EPG_PATH, channel_name):
+					self.session.open(MessageBox, _(language.get(lang, "24")) + channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_INFO)
 					break
-			if fileContains(IPTV_IPToSAT_EPG_PATH, channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPTV_IPToSAT_EPG):
+			if fileContains(IPToSAT_EPG_PATH, channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
 				break
 
