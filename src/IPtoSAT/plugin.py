@@ -62,13 +62,13 @@ def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
-	elif isPluginInstalled("FastChannelChange"):
+	elif isPluginInstalled("FastChannelChange") and not fileContains("/etc/issue", "openspa"):
 		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
 
 
-default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
+default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") or fileContains("/etc/issue", "openspa") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
