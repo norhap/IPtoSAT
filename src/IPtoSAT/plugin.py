@@ -897,24 +897,25 @@ class AssignService(ChannelSelectionBase):
 	def addEPGChannel(self, channel_name, sref):
 		for filelist in [x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]:
 			bouquetiptv = join(filelist)
-			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, sref):
+			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
 					with open("/etc/enigma2/" + "iptosat_epg", "w") as fw:
 						for line in lines:
 							if channel_name not in line:
 								fw.write(line)
-				with open("/etc/enigma2/" + bouquetiptv, "r") as file:
-					replacement = ""
-					for line in file:
-						line = line.strip()
-						if "4097" in line or "5001" in line or "5002" in line:
-							ref = line[9:31]
-						else:
-							ref = line[9:28]
-						if channel_name in line:
-							reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0")
-							replacement = replacement + reference_epg
+				if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name):
+					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
+						replacement = ""
+						for line in file:
+							line = line.strip()
+							if "4097" in line or "5001" in line or "5002" in line:
+								ref = line[9:31]
+							else:
+								ref = line[9:28]
+							if channel_name in line:
+								reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "")
+								replacement = replacement + reference_epg
 				if not fileContains(IPToSAT_EPG_PATH, channel_name) and not fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 						with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
@@ -934,7 +935,7 @@ class AssignService(ChannelSelectionBase):
 						with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
 							bouquetiptosat = bouquetiptvtosatread.readlines()
 							for line in bouquetiptosat:
-								replacement = line.split(":" + channel_name)[0].replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0")
+								replacement = line.split(":" + channel_name)[0]
 								linereplace = replacement + ":" + channel_name
 								bouquetiptvtosatwrite.write("\n" + linereplace)
 				if not exists(IPToSAT_EPG_PATH):
