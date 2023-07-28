@@ -925,7 +925,7 @@ class AssignService(ChannelSelectionBase):
 							else:
 								ref = line[9:28]
 							if channel_name in line:
-								reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "")
+								reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
 								replacement = replacement + reference_epg
 				if not fileContains(IPToSAT_EPG_PATH, channel_name) and not fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
