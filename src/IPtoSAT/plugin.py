@@ -278,7 +278,9 @@ class AssignService(ChannelSelectionBase):
 		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,923" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="365,923" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,923" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,923" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -340,7 +342,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_green"] = StaticText(_(language.get(lang, "36")))
 		self["key_blue"] = StaticText(_(language.get(lang, "37")))
 		self["key_yellow"] = StaticText("")
-		self["key_red"] = StaticText(_(language.get(lang, "18")))
+		self["key_red"] = StaticText("")
 		self["key_epg"] = StaticText("EPG")
 		self["key_help"] = StaticText("HELP")
 		self["key_play"] = StaticText("PLAY")
@@ -385,11 +387,15 @@ class AssignService(ChannelSelectionBase):
 						self.storage = True
 						backupdirectory = join(path, "IPToSAT/BackupChannelsList")
 						backupfiles = ""
+						bouquetiptosatepg = ""
 						for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
 							backupfiles = join(backupdirectory, files)
+							bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
 							if backupfiles:
 								self["key_audio"].setText("AUDIO")
 								self.backupChannelsListStorage = True
+							if exists(bouquetiptosatepg):
+								self["key_red"].setText(_(language.get(lang, "18")))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 		if self.backupChannelsListStorage:
@@ -753,6 +759,7 @@ class AssignService(ChannelSelectionBase):
 									self["status"].show()
 								self["key_rec"].setText("")
 								self["key_audio"].setText("")
+								self["key_red"].setText("")
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -780,6 +787,7 @@ class AssignService(ChannelSelectionBase):
 					enigma2directory = "/etc/enigma2"
 					backupfiles = ""
 					enigma2files = ""
+					bouquetiptosatepg = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
@@ -789,12 +797,15 @@ class AssignService(ChannelSelectionBase):
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
+									bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
 								if fileContains(CONFIG_PATH, "pass"):
 									self["status"].show()
 							self['managerlistchannels'].show()
 							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
 							self["key_rec"].setText("REC")
 							self["key_audio"].setText("AUDIO")
+							if exists(bouquetiptosatepg):
+								self["key_red"].setText(_(language.get(lang, "18")))
 					else:
 						self.showFavourites()
 			except Exception as err:
