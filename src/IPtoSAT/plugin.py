@@ -906,7 +906,7 @@ class AssignService(ChannelSelectionBase):
 		self.addEPGChannel(channel_name, sref)
 
 	def addEPGChannel(self, channel_name, sref):
-		for filelist in [x for x in listdir("/etc/enigma2") if "userbouquet." in x and ".tv" in x]:
+		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
