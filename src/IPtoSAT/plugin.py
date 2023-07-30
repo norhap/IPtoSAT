@@ -841,9 +841,9 @@ class AssignService(ChannelSelectionBase):
 				for line in riptvsh:
 					bouquetNAME = line.split("bouquet=")[1].split(";")[0]
 					with open("/etc/enigma2/iptv.sh", "w") as fw:
-						replacement = line.replace(bouquetNAME, '"IPTV_IPToSAT"')
-						fw.write(replacement)
-			replacement = ""
+						CREATEBOUQUET = line.replace(bouquetNAME, '"IPTV_IPToSAT"')
+						fw.write(CREATEBOUQUET)
+			CREATEBOUQUET = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
 			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and ".tv" in x and not ".del" in x]:
@@ -853,9 +853,9 @@ class AssignService(ChannelSelectionBase):
 					for content in lines:
 						createNAMEBOUQUET = content.replace("#NAME", "#NAME IPTV_IPToSAT")
 						BouquetIPToSAT = createNAMEBOUQUET.replace("#NAME IPTV_IPToSAT", "IPTV_IPToSAT")
-						replacement = replacement + createNAMEBOUQUET
+						CREATEBOUQUET = CREATEBOUQUET + createNAMEBOUQUET
 						with open("/etc/enigma2/" + bouquetiptv, "w",) as fw:
-							fw.write(replacement + "\n" + content)
+							fw.write(CREATEBOUQUET + "\n" + content)
 							if exists("/etc/enigma2/iptv.sh"):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 						if "IPTV_IPToSAT" in BouquetIPToSAT:
@@ -879,15 +879,15 @@ class AssignService(ChannelSelectionBase):
 								sleep(1)
 							else:
 								with open("/etc/enigma2/iptv.sh", "r") as fr:
-									replacement = ""
+									CREATEBOUQUET = ""
 									riptvsh = fr.readlines()
 									for line in riptvsh:
 										bouquetNAME = line.split("bouquet=")[1].split(";")[0]
 										if " " in str(bouquetNAME) or "  " in str(bouquetNAME):
 											with open("/etc/enigma2/iptv.sh", "w") as fw:
 												bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
-												replacement = line.replace(bouquetNAME, bouquetRENAME)
-												fw.write(replacement)
+												CREATEBOUQUET = line.replace(bouquetNAME, bouquetRENAME)
+												fw.write(CREATEBOUQUET)
 												eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
 										elif not 'bouquet=""' in line:
@@ -929,70 +929,70 @@ class AssignService(ChannelSelectionBase):
 					lines = fr.readlines()
 					with open("/etc/enigma2/" + "iptosat_epg", "w") as fw:
 						for line in lines:
-							if channel_name not in line:
+							if channel_name not in line and not "#DESCRIPTION" in line:
 								fw.write(line)
-				if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name):
+				SETEPG = ""
+				if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name) and not fileContains(bouquetiptv, ":" + " " + channel_name):
 					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
-						replacement = ""
 						for line in file:
 							line = line.strip()
 							if "4097" in line or "5001" in line or "5002" in line:
 								ref = line[9:31]
 							else:
 								ref = line[9:28]
-							if channel_name in line:
+							if channel_name in line and not "#DESCRIPTION" in line:
 								reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
-								replacement = replacement + reference_epg
-				if not fileContains(IPToSAT_EPG_PATH, channel_name) and not fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
+								SETEPG = reference_epg
+				if "http" in str(SETEPG):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 						with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
 							lineNAME = fr.readlines()
 							for line in lineNAME:
-								if "#NAME" in line:
+								if not "#NAME" in line:
 									fw.write(line)
-				with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
-					fw.write(replacement + "\n")
-				with open(IPToSAT_EPG_PATH, "a") as fw:
-					if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
-						fw.write('#NAME IPToSAT_EPG' + "\n" + replacement + "\n")
-					else:
-						fw.write(replacement + "\n")
-				if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, channel_name):
-					with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
-						with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
-							bouquetiptosat = bouquetiptvtosatread.readlines()
-							for line in bouquetiptosat:
-								replacement = line.split(":" + channel_name)[0]
-								linereplace = replacement + ":" + channel_name
-								bouquetiptvtosatwrite.write("\n" + linereplace)
-				if not exists(IPToSAT_EPG_PATH):
-					with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
-						with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
-							bouquetiptosat = bouquetiptvtosatread.readlines()
-							for line in bouquetiptosat:
-								linereplace = ""
-								replacement = line.split(":" + channel_name)[0]
-								linereplace = linereplace + replacement + ":" + channel_name
-								bouquetiptvtosatwrite.write('#NAME IPToSAT_EPG' + "\n" + linereplace)
-				with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
-					linestxt = fr.readlines()
-					for line in linestxt:
-						with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
-							fw.write(line)
-				if exists("/etc/enigma2/iptosat_epg"):
-					self.Console.ePopen("rm -f /etc/enigma2/iptosat_epg")
-					# no need to restart GUI we load commands reloads services and bouquets
-					# self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
-				if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
-					with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
-						newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
-						with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
-								bouquetstvread = bouquetstvread.readlines()
-								for linesbouquet in bouquetstvread:
-									if "#NAME User - Bouquets (TV)" not in linesbouquet:
-										newbouquetstvwrite.write(linesbouquet)
-					move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
-				eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
+					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
+						fw.write(SETEPG + "\n")
+					with open(IPToSAT_EPG_PATH, "a") as fw:
+						if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
+							fw.write('#NAME IPToSAT_EPG' + "\n" + SETEPG + "\n")
+						else:
+							fw.write(SETEPG + "\n")
+					if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, channel_name):
+						with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
+							with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
+								bouquetiptosat = bouquetiptvtosatread.readlines()
+								for line in bouquetiptosat:
+									SETEPG = line.split(":" + channel_name)[0]
+									linereplace = SETEPG + ":" + channel_name
+									bouquetiptvtosatwrite.write("\n" + linereplace)
+					if not exists(IPToSAT_EPG_PATH):
+						with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
+							with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
+								bouquetiptosat = bouquetiptvtosatread.readlines()
+								for line in bouquetiptosat:
+									linereplace = ""
+									SETEPG = line.split(":" + channel_name)[0]
+									linereplace = linereplace + SETEPG + ":" + channel_name
+									bouquetiptvtosatwrite.write('#NAME IPToSAT_EPG' + "\n" + linereplace)
+					with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
+						linestxt = fr.readlines()
+						for line in linestxt:
+							with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
+								fw.write(line)
+					if exists("/etc/enigma2/iptosat_epg"):
+						self.Console.ePopen("rm -f /etc/enigma2/iptosat_epg")
+						# no need to restart GUI we load commands reloads services and bouquets
+						# self.session.openWithCallback(self.restarGUI, MessageBox, str(channel_name) + " " + message, MessageBox.TYPE_YESNO, default=False)
+					if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
+						with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
+							newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
+							with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
+									bouquetstvread = bouquetstvread.readlines()
+									for linesbouquet in bouquetstvread:
+										if "#NAME User - Bouquets (TV)" not in linesbouquet:
+											newbouquetstvwrite.write(linesbouquet)
+						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
+					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, channel_name):
 					self.session.open(MessageBox, _(language.get(lang, "24")) + channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_INFO)
 					break
