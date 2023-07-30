@@ -388,7 +388,7 @@ class AssignService(ChannelSelectionBase):
 						backupdirectory = join(path, "IPToSAT/BackupChannelsList")
 						backupfiles = ""
 						bouquetiptosatepg = ""
-						for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
+						for files in [x for x in listdir(backupdirectory) if x.endswith(".tv")]:
 							backupfiles = join(backupdirectory, files)
 							bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
 							if backupfiles:
@@ -710,10 +710,10 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								if backupfiles:
-									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 										enigma2files = join(enigma2directory, fileschannelslist)
 										if enigma2files:
 											remove(enigma2files)
@@ -730,7 +730,7 @@ class AssignService(ChannelSelectionBase):
 				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
 				backupfiles = ""
 				if path != "/" and not "net" in path and not "autofs" in path:
-					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 						backupfiles = join(backupdirectory, files)
 						if backupfiles:
 							self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
@@ -750,7 +750,7 @@ class AssignService(ChannelSelectionBase):
 					backupfiles = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
 								self['managerlistchannels'].show()
@@ -770,7 +770,7 @@ class AssignService(ChannelSelectionBase):
 				if path != "/" and not "net" in path and not "autofs" in path:
 					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
 					backupfiles = ""
-					for files in [x for x in listdir(backupdirectory) if ".tv" in x]:
+					for files in [x for x in listdir(backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
 						backupfiles = join(backupdirectory, files)
 						if backupfiles:
 							self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
@@ -790,10 +790,10 @@ class AssignService(ChannelSelectionBase):
 					bouquetiptosatepg = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
-							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
@@ -823,7 +823,7 @@ class AssignService(ChannelSelectionBase):
 					if path != "/" and not "net" in path and not "autofs" in path:
 						if not exists(backupdirectory):
 							makedirs(backupdirectory)
-						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 							backupfiles = join(backupdirectory, backupfiles)
 						if backupfiles:
 							self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
@@ -846,7 +846,7 @@ class AssignService(ChannelSelectionBase):
 			CREATEBOUQUET = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
-			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and ".tv" in x and not ".del" in x]:
+			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and x.endswith(".tv")]:
 				bouquetiptv = join(filelist)
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
