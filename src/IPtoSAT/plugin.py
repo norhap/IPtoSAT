@@ -265,17 +265,17 @@ class AssignService(ChannelSelectionBase):
 	<screen name="IPToSAT Service Assign" position="40,85" size="1840,980" title="IPToSAT Service Assign">
 		<widget name="titlelist" position="200,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 		<widget name="titlelist2" position="1075,05" size="580,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-		<widget name="list" position="18,42" size="875,310" scrollbarMode="showOnDemand" />
+		<widget name="list" position="33,42" size="875,310" scrollbarMode="showOnDemand" />
 		<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
 		<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
-		<widget name="status" position="18,357" size="870,400" font="Regular;24" zPosition="10" />
-		<widget name="description" position="925,355" size="880,530" font="Regular;24" zPosition="6" />
-		<widget name="assign" position="18,357" size="870,100" font="Regular;24" zPosition="6" />
-		<widget name="codestatus" position="18,500" size="870,300" font="Regular;24" zPosition="10" />
-		<widget name="helpbouquetepg" position="18,355" size="870,510" font="Regular;24" zPosition="6" />
-		<widget name="managerlistchannels" position="18,785" size="870,85" font="Regular;24" zPosition="10" />
-		<widget name="help" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
-		<widget name="play" position="925,355" size="880,530" font="Regular;24" zPosition="3" />
+		<widget name="status" position="33,357" size="870,400" font="Regular;24" zPosition="10" />
+		<widget name="description" position="925,355" size="900,530" font="Regular;24" zPosition="6" />
+		<widget name="assign" position="33,357" size="870,100" font="Regular;24" zPosition="6" />
+		<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
+		<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
+		<widget name="managerlistchannels" position="33,785" size="870,85" font="Regular;24" zPosition="10" />
+		<widget name="help" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
+		<widget name="play" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
 		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,923" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,923" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
@@ -900,15 +900,31 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.session.open(MessageBox, _(language.get(lang, "33")), MessageBox.TYPE_ERROR, default=False, timeout=5)
 
+	def userEditionResult(self, channel_name):
+		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
+			bouquetiptv = join(filelist)
+			if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name):
+				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + channel_name, MessageBox.TYPE_ERROR)
+				break
+
 	def setEPGChannel(self):
+		self['managerlistchannels'].hide()
 		sref = str(self.getSref())
 		channel_name = str(ServiceReference(sref).getServiceName())
-		self.addEPGChannel(channel_name, sref)
+		if self.selectedList == self["list"]:
+			ref = self.getCurrentSelection()
+			ref_satellite = self.getSref()
+		if ref_satellite.startswith('1') and not 'http' in ref_satellite:
+			self.addEPGChannel(channel_name, sref)
+		else:
+			self['managerlistchannels'].show()
+			text = _(language.get(lang, "83"))
+			self.assignWidgetScript("#00ff2525", text)
 
 	def addEPGChannel(self, channel_name, sref):
 		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
-			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name):
+			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + channel_name):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
 					with open("/etc/enigma2/" + "iptosat_epg", "w") as fw:
@@ -983,6 +999,11 @@ class AssignService(ChannelSelectionBase):
 			if fileContains(IPToSAT_EPG_PATH, channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
 				break
+			if fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + channel_name):
+				test = len("%3a" + " " + channel_name)
+				self.session.open(MessageBox, "%3a" + " " + channel_name + "\n\n" + _(language.get(lang, "85")) + ":" + channel_name, MessageBox.TYPE_INFO)
+				break
+		self.userEditionResult(channel_name)
 
 	def purge(self):
 		for partition in harddiskmanager.getMountedPartitions():
@@ -1114,7 +1135,7 @@ class AssignService(ChannelSelectionBase):
 						self.getUserData()
 						host = open(fileconf).read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" +  _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
+						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
 						break
 					if not exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
 						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
