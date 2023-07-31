@@ -712,11 +712,11 @@ class AssignService(ChannelSelectionBase):
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								if backupfiles:
-									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 										enigma2files = join(enigma2directory, fileschannelslist)
 										if enigma2files:
 											remove(enigma2files)
-									kille2installfiles = 'init 4 && sleep 2 && cp ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3'
+									kille2installfiles = 'init 4 && sleep 5 && cp ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3'
 									self.Console.ePopen(kille2installfiles, self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True))
 									break
 			except Exception as err:
