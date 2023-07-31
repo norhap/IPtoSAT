@@ -554,7 +554,6 @@ class AssignService(ChannelSelectionBase):
 			self["titlelist2"].setText(_(language.get(lang, "44")))
 		if not fileContains(CONFIG_PATH, "pass") and self.storage:
 			self["status"].hide()
-			#self["description"].show()
 			self["description"].setText(_(language.get(lang, "60")))
 		if fileContains(CONFIG_PATH, "pass") and not self.storage:
 			self["status"].show()
@@ -931,7 +930,7 @@ class AssignService(ChannelSelectionBase):
 						for line in lines:
 							if channel_name not in line and not "#DESCRIPTION" in line:
 								fw.write(line)
-				SETEPG = ""
+				SATREFERENCENAME = ""
 				if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name) and not fileContains(bouquetiptv, ":" + " " + channel_name):
 					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
 						for line in file:
@@ -941,9 +940,9 @@ class AssignService(ChannelSelectionBase):
 							else:
 								ref = line[9:28]
 							if channel_name in line and not "#DESCRIPTION" in line:
-								reference_epg = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
-								SETEPG = reference_epg
-				if "http" in str(SETEPG):
+								sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
+								SATREFERENCENAME = sat_reference_name
+				if "http" in str(SATREFERENCENAME):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 						with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
 							lineNAME = fr.readlines()
@@ -951,19 +950,19 @@ class AssignService(ChannelSelectionBase):
 								if not "#NAME" in line:
 									fw.write(line)
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
-						fw.write(SETEPG + "\n")
+						fw.write(SATREFERENCENAME + "\n")
 					with open(IPToSAT_EPG_PATH, "a") as fw:
 						if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
-							fw.write('#NAME IPToSAT_EPG' + "\n" + SETEPG + "\n")
+							fw.write('#NAME IPToSAT_EPG' + "\n" + SATREFERENCENAME + "\n")
 						else:
-							fw.write(SETEPG + "\n")
+							fw.write(SATREFERENCENAME + "\n")
 					if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, channel_name):
 						with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
 							with open(IPToSAT_EPG_PATH, "r") as bouquetiptvtosatread:
 								bouquetiptosat = bouquetiptvtosatread.readlines()
 								for line in bouquetiptosat:
-									SETEPG = line.split(":" + channel_name)[0]
-									linereplace = SETEPG + ":" + channel_name
+									SATREFERENCENAME = line.split(":" + channel_name)[0]
+									linereplace = SATREFERENCENAME + ":" + channel_name
 									bouquetiptvtosatwrite.write("\n" + linereplace)
 					if not exists(IPToSAT_EPG_PATH):
 						with open(IPToSAT_EPG_PATH, "a") as bouquetiptvtosatwrite:
@@ -971,12 +970,12 @@ class AssignService(ChannelSelectionBase):
 								bouquetiptosat = bouquetiptvtosatread.readlines()
 								for line in bouquetiptosat:
 									linereplace = ""
-									SETEPG = line.split(":" + channel_name)[0]
-									linereplace = linereplace + SETEPG + ":" + channel_name
+									SATREFERENCENAME = line.split(":" + channel_name)[0]
+									linereplace = linereplace + SATREFERENCENAME + ":" + channel_name
 									bouquetiptvtosatwrite.write('#NAME IPToSAT_EPG' + "\n" + linereplace)
 					with open("/etc/enigma2/" + "iptosat_epg", "r") as fr:
-						linestxt = fr.readlines()
-						for line in linestxt:
+						read_iptosat_epg_file = fr.readlines()
+						for line in read_iptosat_epg_file:
 							with open("/etc/enigma2/" + bouquetiptv, "a") as fw:
 								fw.write(line)
 					if exists("/etc/enigma2/iptosat_epg"):
