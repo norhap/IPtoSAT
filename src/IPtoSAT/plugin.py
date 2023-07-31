@@ -928,9 +928,10 @@ class AssignService(ChannelSelectionBase):
 					lines = fr.readlines()
 					with open("/etc/enigma2/" + "iptosat_epg", "w") as fw:
 						for line in lines:
-							if channel_name not in line and not "#DESCRIPTION" in line:
+							if channel_name not in line:
 								fw.write(line)
 				SATREFERENCENAME = ""
+				BOUQUETNAME = ""
 				if not fileContains(IPToSAT_EPG_PATH, ":" + channel_name) and not fileContains(bouquetiptv, ":" + " " + channel_name):
 					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
 						for line in file:
@@ -939,7 +940,9 @@ class AssignService(ChannelSelectionBase):
 								ref = line[9:31]
 							else:
 								ref = line[9:28]
-							if channel_name in line and not "#DESCRIPTION" in line:
+							if "#NAME" in line:
+								BOUQUETNAME = line.replace("#NAME ", "") 
+							if channel_name in line:
 								sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
 								SATREFERENCENAME = sat_reference_name
 				if "http" in str(SATREFERENCENAME):
@@ -993,7 +996,7 @@ class AssignService(ChannelSelectionBase):
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, channel_name):
-					self.session.open(MessageBox, _(language.get(lang, "24")) + channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, _(language.get(lang, "24")) + channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + BOUQUETNAME, MessageBox.TYPE_INFO)
 					break
 			if fileContains(IPToSAT_EPG_PATH, channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
