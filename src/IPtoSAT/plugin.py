@@ -1,13 +1,13 @@
+from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB ,eConsoleAppContainer
 from Screens.ChannelSelection import ChannelSelectionBase
 from Components.ServiceList import ServiceList
 from Screens.Screen import Screen
+from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
 from Components.ServiceEventTracker import ServiceEventTracker
-from Components.config import config, ConfigInteger, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
 from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.MenuList import MenuList
-from enigma import iPlayableService, iServiceInformation, eServiceCenter, eServiceReference, iFrontendInformation, eTimer , gRGB , eConsoleAppContainer , gFont
 from Components.Label import Label
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
@@ -15,10 +15,9 @@ from Screens.Standby import TryQuitMainloop
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
 from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
-from Tools.BoundFunction import boundFunction
 from twisted.web.client import getPage, downloadPage
 from datetime import datetime
-import json
+from json import dump, loads
 from os import listdir, makedirs, remove
 from os.path import join, exists, normpath
 from configparser import ConfigParser
@@ -105,6 +104,7 @@ def getversioninfo():
 			pass
 	return (currversion)
 
+
 VERSION = getversioninfo()
 
 
@@ -116,7 +116,7 @@ def getPlaylist():
 	if fileExists(PLAYLIST_PATH):
 		with open(PLAYLIST_PATH, 'r') as f:
 			try:
-				return json.loads(f.read())
+				return loads(f.read())
 			except ValueError:
 				trace_error()
 	else:
@@ -203,7 +203,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 
 class IPToSAT(Screen):
-
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.session = session
@@ -468,7 +467,7 @@ class AssignService(ChannelSelectionBase):
 		self.buildTitleString()
 
 	def buildTitleString(self):
-		titleStr = self.getTitle().replace('IPToSAT - ','')
+		titleStr = self.getTitle().replace('IPToSAT - ', '')
 		pos = titleStr.find(']')
 		if pos == -1:
 			pos = titleStr.find(')')
@@ -524,6 +523,9 @@ class AssignService(ChannelSelectionBase):
 		self.resetWidget()
 		self["play"].hide()
 		self["help"].hide()
+		self["key_volumeup"].setText("")
+		self["key_volumedown"].setText("")
+		self["key_stop"].setText("")
 		self["helpbouquetepg"].hide()
 		if not fileContains(CONFIG_PATH, "pass"):
 			self["description"].show()
@@ -573,7 +575,7 @@ class AssignService(ChannelSelectionBase):
 				self.host = xtream.split()[1].split('Host=')[1]
 				self.user = xtream.split()[2].split('User=')[1]
 				self.password = xtream.split()[3].split('Pass=')[1]
-				self.url = '{}/player_api.php?username={}&password={}'.format(self.host,self.user,self.password)
+				self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
 				self.getCategories(self.url)
 			except:
 				trace_error()
@@ -621,9 +623,9 @@ class AssignService(ChannelSelectionBase):
 				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref):
 					from unicodedata import normalize
-					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode() ,'url':url})
+					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url':url})
 					with open(PLAYLIST_PATH, 'w') as f:
-						json.dump(playlist, f, indent = 4)
+						dump(playlist, f, indent = 4)
 					if fileContains(PLAYLIST_PATH, sref):
 						text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
 						self.assignWidget("#008000", text)
@@ -1215,7 +1217,7 @@ class AssignService(ChannelSelectionBase):
 
 	def getData(self, data):
 		list = []
-		js = json.loads(data)
+		js = loads(data)
 		if js != []:
 			for cat in js:
 				list.append((str(cat['category_name']),
@@ -1232,7 +1234,7 @@ class AssignService(ChannelSelectionBase):
 		channel_satellite = str(ServiceReference(sref).getServiceName())
 		search_name = channel_satellite[2:6]  # criteria 5 bytes to search for matches
 		list = []
-		js = json.loads(data)
+		js = loads(data)
 		if js != []:
 			for ch in js:
 				if str(search_name) in str(ch['name']):
@@ -1310,7 +1312,6 @@ class EditPlaylist(Screen):
 			"cancel": self.exit,
 			"red": self.keyRed,
 			"green":self.keyGreen,
-
 		}, -2)
 		self.channels = []
 		self.playlist = getPlaylist()
@@ -1345,14 +1346,14 @@ class EditPlaylist(Screen):
 			del playlist[index]
 			self.playlist['playlist'] = playlist
 			with open(PLAYLIST_PATH, 'w') as f:
-				json.dump(self.playlist, f , indent = 4)
+				dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
 	def deletelistJSON(self, answer):
 		if answer:
 			self.playlist['playlist'] = []
 			with open(PLAYLIST_PATH, 'w') as f:
-				json.dump(self.playlist, f , indent = 4)
+				dump(self.playlist, f , indent = 4)
 			self.iniMenu()
 		else:
 			self.iniMenu()
@@ -1382,5 +1383,5 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-	Descriptors.append(PluginDescriptor(name="IPToSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " "  + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	Descriptors.append(PluginDescriptor(name="IPToSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " " + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	return Descriptors
