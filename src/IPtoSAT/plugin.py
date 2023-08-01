@@ -25,6 +25,7 @@ from configparser import ConfigParser
 from time import sleep
 from Components.Harddisk import harddiskmanager
 from shutil import move, copy
+from re import search
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
@@ -922,6 +923,10 @@ class AssignService(ChannelSelectionBase):
 			self.assignWidgetScript("#00ff2525", text)
 
 	def addEPGChannel(self, channel_name, sref):
+		characterascii = [channel_name]
+		for character in characterascii:
+			if search(r'[ÁÉÍÓÚÑáéíóúñ]', character):
+				channel_name = character.replace("Ñ", "N").replace("ñ", "n").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
 		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + channel_name):
