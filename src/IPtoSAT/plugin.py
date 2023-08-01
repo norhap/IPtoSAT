@@ -842,11 +842,11 @@ class AssignService(ChannelSelectionBase):
 			with open("/etc/enigma2/iptv.sh", "r") as fr:
 				riptvsh = fr.readlines()
 				for line in riptvsh:
-					bouquetNAME = line.split("bouquet=")[1].split(";")[0]
+					bouquetname = line.split("bouquet=")[1].split(";")[0]
 					with open("/etc/enigma2/iptv.sh", "w") as fw:
-						CREATEBOUQUET = line.replace(bouquetNAME, '"IPTV_IPToSAT"')
-						fw.write(CREATEBOUQUET)
-			CREATEBOUQUET = ""
+						createbouquet = line.replace(bouquetname, '"IPTV_IPToSAT"')
+						fw.write(createbouquet)
+			createbouquet = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
 			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and x.endswith(".tv")]:
@@ -854,11 +854,11 @@ class AssignService(ChannelSelectionBase):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
 					for content in lines:
-						createNAMEBOUQUET = content.replace("#NAME", "#NAME IPTV_IPToSAT")
-						BouquetIPToSAT = createNAMEBOUQUET.replace("#NAME IPTV_IPToSAT", "IPTV_IPToSAT")
-						CREATEBOUQUET = CREATEBOUQUET + createNAMEBOUQUET
+						createnamebouquet = content.replace("#NAME", "#NAME IPTV_IPToSAT")
+						BouquetIPToSAT = createnamebouquet.replace("#NAME IPTV_IPToSAT", "IPTV_IPToSAT")
+						createbouquet = createbouquet + createnamebouquet
 						with open("/etc/enigma2/" + bouquetiptv, "w",) as fw:
-							fw.write(CREATEBOUQUET + "\n" + content)
+							fw.write(createbouquet + "\n" + content)
 							if exists("/etc/enigma2/iptv.sh"):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 						if "IPTV_IPToSAT" in BouquetIPToSAT:
@@ -882,20 +882,20 @@ class AssignService(ChannelSelectionBase):
 								sleep(1)
 							else:
 								with open("/etc/enigma2/iptv.sh", "r") as fr:
-									CREATEBOUQUET = ""
+									createbouquet = ""
 									riptvsh = fr.readlines()
 									for line in riptvsh:
-										bouquetNAME = line.split("bouquet=")[1].split(";")[0]
-										if " " in str(bouquetNAME) or "  " in str(bouquetNAME):
+										bouquetname = line.split("bouquet=")[1].split(";")[0]
+										if " " in str(bouquetname) or "  " in str(bouquetname):
 											with open("/etc/enigma2/iptv.sh", "w") as fw:
-												bouquetRENAME = str(bouquetNAME).replace(' ', '_').replace(' ', '_')
-												CREATEBOUQUET = line.replace(bouquetNAME, bouquetRENAME)
-												fw.write(CREATEBOUQUET)
+												bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
+												createbouquet = line.replace(bouquetname, bouquetrename)
+												fw.write(createbouquet)
 												eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
+												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
 										elif not 'bouquet=""' in line:
 											eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-											self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetNAME) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
+											self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
 										else:
 											self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
 			except Exception as err:
@@ -939,9 +939,9 @@ class AssignService(ChannelSelectionBase):
 					with open(WILD_CARD_EPG_FILE, "w") as fw:
 						for line in lines:
 							fw.write(line)
-				SATREFERENCENAME = ""
-				BOUQUETNAMEMSGBOX = ""
-				BOUQUETNAME = ""
+				satreferencename = ""
+				bouquetnamemsgbox = ""
+				bouquetname = ""
 				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name) and not fileContains(bouquetiptv, ":" + " " + epg_channel_name):
 					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
 						for line in file:
@@ -951,30 +951,30 @@ class AssignService(ChannelSelectionBase):
 							else:
 								ref = line[9:28]
 							if "#NAME" in line:
-								BOUQUETNAMEMSGBOX = line.replace("#NAME ", "")
-								BOUQUETNAME = line
+								bouquetnamemsgbox = line.replace("#NAME ", "")
+								bouquetname = line
 							if ":" + epg_channel_name in line and "http" in line:
 								sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + epg_channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
-								SATREFERENCENAME = sat_reference_name
-				if "http" in str(SATREFERENCENAME):
+								satreferencename = sat_reference_name
+				if "http" in str(satreferencename):
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 						with open(WILD_CARD_EPG_FILE, "r") as fr:
 							lineNAME = fr.readlines()
 							for line in lineNAME:
 								fw.write(line)
 					with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
-						fw.write(BOUQUETNAME + "\n" + SATREFERENCENAME + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+						fw.write(bouquetname + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 					with open(IPToSAT_EPG_PATH, "a") as fw:
 						if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
-							fw.write('#NAME IPToSAT_EPG' + "\n" + SATREFERENCENAME + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+							fw.write('#NAME IPToSAT_EPG' + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 						else:
-							fw.write(SATREFERENCENAME + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+							fw.write(satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 					with open(WILD_CARD_EPG_FILE, "r") as fr:
 						with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
 							read_iptosat_epg_file = fr.readlines()
 							for line in read_iptosat_epg_file:
 								if epg_channel_name in line and "http" in line:
-									fw.write(SATREFERENCENAME + "\n")
+									fw.write(satreferencename + "\n")
 								if ":" + epg_channel_name not in line:
 									fw.write(line)
 					if exists(WILD_CARD_EPG_FILE):
@@ -990,7 +990,7 @@ class AssignService(ChannelSelectionBase):
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, epg_channel_name):
-					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + BOUQUETNAMEMSGBOX, MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, epg_channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
@@ -1004,10 +1004,10 @@ class AssignService(ChannelSelectionBase):
 	def purge(self):
 		for partition in harddiskmanager.getMountedPartitions():
 			path = normpath(partition.mountpoint)
-			alternateFolder = join(path, "IPToSAT/AlternateList")
-			changeFolder = join(path, "IPToSAT/ChangeList")
-			iptosatconf = join(alternateFolder, "iptosat.conf")
-			iptosat2conf = join(changeFolder, "iptosat.conf")
+			alternatefolder = join(path, "IPToSAT/AlternateList")
+			changefolder = join(path, "IPToSAT/ChangeList")
+			iptosatconf = join(alternatefolder, "iptosat.conf")
+			iptosat2conf = join(changefolder, "iptosat.conf")
 			if path != "/" and not "net" in path and not "autofs" in path:
 				if exists(iptosatconf) or exists(iptosat2conf):
 					self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, _(language.get(lang, "57")), MessageBox.TYPE_YESNO, default=False)
@@ -1019,10 +1019,10 @@ class AssignService(ChannelSelectionBase):
 			try:
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
-					alternateFolder = join(path, "IPToSAT/AlternateList")
-					changeFolder = join(path, "IPToSAT/ChangeList")
-					iptosatconf = join(alternateFolder, "iptosat.conf")
-					iptosat2conf = join(changeFolder, "iptosat.conf")
+					alternatefolder = join(path, "IPToSAT/AlternateList")
+					changefolder = join(path, "IPToSAT/ChangeList")
+					iptosatconf = join(alternatefolder, "iptosat.conf")
+					iptosat2conf = join(changefolder, "iptosat.conf")
 					if path != "/" and not "net" in path and not "autofs" in path:
 						if exists(iptosatconf):
 							remove(iptosatconf)
@@ -1038,32 +1038,32 @@ class AssignService(ChannelSelectionBase):
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
 				fileconf = join("/etc/enigma2", "iptosat.conf")
-				alternateFolder = join(path, "IPToSAT/AlternateList")
-				iptosat2conf = join(alternateFolder, "iptosat.conf")
-				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
-				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
+				alternatefolder = join(path, "IPToSAT/AlternateList")
+				iptosat2conf = join(alternatefolder, "iptosat.conf")
+				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
+				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
 					self.storage = True
 					if exists(iptosat2conf):
-						if exists(iptosatLIST2conf) or exists(iptosatLIST1conf):
+						if exists(iptosatlist2conf) or exists(iptosatlist1conf):
 							remove(iptosat2conf)
-					if not exists(alternateFolder):
-						makedirs(alternateFolder)
-					if not exists(iptosat2conf) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf):
-						self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + alternateFolder + "/", MessageBox.TYPE_INFO)
+					if not exists(alternatefolder):
+						makedirs(alternatefolder)
+					if not exists(iptosat2conf) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf):
+						self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + alternatefolder + "/", MessageBox.TYPE_INFO)
 					if exists(CONFIG_PATH) and exists(iptosat2conf):
-						move(CONFIG_PATH, iptosatLIST1conf)
+						move(CONFIG_PATH, iptosatlist1conf)
 						move(iptosat2conf, fileconf)
 						self.secondSuscription = True
 						break
-					if exists(CONFIG_PATH) and exists(iptosatLIST2conf):
-						move(CONFIG_PATH, iptosatLIST1conf)
-						move(iptosatLIST2conf, fileconf)
+					if exists(CONFIG_PATH) and exists(iptosatlist2conf):
+						move(CONFIG_PATH, iptosatlist1conf)
+						move(iptosatlist2conf, fileconf)
 						self.secondSuscription = True
 						break
-					if exists(CONFIG_PATH) and exists(iptosatLIST1conf):
-						move(CONFIG_PATH, iptosatLIST2conf)
-						move(iptosatLIST1conf, fileconf)
+					if exists(CONFIG_PATH) and exists(iptosatlist1conf):
+						move(CONFIG_PATH, iptosatlist2conf)
+						move(iptosatlist1conf, fileconf)
 						self.secondSuscription = False
 						break
 			self.getUserData()
@@ -1075,16 +1075,16 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
-				alternateFolder = join(path, "IPToSAT/AlternateList")
-				changeFolder = join(path, "IPToSAT/ChangeList")
-				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
-				iptosat2Change = join(changeFolder, "iptosat.conf")
-				iptosatconf = join(alternateFolder, "iptosat.conf")
+				alternatefolder = join(path, "IPToSAT/AlternateList")
+				changefolder = join(path, "IPToSAT/ChangeList")
+				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
+				iptosat2change = join(changefolder, "iptosat.conf")
+				iptosatconf = join(alternatefolder, "iptosat.conf")
 				fileconf = join("/etc/enigma2", "iptosat.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
 					if answer:
-						if exists(iptosat2Change):
-							move(iptosat2Change, iptosatLIST1conf)
+						if exists(iptosat2change):
+							move(iptosat2change, iptosatlist1conf)
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1095,14 +1095,14 @@ class AssignService(ChannelSelectionBase):
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
 				fileconf = join("/etc/enigma2", "iptosat.conf")
-				alternateFolder = join(path, "IPToSAT/AlternateList")
-				changeFolder = join(path, "IPToSAT/ChangeList")
-				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
-				iptosat2Change = join(changeFolder, "iptosat.conf")
-				iptosatconf = join(alternateFolder, "iptosat.conf")
+				alternatefolder = join(path, "IPToSAT/AlternateList")
+				changefolder = join(path, "IPToSAT/ChangeList")
+				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
+				iptosat2change = join(changefolder, "iptosat.conf")
+				iptosatconf = join(alternatefolder, "iptosat.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
 					if answer:
-						move(iptosat2Change, iptosatLIST2conf)
+						move(iptosat2change, iptosatlist2conf)
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1113,55 +1113,55 @@ class AssignService(ChannelSelectionBase):
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
 				fileconf = join("/etc/enigma2", "iptosat.conf")
-				alternateFolder = join(path, "IPToSAT/AlternateList")
-				changeFolder = join(path, "IPToSAT/ChangeList")
-				iptosat2Change = join(changeFolder, "iptosat.conf")
-				iptosatconf = join(alternateFolder, "iptosat.conf")
-				iptosatLIST1conf = join(alternateFolder, "iptosat_LIST1.conf")
-				iptosatLIST2conf = join(alternateFolder, "iptosat_LIST2.conf")
+				alternatefolder = join(path, "IPToSAT/AlternateList")
+				changefolder = join(path, "IPToSAT/ChangeList")
+				iptosat2change = join(changefolder, "iptosat.conf")
+				iptosatconf = join(alternatefolder, "iptosat.conf")
+				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
+				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
 					self.storage = True
-					if not exists(changeFolder):
-						makedirs(changeFolder)
-					if not exists(alternateFolder):
-						makedirs(alternateFolder)
-					if exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
-						move(fileconf, iptosatLIST1conf)
-						move(iptosat2Change, fileconf)
+					if not exists(changefolder):
+						makedirs(changefolder)
+					if not exists(alternatefolder):
+						makedirs(alternatefolder)
+					if exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+						move(fileconf, iptosatlist1conf)
+						move(iptosat2change, fileconf)
 						self.getUserData()
 						host = open(fileconf).read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + alternateFolder + "/", MessageBox.TYPE_INFO)
+						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + alternatefolder + "/", MessageBox.TYPE_INFO)
 						break
-					if not exists(iptosat2Change) and not exists(iptosatLIST1conf) and not exists(iptosatLIST2conf) and not exists(iptosatconf):
-						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
+					if not exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+						self.session.open(MessageBox, _(language.get(lang, "49")) + changefolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
 						break
-					if exists(iptosatconf) and exists(iptosat2Change):
-						if exists(iptosatLIST1conf):
+					if exists(iptosatconf) and exists(iptosat2change):
+						if exists(iptosatlist1conf):
 							remove(iptosatconf)
-						if exists(iptosatLIST2conf):
+						if exists(iptosatlist2conf):
 							remove(iptosatconf)
 						if exists(iptosatconf):
-							self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2Change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
+							self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
 							break
-					if exists(iptosatconf) and not exists(iptosat2Change):
-						self.session.open(MessageBox, _(language.get(lang, "49")) + changeFolder + "/", MessageBox.TYPE_INFO)
+					if exists(iptosatconf) and not exists(iptosat2change):
+						self.session.open(MessageBox, _(language.get(lang, "49")) + changefolder + "/", MessageBox.TYPE_INFO)
 						break
-					if exists(iptosatLIST1conf) and exists(iptosat2Change):
-						host = open(iptosatLIST1conf).read()
+					if exists(iptosatlist1conf) and exists(iptosat2change):
+						host = open(iptosatlist1conf).read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
 						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
 						break
-					if exists(iptosatLIST1conf) and not exists(iptosat2Change):
-						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changeFolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+					if exists(iptosatlist1conf) and not exists(iptosat2change):
+						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
 						break
-					if exists(iptosatLIST2conf) and exists(iptosat2Change):
-						host = open(iptosatLIST2conf).read()
+					if exists(iptosatlist2conf) and exists(iptosat2change):
+						host = open(iptosatlist2conf).read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
 						self.session.openWithCallback(self.doChangeList2, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
 						break
-					if exists(iptosatLIST2conf) and not exists(iptosat2Change):
-						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changeFolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+					if exists(iptosatlist2conf) and not exists(iptosat2change):
+						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
 						break
 				self.getUserData()
 			self["codestatus"].hide()
