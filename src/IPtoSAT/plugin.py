@@ -29,8 +29,8 @@ from re import search
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
-LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/languages")
-VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPtoSAT/version")
+LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
+VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.IPToSAT_EPG.tv"
 FILE_IPToSAT_EPG = "userbouquet.IPToSAT_EPG.tv"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
@@ -83,14 +83,14 @@ def trace_error():
 	import traceback
 	try:
 		traceback.print_exc(file=sys.stdout)
-		traceback.print_exc(file=open('/tmp/IPtoSAT.log', 'a'))
+		traceback.print_exc(file=open('/tmp/IPToSAT.log', 'a'))
 	except:
 		pass
 
 
 def log(data):
 	now = datetime.now().strftime('%Y-%m-%d %H:%M')
-	open('/tmp/IPtoSAT.log', 'a').write(now + ' : ' + str(data) + '\r\n')
+	open('/tmp/IPToSAT.log', 'a').write(now + ' : ' + str(data) + '\r\n')
 
 
 def getversioninfo():
@@ -139,7 +139,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
-		self["actions"] = ActionMap(["IPtoSATActions"],
+		self["actions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.keyCancel,
 			"down": self.moveDown,
@@ -202,7 +202,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		ConfigListScreen.keyRight(self)
 
 
-class IPtoSAT(Screen):
+class IPToSAT(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -352,7 +352,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_tv"] = StaticText("")
 		self["key_rec"] = StaticText("")
 		self["key_audio"] = StaticText("")
-		self["ChannelSelectBaseActions"] = ActionMap(["IPtoSATAsignActions"],
+		self["ChannelSelectBaseActions"] = ActionMap(["IPToSATAsignActions"],
 		{
 			"cancel": self.exit,
 			"back": self.exit,
@@ -468,7 +468,7 @@ class AssignService(ChannelSelectionBase):
 		self.buildTitleString()
 
 	def buildTitleString(self):
-		titleStr = self.getTitle().replace('IPtoSAT - ','')
+		titleStr = self.getTitle().replace('IPToSAT - ','')
 		pos = titleStr.find(']')
 		if pos == -1:
 			pos = titleStr.find(')')
@@ -490,7 +490,7 @@ class AssignService(ChannelSelectionBase):
 						titleStr += '/'
 					nameStr = self.getServiceName(end_ref)
 					titleStr += nameStr
-				self.setTitle('IPtoSAT - ' + titleStr)
+				self.setTitle('IPToSAT - ' + titleStr)
 
 	def chUP(self):
 		if self.selectedList == self["list"]:
@@ -587,7 +587,7 @@ class AssignService(ChannelSelectionBase):
 
 	def getCategories(self, url):
 		url += '&action=get_live_categories'
-		self.callAPI(url,self.getData)
+		self.callAPI(url, self.getData)
 
 	def channelSelected(self):
 		if exists("/etc/enigma2/iptv.sh"):
@@ -612,7 +612,7 @@ class AssignService(ChannelSelectionBase):
 				stream_id = self.channels[index][1]
 				sref = self.getSref()
 				channel_name = ServiceReference(sref).getServiceName()
-				self.addChannel(channel_name,stream_id,sref,xtream_channel)
+				self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
 		playlist = getPlaylist()
@@ -1283,7 +1283,7 @@ class AssignService(ChannelSelectionBase):
 
 class EditPlaylist(Screen):
 	skin = """
-	<screen name="EditPlaylistIPtoSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
+	<screen name="EditPlaylistIPToSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
 		<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
@@ -1299,12 +1299,12 @@ class EditPlaylist(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self["status"] = Label()
-		self.skinName = ["EditPlaylistIPtoSAT"]
+		self.skinName = ["EditPlaylistIPToSAT"]
 		self.setTitle(_(language.get(lang, "26")))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
-		self["IptosatActions"] = ActionMap(["IPtoSATActions"],
+		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
 			"cancel": self.exit,
@@ -1370,9 +1370,9 @@ def autostart(reason, **kwargs):
 	if reason == 0:
 		if config.plugins.IPToSAT.enable.value:
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
-				IPtoSAT(kwargs["session"])
+				IPToSAT(kwargs["session"])
 			else:
-				log("Cannot start IPtoSat, {} not found".format(config.plugins.IPToSAT.player.value))
+				log("Cannot start IPToSAT, {} not found".format(config.plugins.IPToSAT.player.value))
 
 
 def iptosatSetup(session, **kwargs):
@@ -1382,5 +1382,5 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-	Descriptors.append(PluginDescriptor(name="IPtoSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " "  + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	Descriptors.append(PluginDescriptor(name="IPToSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " "  + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	return Descriptors
