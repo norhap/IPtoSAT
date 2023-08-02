@@ -270,7 +270,7 @@ class AssignService(ChannelSelectionBase):
 		<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
 		<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
 		<widget name="status" position="33,357" size="870,400" font="Regular;24" zPosition="10" />
-		<widget name="description" position="925,355" size="900,530" font="Regular;24" zPosition="6" />
+		<widget name="description" position="925,355" size="900,565" font="Regular;24" zPosition="6" />
 		<widget name="assign" position="33,357" size="870,100" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
@@ -300,19 +300,22 @@ class AssignService(ChannelSelectionBase):
 		<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_tv" render="Label" conditional="key_rec" position="1772,923" zPosition="12" size="60,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
-			<convert type="ConditionalShowHide"/>
-		</widget>
 		<widget source="key_stop" render="Label" conditional="key_stop" position="1597,923" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_menu" conditional="key_menu" render="Label" position="12,883" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_0" render="Label" conditional="key_0" position="1772,923" zPosition="12" size="60,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_tv" conditional="key_tv" render="Label" position="12,883" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget source="key_audio" render="Label" conditional="key_audio" position="189,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_rec" render="Label" conditional="key_tv" position="365,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_rec" render="Label" conditional="key_rec" position="365,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_menu" render="Label" conditional="key_menu" position="541,883" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -351,6 +354,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_tv"] = StaticText("")
 		self["key_rec"] = StaticText("")
 		self["key_audio"] = StaticText("")
+		self["key_0"] = StaticText("")
 		self["ChannelSelectBaseActions"] = ActionMap(["IPToSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -376,6 +380,7 @@ class AssignService(ChannelSelectionBase):
 			"audio": self.deleteChannelsList,
 			"rec": self.installChannelsList,
 			"red": self.installBouquetIPToSATEPG,
+			"0": self.searchBouquetIPTV,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -432,6 +437,8 @@ class AssignService(ChannelSelectionBase):
 			self["key_volumeup"] = StaticText("")
 			self["key_volumedown"] = StaticText("")
 			self["key_stop"] = StaticText("")
+		self['managerlistchannels'].hide()
+		self["key_0"].setText("")
 		self["description"].hide()
 		self["help"].hide()
 		self["helpbouquetepg"].hide()
@@ -444,6 +451,7 @@ class AssignService(ChannelSelectionBase):
 		epghelp = _(language.get(lang, "9"))
 		helpbouquetepg = _(language.get(lang, "74"))
 		self["description"].hide()
+		self["key_0"].setText("0")
 		self["play"].hide()
 		self["help"].setText(epghelp)
 		self["help"].show()
@@ -525,8 +533,10 @@ class AssignService(ChannelSelectionBase):
 		self["help"].hide()
 		self["key_volumeup"].setText("")
 		self["key_volumedown"].setText("")
+		self["key_0"].setText("")
 		self["key_stop"].setText("")
 		self["helpbouquetepg"].hide()
+		self['managerlistchannels'].hide()
 		if not fileContains(CONFIG_PATH, "pass"):
 			self["description"].show()
 			self["codestatus"].show()
@@ -924,6 +934,25 @@ class AssignService(ChannelSelectionBase):
 			self['managerlistchannels'].show()
 			text = _(language.get(lang, "83"))
 			self.assignWidgetScript("#00ff2525", text)
+
+	def searchBouquetIPTV(self):
+		iptv_channels = False
+		self['managerlistchannels'].hide()
+		sref = str(self.getSref())
+		channel_name = str(ServiceReference(sref).getServiceName())
+		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
+			bouquetiptv = join(filelist)
+			if fileContains("/etc/enigma2/" + bouquetiptv, channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, "http"):
+				self['managerlistchannels'].show()
+				text = _("/etc/enigma2/" + bouquetiptv)
+				self.assignWidgetScript("#008000", text)
+				iptv_channels = True
+				break
+		if not iptv_channels:
+			self['managerlistchannels'].show()
+			text = _(language.get(lang, "86"))
+			self.assignWidgetScript("#00ff2525", text)
+		self.showFavourites()
 
 	def addEPGChannel(self, channel_name, sref):
 		epg_channel_name = channel_name.upper()

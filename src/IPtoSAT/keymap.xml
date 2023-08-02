@@ -42,5 +42,6 @@
 		<key id="KEY_AUDIO" mapto="audio" flags="m" />
 		<key id="KEY_RECORD" mapto="rec" flags="m" />
 		<key id="KEY_EPG" mapto="epg" flags="m" />
+		<key id="KEY_0" mapto="0" flags="m" />
 	</map>
 </keymap>
