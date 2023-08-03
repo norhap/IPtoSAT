@@ -27,6 +27,7 @@ from shutil import move, copy
 from re import search
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
+CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
@@ -75,6 +76,7 @@ config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
+config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
 
 
 def trace_error():
@@ -123,6 +125,17 @@ def getPlaylist():
 		return None
 
 
+def getChannelsLists():
+	if fileExists(CHANNELS_LISTS_PATH):
+		with open(CHANNELS_LISTS_PATH, 'r') as f:
+			try:
+				return loads(f.read())
+			except ValueError:
+				trace_error()
+	else:
+		return None
+
+
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="center,center" size="1150,450" title="IPToSATSetup settings">
@@ -163,6 +176,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list = [getConfigListEntry(_(language.get(lang, "14")), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_(language.get(lang, "15")), config.plugins.IPToSAT.assign))
 		self.list.append(getConfigListEntry(_(language.get(lang, "16")), config.plugins.IPToSAT.playlist))
+		self.list.append(getConfigListEntry(_(language.get(lang, "88")), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
@@ -181,6 +195,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(AssignService)
 		elif current[1] == config.plugins.IPToSAT.playlist:
 			self.session.open(EditPlaylist)
+		elif current[1] == config.plugins.IPToSAT.installchannelslist:
+			self.session.open(InstallChannelsLists)
 
 	def changedEntry(self):
 		for x in self.onChangedEntry:
@@ -381,6 +397,7 @@ class AssignService(ChannelSelectionBase):
 			"rec": self.installChannelsList,
 			"red": self.installBouquetIPToSATEPG,
 			"0": self.searchBouquetIPTV,
+			"2": self.getUpdatedChannelLists,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -723,14 +740,14 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								if backupfiles:
-									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 										enigma2files = join(enigma2directory, fileschannelslist)
 										if enigma2files:
 											remove(enigma2files)
-									kille2installfiles = 'init 4 && sleep 5 && cp ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3'
+									kille2installfiles = 'init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3'
 									self.Console.ePopen(kille2installfiles, self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True))
 									break
 			except Exception as err:
@@ -743,7 +760,7 @@ class AssignService(ChannelSelectionBase):
 				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
 				backupfiles = ""
 				if path != "/" and not "net" in path and not "autofs" in path:
-					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 						backupfiles = join(backupdirectory, files)
 						if backupfiles:
 							self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
@@ -763,7 +780,7 @@ class AssignService(ChannelSelectionBase):
 					backupfiles = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
 								self['managerlistchannels'].show()
@@ -803,10 +820,10 @@ class AssignService(ChannelSelectionBase):
 					bouquetiptosatepg = ""
 					if answer:
 						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
-							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								enigma2files = join(enigma2directory, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
@@ -819,8 +836,10 @@ class AssignService(ChannelSelectionBase):
 							self["key_audio"].setText("AUDIO")
 							if exists(bouquetiptosatepg):
 								self["key_red"].setText(_(language.get(lang, "18")))
+								break
 					else:
 						self.showFavourites()
+						break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -836,7 +855,7 @@ class AssignService(ChannelSelectionBase):
 					if path != "/" and not "net" in path and not "autofs" in path:
 						if not exists(backupdirectory):
 							makedirs(backupdirectory)
-						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 							backupfiles = join(backupdirectory, backupfiles)
 						if backupfiles:
 							self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
@@ -1025,7 +1044,6 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, epg_channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
 				break
 			if fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + epg_channel_name):
-				test = len("%3a" + " " + epg_channel_name)
 				self.session.open(MessageBox, "%3a" + " " + epg_channel_name + "\n\n" + _(language.get(lang, "85")) + ":" + epg_channel_name, MessageBox.TYPE_INFO)
 				break
 		self.userEditionResult(epg_channel_name)
@@ -1059,6 +1077,7 @@ class AssignService(ChannelSelectionBase):
 							remove(iptosat2conf)
 						if not exists(iptosatconf) or not exists(iptosat2conf):
 							self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
+							break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1114,8 +1133,10 @@ class AssignService(ChannelSelectionBase):
 					if answer:
 						if exists(iptosat2change):
 							move(iptosat2change, iptosatlist1conf)
+							break
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+						break
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1132,8 +1153,45 @@ class AssignService(ChannelSelectionBase):
 				if path != "/" and not "net" in path and not "autofs" in path:
 					if answer:
 						move(iptosat2change, iptosatlist2conf)
+						break
 					else:
 						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+						break
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def getUpdatedChannelLists(self):
+		try:
+			from zipfile import ZipFile
+			self['managerlistchannels'].hide()
+			for partition in harddiskmanager.getMountedPartitions():
+				path = normpath(partition.mountpoint)
+				folderlistchannels = join(path, "IPToSAT/ChannelsLists")
+				zipfile = join(folderlistchannels, "channelslists.zip")
+				if path != "/" and not "net" in path and not "autofs" in path:
+					self.storage = True
+					if not exists(folderlistchannels):
+						makedirs(folderlistchannels)
+					eConsoleAppContainer().execute('wget -O ' + zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
+					sleep(3)
+					if exists(zipfile):
+						with ZipFile(zipfile, 'r') as zip:
+							zip.extractall(folderlistchannels)
+					from glob import glob
+					filepath = folderlistchannels + '/**/*actualizacion*'
+					for file in glob(filepath, recursive=True):
+						with open(file, 'r') as fr:
+							update = fr.readlines()
+							for date in update:
+								self['managerlistchannels'].show()
+								text = _(language.get(lang, "87") + " " + date)
+								self.assignWidgetScript("#008000", text)
+								break
+					for directory in [x for x in listdir(folderlistchannels)]:
+						workdirectory = join(folderlistchannels, directory)
+					if exists(workdirectory):
+						eConsoleAppContainer().execute('sleep 10 && rm -rf ' + folderlistchannels + '/*')
+						break
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1395,6 +1453,112 @@ class EditPlaylist(Screen):
 	def exit(self, ret=None):
 		self.close(True)
 
+
+class InstallChannelsLists(Screen):
+	skin = """
+	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1100,450" title="IPToSAT - Install Channels Lists">
+		<widget name="list" itemHeight="40" position="18,22" size="1064,350" scrollbarMode="showOnDemand"/>
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="436,383" size="659,65" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+	</screen>"""
+
+	def __init__(self, session, *args):
+		self.session = session
+		Screen.__init__(self, session)
+		self.storage = False
+		self.folderlistchannels = None
+		self.zipfile = None
+		self.path = None
+		self.Console = Console()
+		self["status"] = Label()
+		self.skinName = ["InstallChannelsListsIPToSAT"]
+		self.setTitle(_(language.get(lang, "88")))
+		self['list'] = MenuList([])
+		self["key_red"] = StaticText("")
+		self["key_green"] = StaticText("")
+		self.sel = self["list"].getCurrent()
+		self["iptosatactions"] = ActionMap(["IPToSATActions"],
+		{
+			"back": self.close,
+			"cancel": self.exit,
+			"red": self.keyRed,
+			"green":self.keyGreen,
+			"ok":self.keyGreen,
+		}, -2)
+		self.listChannels = getChannelsLists()
+		self.iniMenu()
+		self.chekScenarioToInstall()
+
+	def iniMenu(self):
+		if self.listChannels:
+			list = []
+			for listtype in self.listChannels['channelslists']:
+				try:
+					list.append(str(listtype['listtype']))
+				except KeyError:pass
+			if len(list) > 0:
+				self['list'].l.setList(list)
+				self["status"].setText(_(language.get(lang, "92")))
+				self["key_red"].setText(_(language.get(lang, "89")))
+				self["key_green"].setText(_(language.get(lang, "90")))
+
+	def keyGreen(self):
+		channelslists = self["list"].getCurrent()
+		if self.listChannels:
+			if channelslists and self.storage:
+				self.session.openWithCallback(self.doInstallChannelsList, MessageBox, _(language.get(lang, "91")) + " " + channelslists, MessageBox.TYPE_YESNO)
+
+	def keyRed(self):
+		self.close(True)
+
+	def exit(self, ret=None):
+		self.close(True)
+
+	def chekScenarioToInstall(self):
+		for partition in harddiskmanager.getMountedPartitions():
+			self.path = normpath(partition.mountpoint)
+			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+				self.storage = True
+				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
+				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
+				if not exists(self.folderlistchannels):
+					makedirs(self.folderlistchannels)
+
+	def clearWorkDirectory(self):
+		workdirectory = ""
+		for directory in [x for x in listdir(self.folderlistchannels)]:
+			workdirectory = join(self.folderlistchannels, directory)
+		if exists(workdirectory):
+			eConsoleAppContainer().execute('sleep 30 && rm -rf ' + self.folderlistchannels + '/*')
+
+	def doInstallChannelsList(self, answer):
+		channelslists = self["list"].getCurrent()
+		if answer:
+			try:
+				self.Console.ePopen('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
+				from glob import glob
+				dirpath = self.folderlistchannels + '/**/' + channelslists + '/etc/enigma2'
+				for dirnewlist in glob(dirpath, recursive=True):
+					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
+						updatefiles = join(dirnewlist, files)
+						if exists(updatefiles):
+							remove(updatefiles)
+						for installedlist in [x for x in listdir("/etc/enigma2") if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							installedfiles = join("/etc/enigma2", installedlist)
+							if installedfiles:
+								remove(installedfiles)
+						kille2installfiles = 'init 4 && sleep 10 && mv -f ' + dirnewlist + '/satellites.xml /etc/tuxbox/satellites.xml && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3'
+						self.Console.ePopen(kille2installfiles, self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True))
+						self.clearWorkDirectory()
+						break
+			except Exception as err:
+				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 def autostart(reason, **kwargs):
 	if reason == 0:
