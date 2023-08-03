@@ -397,7 +397,6 @@ class AssignService(ChannelSelectionBase):
 			"rec": self.installChannelsList,
 			"red": self.installBouquetIPToSATEPG,
 			"0": self.searchBouquetIPTV,
-			"2": self.getUpdatedChannelLists,
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -1160,41 +1159,6 @@ class AssignService(ChannelSelectionBase):
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
-	def getUpdatedChannelLists(self):
-		try:
-			from zipfile import ZipFile
-			self['managerlistchannels'].hide()
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
-				folderlistchannels = join(path, "IPToSAT/ChannelsLists")
-				zipfile = join(folderlistchannels, "channelslists.zip")
-				if path != "/" and not "net" in path and not "autofs" in path:
-					self.storage = True
-					if not exists(folderlistchannels):
-						makedirs(folderlistchannels)
-					eConsoleAppContainer().execute('wget -O ' + zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
-					sleep(3)
-					if exists(zipfile):
-						with ZipFile(zipfile, 'r') as zip:
-							zip.extractall(folderlistchannels)
-					from glob import glob
-					filepath = folderlistchannels + '/**/*actualizacion*'
-					for file in glob(filepath, recursive=True):
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for date in update:
-								self['managerlistchannels'].show()
-								text = _(language.get(lang, "87") + " " + date)
-								self.assignWidgetScript("#008000", text)
-								break
-					for directory in [x for x in listdir(folderlistchannels)]:
-						workdirectory = join(folderlistchannels, directory)
-					if exists(workdirectory):
-						eConsoleAppContainer().execute('sleep 10 && rm -rf ' + folderlistchannels + '/*')
-						break
-		except Exception as err:
-			print("ERROR: %s" % str(err))
-
 	def setChangeList(self):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
@@ -1456,15 +1420,19 @@ class EditPlaylist(Screen):
 
 class InstallChannelsLists(Screen):
 	skin = """
-	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1100,450" title="IPToSAT - Install Channels Lists">
-		<widget name="list" itemHeight="40" position="18,22" size="1064,350" scrollbarMode="showOnDemand"/>
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Install Channels Lists">
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
+		<widget name="managerlistchannels" position="7,545" size="1364,35" font="Regular;24" zPosition="10" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="436,383" size="659,65" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="536,583" size="860,60" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -1476,13 +1444,14 @@ class InstallChannelsLists(Screen):
 		self.zipfile = None
 		self.path = None
 		self.Console = Console()
-		self["status"] = Label()
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(_(language.get(lang, "88")))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
-		self.sel = self["list"].getCurrent()
+		self["key_blue"] = StaticText("")
+		self["status"] = Label()
+		self["managerlistchannels"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -1490,10 +1459,15 @@ class InstallChannelsLists(Screen):
 			"red": self.keyRed,
 			"green":self.keyGreen,
 			"ok":self.keyGreen,
+			"blue": self.getUpdatedChannelLists,
 		}, -2)
 		self.listChannels = getChannelsLists()
 		self.iniMenu()
 		self.chekScenarioToInstall()
+
+	def assignWidgetScript(self, color, text):
+		self['managerlistchannels'].setText(text)
+		self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
 
 	def iniMenu(self):
 		if self.listChannels:
@@ -1507,12 +1481,13 @@ class InstallChannelsLists(Screen):
 				self["status"].setText(_(language.get(lang, "92")))
 				self["key_red"].setText(_(language.get(lang, "89")))
 				self["key_green"].setText(_(language.get(lang, "90")))
+				self["key_blue"].setText(_(language.get(lang, "92")))
+				self["status"].setText(_(language.get(lang, "93")))
 
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
-		if self.listChannels:
-			if channelslists and self.storage:
-				self.session.openWithCallback(self.doInstallChannelsList, MessageBox, _(language.get(lang, "91")) + " " + channelslists, MessageBox.TYPE_YESNO)
+		if channelslists and self.storage:
+			self.session.openWithCallback(self.doInstallChannelsList, MessageBox, _(language.get(lang, "91")) + " " + channelslists, MessageBox.TYPE_YESNO)
 
 	def keyRed(self):
 		self.close(True)
@@ -1520,10 +1495,43 @@ class InstallChannelsLists(Screen):
 	def exit(self, ret=None):
 		self.close(True)
 
+	def doUpdatedChannelLists(self):
+		from zipfile import ZipFile
+		self['managerlistchannels'].hide()
+		try:
+			if not exists(self.folderlistchannels):
+				makedirs(self.folderlistchannels)
+			eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
+			sleep(3)
+			if exists(self.zipfile):
+				with ZipFile(self.zipfile, 'r') as zip:
+					zip.extractall(self.folderlistchannels)
+			from glob import glob
+			filepath = self.folderlistchannels + '/**/*actualizacion*'
+			for file in glob(filepath, recursive=True):
+				with open(file, 'r') as fr:
+					update = fr.readlines()
+					for date in update:
+						self['managerlistchannels'].show()
+						text = _(language.get(lang, "87") + " " + date)
+						self.assignWidgetScript("#008000", text)
+			for directory in [x for x in listdir(self.folderlistchannels)]:
+				workdirectory = join(self.folderlistchannels, directory)
+				if exists(workdirectory):
+					eConsoleAppContainer().execute('rm -rf ' + self.folderlistchannels + '/*')
+					break
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+
+	def getUpdatedChannelLists(self):
+		channelslists = self["list"].getCurrent()
+		if channelslists and self.storage:
+			self.doUpdatedChannelLists()
+
 	def chekScenarioToInstall(self):
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
-			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+			if self.path != "/" and not "net" in self.path and not "autofs" in self.path or "hdd" in self.path or "usb" in self.path or "cf" in self.path:
 				self.storage = True
 				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
 				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
@@ -1559,6 +1567,7 @@ class InstallChannelsLists(Screen):
 						break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
 
 def autostart(reason, **kwargs):
 	if reason == 0:
