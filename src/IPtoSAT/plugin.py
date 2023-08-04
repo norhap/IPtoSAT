@@ -15,7 +15,7 @@ from Screens.Standby import TryQuitMainloop
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
 from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
-from twisted.web.client import getPage, downloadPage
+from twisted.web.client import getPage
 from datetime import datetime
 from json import dump, loads
 from os import listdir, makedirs, remove
@@ -64,13 +64,11 @@ def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
-	elif isPluginInstalled("FastChannelChange") and not fileContains("/etc/issue", "openspa"):
-		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
 
 
-default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") or fileContains("/etc/issue", "openspa") else "gstplayer"
+default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
@@ -187,14 +185,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
-			if not config.plugins.fccsetup.activate.value:
-				try:
-					config.plugins.fccsetup.activate.value = True
-					config.plugins.fccsetup.activate.save()
-					self.session.open(TryQuitMainloop, 3)
-				except:
-					pass
+		if isPluginInstalled("FastChannelChange") and not config.plugins.fccsetup.zapupdown.value and config.plugins.IPToSAT.enable.value:
+			config.plugins.fccsetup.zapupdown.value = True
+			config.plugins.fccsetup.zapupdown.save()
 
 	def ok(self):
 		current = self["config"].getCurrent()
