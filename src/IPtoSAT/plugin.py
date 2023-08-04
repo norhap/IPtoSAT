@@ -149,6 +149,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
 		self.setup_title = (_(language.get(lang, "13")))
+		self.storage = False
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -164,6 +165,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			"green": self.keySave,
 			"ok": self.ok,
 		}, -2)
+		for partition in harddiskmanager.getMountedPartitions():
+			path = normpath(partition.mountpoint)
+			if path != "/" and not "net" in path and not "autofs" in path and "hdd" in path or "usb" in path or "sdcard" in path or "cf" in path:
+				if exists(path) and listdir(path):
+					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
 		self["key_green"] = Label(_("Save"))
 		self.createSetup()
@@ -176,7 +182,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list = [getConfigListEntry(_(language.get(lang, "14")), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(_(language.get(lang, "15")), config.plugins.IPToSAT.assign))
 		self.list.append(getConfigListEntry(_(language.get(lang, "16")), config.plugins.IPToSAT.playlist))
-		self.list.append(getConfigListEntry(_(language.get(lang, "88")), config.plugins.IPToSAT.installchannelslist))
+		if self.storage:
+			self.list.append(getConfigListEntry(_(language.get(lang, "88")), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
@@ -1459,10 +1466,27 @@ class InstallChannelsLists(Screen):
 			"green":self.keyGreen,
 			"ok":self.keyGreen,
 			"blue": self.getUpdatedChannelLists,
+			"left": self.goLeft,
+			"right": self.goRight,
+			"down": self.moveDown,
+			"up": self.moveUp,
+			"pageUp": self.pageUp,
+			"pageDown": self.pageDown,
 		}, -2)
 		self.listChannels = getChannelsLists()
-		self.iniMenu()
 		self.chekScenarioToInstall()
+		self.getListsRepositories()
+		self.iniMenu()
+
+	def chekScenarioToInstall(self):
+		for partition in harddiskmanager.getMountedPartitions():
+			self.path = normpath(partition.mountpoint)
+			if self.path != "/" and not "net" in self.path and not "autofs" in self.path or "hdd" in self.path or "usb" in self.path or "cf" in self.path:
+				self.storage = True
+				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
+				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
+				if not exists(self.folderlistchannels):
+					makedirs(self.folderlistchannels)
 
 	def assignWidgetScript(self, color, text):
 		self['managerlistchannels'].setText(text)
@@ -1527,15 +1551,33 @@ class InstallChannelsLists(Screen):
 		if channelslists and self.storage:
 			self.doUpdatedChannelLists()
 
-	def chekScenarioToInstall(self):
-		for partition in harddiskmanager.getMountedPartitions():
-			self.path = normpath(partition.mountpoint)
-			if self.path != "/" and not "net" in self.path and not "autofs" in self.path or "hdd" in self.path or "usb" in self.path or "cf" in self.path:
-				self.storage = True
-				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
-				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
-				if not exists(self.folderlistchannels):
-					makedirs(self.folderlistchannels)
+	def getListsRepositories(self):
+		if self.storage:
+			try:
+				if not fileContains(CHANNELS_LISTS_PATH, "Jungle-"):  ## JUNGLE TEAM
+					from zipfile import ZipFile
+					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
+					sleep(3)
+					if exists(self.zipfile):
+						with ZipFile(self.zipfile, 'r') as zip:
+							zip.extractall(self.folderlistchannels)
+					from glob import glob
+					repository = self.folderlistchannels + '/*/*Jungle-*'
+					for folders in glob(repository, recursive=True):
+						junglelists = folders.split('main/')[1]
+						indexlistssources = getChannelsLists()
+						indexlistssources['channelslists'].append({'listtype':junglelists})
+						with open(CHANNELS_LISTS_PATH, 'w') as f:
+							dump(indexlistssources, f, indent = 4)
+					sleep(6)  ## TODO
+					self.listChannels = getChannelsLists()
+					for directory in [x for x in listdir(self.folderlistchannels)]:
+						workdirectory = join(self.folderlistchannels, directory)
+						if exists(workdirectory):
+							eConsoleAppContainer().execute('rm -rf ' + self.folderlistchannels + '/*')
+							break
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
@@ -1563,6 +1605,24 @@ class InstallChannelsLists(Screen):
 						break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
+	def goRight(self):
+		self["list"].pageDown()
+
+	def goLeft(self):
+		self["list"].pageUp()
+
+	def moveUp(self):
+		self["list"].up()
+
+	def moveDown(self):
+		self["list"].down()
+
+	def pageUp(self):
+		self["list"].pageUp()
+
+	def pageDown(self):
+		self["list"].pageDown()
 
 
 def autostart(reason, **kwargs):
