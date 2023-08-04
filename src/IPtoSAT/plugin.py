@@ -1537,13 +1537,6 @@ class InstallChannelsLists(Screen):
 				if not exists(self.folderlistchannels):
 					makedirs(self.folderlistchannels)
 
-	def clearWorkDirectory(self):
-		workdirectory = ""
-		for directory in [x for x in listdir(self.folderlistchannels)]:
-			workdirectory = join(self.folderlistchannels, directory)
-		if exists(workdirectory):
-			eConsoleAppContainer().execute('sleep 30 && rm -rf ' + self.folderlistchannels + '/*')
-
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
 		if answer:
@@ -1563,7 +1556,10 @@ class InstallChannelsLists(Screen):
 							if installedfiles:
 								remove(installedfiles)
 						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/satellites.xml /etc/tuxbox/satellites.xml && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
-						self.clearWorkDirectory()
+				for directory in [x for x in listdir(self.folderlistchannels)]:
+					workdirectory = join(self.folderlistchannels, directory)
+					if exists(workdirectory):
+						eConsoleAppContainer().execute('sleep 15 && rm -rf ' + self.folderlistchannels + '/*')
 						break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
