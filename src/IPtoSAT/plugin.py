@@ -730,6 +730,7 @@ class AssignService(ChannelSelectionBase):
 
 	def doinstallChannelsList(self, answer):
 		if self.storage:
+			self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
 			try:
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
@@ -746,8 +747,7 @@ class AssignService(ChannelSelectionBase):
 										enigma2files = join(enigma2directory, fileschannelslist)
 										if enigma2files:
 											remove(enigma2files)
-									kille2installfiles = 'init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3'
-									self.Console.ePopen(kille2installfiles, self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True))
+									eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3')
 									break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -1443,7 +1443,6 @@ class InstallChannelsLists(Screen):
 		self.folderlistchannels = None
 		self.zipfile = None
 		self.path = None
-		self.Console = Console()
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(_(language.get(lang, "88")))
 		self['list'] = MenuList([])
@@ -1548,8 +1547,10 @@ class InstallChannelsLists(Screen):
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
 		if answer:
+			self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
 			try:
-				self.Console.ePopen('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
+				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
+				sleep(3)
 				from glob import glob
 				dirpath = self.folderlistchannels + '/**/' + channelslists + '/etc/enigma2'
 				for dirnewlist in glob(dirpath, recursive=True):
@@ -1561,8 +1562,7 @@ class InstallChannelsLists(Screen):
 							installedfiles = join("/etc/enigma2", installedlist)
 							if installedfiles:
 								remove(installedfiles)
-						kille2installfiles = 'init 4 && sleep 10 && mv -f ' + dirnewlist + '/satellites.xml /etc/tuxbox/satellites.xml && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3'
-						self.Console.ePopen(kille2installfiles, self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True))
+						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/satellites.xml /etc/tuxbox/satellites.xml && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
 						self.clearWorkDirectory()
 						break
 			except Exception as err:
