@@ -18,6 +18,7 @@ from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginI
 from twisted.web.client import getPage
 from datetime import datetime
 from json import dump, loads
+from glob import glob
 from os import listdir, makedirs, remove
 from os.path import join, exists, normpath
 from configparser import ConfigParser
@@ -31,8 +32,8 @@ CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
-IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.IPToSAT_EPG.tv"
-FILE_IPToSAT_EPG = "userbouquet.IPToSAT_EPG.tv"
+IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
+FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
 
 try:
@@ -690,7 +691,7 @@ class AssignService(ChannelSelectionBase):
 					enigma2directory = "/etc/enigma2"
 					IPToSAT_EPG = join(backupdirectory, FILE_IPToSAT_EPG)
 					if path != "/" and not "net" in path and not "autofs" in path:
-						if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
+						if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
 							with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
 								newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
 								with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
@@ -701,10 +702,10 @@ class AssignService(ChannelSelectionBase):
 							move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 							copy(IPToSAT_EPG, enigma2directory)
 							eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-							self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+							self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
 							break
 						else:
-							self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
+							self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
 							break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -720,10 +721,10 @@ class AssignService(ChannelSelectionBase):
 						for file in [x for x in listdir(backupdirectory) if FILE_IPToSAT_EPG in x]:
 							IPToSAT_EPG = join(backupdirectory, file)
 						if IPToSAT_EPG:
-							self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", ""), MessageBox.TYPE_YESNO)
+							self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
 							break
 						else:
-							self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
+							self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
 							break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -872,12 +873,12 @@ class AssignService(ChannelSelectionBase):
 				for line in riptvsh:
 					bouquetname = line.split("bouquet=")[1].split(";")[0]
 					with open("/etc/enigma2/iptv.sh", "w") as fw:
-						createbouquet = line.replace(bouquetname, '"IPTV_IPToSAT"')
+						createbouquet = line.replace(bouquetname, '"iptv_iptosat"')
 						fw.write(createbouquet)
 			createbouquet = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
-			for filelist in [x for x in listdir("/etc/enigma2") if "IPTV_IPToSAT" in x and x.endswith(".tv")]:
+			for filelist in [x for x in listdir("/etc/enigma2") if "iptv_iptosat" in x and x.endswith(".tv")]:
 				bouquetiptv = join(filelist)
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
@@ -1026,7 +1027,7 @@ class AssignService(ChannelSelectionBase):
 									fw.write(line)
 					if exists(WILD_CARD_EPG_FILE):
 						self.Console.ePopen("rm -f " + WILD_CARD_EPG_FILE)
-					if not fileContains("/etc/enigma2/bouquets.tv", "IPToSAT_EPG"):
+					if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
 						with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
 							newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
 							with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
@@ -1037,7 +1038,7 @@ class AssignService(ChannelSelectionBase):
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, epg_channel_name):
-					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, epg_channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
@@ -1480,6 +1481,10 @@ class InstallChannelsLists(Screen):
 				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
 				if not exists(self.folderlistchannels):
 					makedirs(self.folderlistchannels)
+				workdirectory = self.folderlistchannels + '/*'
+				for dirfiles in glob(workdirectory, recursive=True):
+					if exists(dirfiles):
+						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 
 	def assignWidgetScript(self, color, text):
 		self['managerlistchannels'].setText(text)
@@ -1522,7 +1527,6 @@ class InstallChannelsLists(Screen):
 			if exists(self.zipfile):
 				with ZipFile(self.zipfile, 'r') as zip:
 					zip.extractall(self.folderlistchannels)
-			from glob import glob
 			filepath = self.folderlistchannels + '/**/*actualizacion*'
 			for file in glob(filepath, recursive=True):
 				with open(file, 'r') as fr:
@@ -1531,11 +1535,10 @@ class InstallChannelsLists(Screen):
 						self['managerlistchannels'].show()
 						text = _(language.get(lang, "87") + " " + date)
 						self.assignWidgetScript("#008000", text)
-			for directory in [x for x in listdir(self.folderlistchannels)]:
-				workdirectory = join(self.folderlistchannels, directory)
-				if exists(workdirectory):
-					eConsoleAppContainer().execute('rm -rf ' + self.folderlistchannels + '/*')
-					break
+			workdirectory = self.folderlistchannels + '/*'
+			for dirfiles in glob(workdirectory, recursive=True):
+				if exists(dirfiles):
+					eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1554,7 +1557,6 @@ class InstallChannelsLists(Screen):
 					if exists(self.zipfile):
 						with ZipFile(self.zipfile, 'r') as zip:
 							zip.extractall(self.folderlistchannels)
-					from glob import glob
 					repository = self.folderlistchannels + '/*/*Jungle-*'
 					for folders in glob(repository, recursive=True):
 						junglelists = folders.split('main/')[1]
@@ -1564,11 +1566,10 @@ class InstallChannelsLists(Screen):
 							dump(indexlistssources, f, indent = 4)
 					sleep(6)  ## TODO
 					self.listChannels = getChannelsLists()
-					for directory in [x for x in listdir(self.folderlistchannels)]:
-						workdirectory = join(self.folderlistchannels, directory)
-						if exists(workdirectory):
-							eConsoleAppContainer().execute('rm -rf ' + self.folderlistchannels + '/*')
-							break
+					workdirectory = self.folderlistchannels + '/*'
+					for dirfiles in glob(workdirectory, recursive=True):
+						if exists(dirfiles):
+							eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1579,7 +1580,6 @@ class InstallChannelsLists(Screen):
 			try:
 				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
 				sleep(3)
-				from glob import glob
 				dirpath = self.folderlistchannels + '/**/' + channelslists + '/etc/enigma2'
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
@@ -1591,11 +1591,10 @@ class InstallChannelsLists(Screen):
 							if installedfiles:
 								remove(installedfiles)
 						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/satellites.xml /etc/tuxbox/satellites.xml && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
-				for directory in [x for x in listdir(self.folderlistchannels)]:
-					workdirectory = join(self.folderlistchannels, directory)
-					if exists(workdirectory):
-						eConsoleAppContainer().execute('sleep 15 && rm -rf ' + self.folderlistchannels + '/*')
-						break
+				workdirectory = self.folderlistchannels + '/*'
+				for dirfiles in glob(workdirectory, recursive=True):
+					if exists(dirfiles):
+						eConsoleAppContainer().execute('sleep 15 && rm -rf ' + dirfiles)
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
