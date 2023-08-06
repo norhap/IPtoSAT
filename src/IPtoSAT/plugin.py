@@ -65,11 +65,13 @@ def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
+	elif isPluginInstalled("FastChannelChange"):
+		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
 
 
-default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') else "gstplayer"
+default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
@@ -186,9 +188,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
-		if isPluginInstalled("FastChannelChange") and not config.plugins.fccsetup.zapupdown.value and config.plugins.IPToSAT.enable.value:
-			config.plugins.fccsetup.zapupdown.value = True
-			config.plugins.fccsetup.zapupdown.save()
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
+			if not config.plugins.fccsetup.activate.value:
+				try:
+					config.plugins.fccsetup.activate.value = True
+					config.plugins.fccsetup.activate.save()
+					self.session.open(TryQuitMainloop, 3)
+				except:
+					pass
 
 	def ok(self):
 		current = self["config"].getCurrent()
@@ -288,7 +295,7 @@ class AssignService(ChannelSelectionBase):
 		<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
 		<widget name="status" position="33,357" size="870,400" font="Regular;24" zPosition="10" />
 		<widget name="description" position="925,355" size="900,565" font="Regular;24" zPosition="6" />
-		<widget name="assign" position="33,357" size="870,100" font="Regular;24" zPosition="6" />
+		<widget name="assign" position="33,357" size="870,140" font="Regular;24" zPosition="6" />
 		<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
 		<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
 		<widget name="managerlistchannels" position="33,785" size="870,85" font="Regular;24" zPosition="10" />
@@ -377,6 +384,7 @@ class AssignService(ChannelSelectionBase):
 			"cancel": self.exit,
 			"back": self.exit,
 			"ok": self.channelSelected,
+			"2": self.channelSelectedForce,
 			"left": self.left,
 			"right": self.right,
 			"down": self.moveDown,
@@ -643,6 +651,31 @@ class AssignService(ChannelSelectionBase):
 				channel_name = ServiceReference(sref).getServiceName()
 				self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
+	def channelSelectedForce(self):
+		if exists("/etc/enigma2/iptv.sh"):
+			self["codestatus"].setText(_(language.get(lang, "6")))
+		else:
+			self["codestatus"].hide()
+		if self.selectedList == self["list"]:
+			ref = self.getCurrentSelection()
+			if (ref.flags & 7) == 7:
+				self.enterPath(ref)
+				self.in_bouquets = True
+		elif self.selectedList == self["list2"]:
+			if self.url and self.in_channels == False and len(self.categories) > 0:
+				index = self['list2'].getSelectionIndex()
+				cat_id = self.categories[index][1]
+				url = self.url
+				url += '&action=get_live_streams&category_id=' + cat_id
+				self.callAPI(url, self.getChannelsForce)
+			elif self.in_channels and len(self.channels) > 0:
+				index = self['list2'].getSelectionIndex()
+				xtream_channel = self.channels[index][0]
+				stream_id = self.channels[index][1]
+				sref = self.getSref()
+				channel_name = ServiceReference(sref).getServiceName()
+				self.addChannel(channel_name, stream_id, sref, xtream_channel)
+
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
 		playlist = getPlaylist()
 		if playlist:
@@ -657,7 +690,7 @@ class AssignService(ChannelSelectionBase):
 						text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
 						self.assignWidget("#008000", text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "20"))
+					text = channel_name + " " + _(language.get(lang, "20") + "  " + sref[7:11])
 					self.assignWidget("#00ff2525", text)
 			else:
 				text = _(language.get(lang, "23"))
@@ -1250,22 +1283,25 @@ class AssignService(ChannelSelectionBase):
 		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
 	def error(self, error=None):
-		if error:
-			log(error)
-			self['list2'].hide()
-			self["status"].show()
-			if fileContains(CONFIG_PATH, "pass") and self.storage:
-				self["status"].setText(_(language.get(lang, "3")))
-				self["please"].hide()
-				self["codestatus"].hide()
-				self["key_menu"].setText("")
-			if fileContains(CONFIG_PATH, "pass") and not self.storage:
-				self["description"].hide()
-				self["status"].setText(_(language.get(lang, "72")))
-				self["codestatus"].hide()
-				self["key_menu"].setText("")
-			if not fileContains(CONFIG_PATH, "pass"):
-				self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
+		try:
+			if error:
+				log(error)
+				self['list2'].hide()
+				self["status"].show()
+				if fileContains(CONFIG_PATH, "pass") and self.storage:
+					self["status"].setText(_(language.get(lang, "3")))
+					self["please"].hide()
+					self["codestatus"].hide()
+					self["key_menu"].setText("")
+				if fileContains(CONFIG_PATH, "pass") and not self.storage:
+					self["description"].hide()
+					self["status"].setText(_(language.get(lang, "72")))
+					self["codestatus"].hide()
+					self["key_menu"].setText("")
+				if not fileContains(CONFIG_PATH, "pass"):
+					self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def getData(self, data):
 		list = []
@@ -1276,7 +1312,6 @@ class AssignService(ChannelSelectionBase):
 							 str(cat['category_id'])))
 		self['list2'].show()
 		self["please"].hide()
-		self['managerlistchannels'].hide()
 		self['list2'].l.setList(list)
 		self.categories = list
 		self.in_channels = False
@@ -1308,9 +1343,23 @@ class AssignService(ChannelSelectionBase):
 			if list == []:
 				for match in js:
 					list.append((str(match['name']), str(match['stream_id'])))
-				self['managerlistchannels'].show()
-				text = channel_satellite + " " + _(language.get(lang, "2"))
-				self.assignWidgetScript("#00e5b243", text)
+		self["status"].hide()
+		self['list2'].show()
+		self["please"].hide()
+		self['list2'].l.setList(list)
+		self["list2"].moveToIndex(0)
+		self.channels = list
+		self.in_channels = True
+		self.left()
+		sleep(0.2)
+		self.right()
+
+	def getChannelsForce(self, data):
+		list = []
+		js = loads(data)
+		if js != []:
+			for ch in js:
+				list.append((str(ch['name']), str(ch['stream_id'])))
 		self["status"].hide()
 		self['list2'].show()
 		self["please"].hide()
@@ -1374,7 +1423,7 @@ class EditPlaylist(Screen):
 			list = []
 			for channel in self.playlist['playlist']:
 				try:
-					list.append(str(channel['channel']))
+					list.append(str(channel['channel'] + "   " + channel['sref'][7:11]))
 				except KeyError:pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
@@ -1395,10 +1444,17 @@ class EditPlaylist(Screen):
 		if self.playlist and len(self.channels) > 0:
 			index = self['list'].getSelectionIndex()
 			playlist = self.playlist['playlist']
-			del playlist[index]
+		if self.playlist and len(self.channels) > 16:
+			del playlist[index + 1]
 			self.playlist['playlist'] = playlist
 			with open(PLAYLIST_PATH, 'w') as f:
 				dump(self.playlist, f , indent = 4)
+		else:
+			if self.playlist and len(self.channels) > 0 or len(self.channels) == 1:
+				del playlist[index]
+				self.playlist['playlist'] = playlist
+				with open(PLAYLIST_PATH, 'w') as f:
+					dump(self.playlist, f , indent = 4)
 		self.iniMenu()
 
 	def deletelistJSON(self, answer):
@@ -1503,7 +1559,7 @@ class InstallChannelsLists(Screen):
 				self["key_red"].setText(_(language.get(lang, "89")))
 				self["key_green"].setText(_(language.get(lang, "90")))
 				self["key_blue"].setText(_(language.get(lang, "92")))
-				self["status"].setText(_(language.get(lang, "93")))
+				self["status"].setText(_(language.get(lang, "2")))
 
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
