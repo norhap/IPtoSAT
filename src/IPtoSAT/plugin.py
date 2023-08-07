@@ -965,12 +965,12 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.session.open(MessageBox, _(language.get(lang, "33")), MessageBox.TYPE_ERROR, default=False, timeout=5)
 
-	def userEditionResult(self, channel_name):
+	def userEditionResult(self, channel_name, sref):
 		epg_channel_name = channel_name.upper()
 		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):
-				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + epg_channel_name, MessageBox.TYPE_ERROR)
+				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + epg_channel_name + "\n\n" + _(language.get(lang, "94")) + "\n\n" + sref[7:11], MessageBox.TYPE_ERROR)
 				break
 
 	def setEPGChannel(self):
@@ -1014,7 +1014,7 @@ class AssignService(ChannelSelectionBase):
 				epg_channel_name = character.replace("Ñ", "N").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
 		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
-			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + epg_channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + epg_channel_name):
+			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + epg_channel_name):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
 					with open(WILD_CARD_EPG_FILE, "w") as fw:
@@ -1052,12 +1052,20 @@ class AssignService(ChannelSelectionBase):
 							fw.write(satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 					with open(WILD_CARD_EPG_FILE, "r") as fr:
 						with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
-							read_iptosat_epg_file = fr.readlines()
-							for line in read_iptosat_epg_file:
+							read_bouquetiptv = fr.readlines()
+							for line in read_bouquetiptv:
 								if epg_channel_name in line and "http" in line:
-									fw.write(satreferencename + "\n")
+									fw.write(satreferencename + "\n".replace("\n", "").replace("\n", ""))  # init reference + description channel name
 								if ":" + epg_channel_name not in line:
 									fw.write(line)
+					with open("/etc/enigma2/" + bouquetiptv, "r") as fr:  # new block reference + description channel name
+						read_bouquetiptv = fr.readlines()
+						with open("/etc/enigma2/" + bouquetiptv, "w") as fw:
+							for line in read_bouquetiptv:
+								if ":" + epg_channel_name in line:
+									fw.write(line.replace(epg_channel_name + "#DESCRIPTION ", "") + "#DESCRIPTION " + epg_channel_name + "\n")
+								if ":" + epg_channel_name not in line:
+									fw.write(line)  # End TODO refererence + description channel name
 					if exists(WILD_CARD_EPG_FILE):
 						self.Console.ePopen("rm -f " + WILD_CARD_EPG_FILE)
 					if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
@@ -1070,16 +1078,16 @@ class AssignService(ChannelSelectionBase):
 											newbouquetstvwrite.write(linesbouquet)
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-				if fileContains(IPToSAT_EPG_PATH, epg_channel_name):
+				if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
 					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
+					break
+				if fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
+					self.session.open(MessageBox, _(language.get(lang, "85")) + "#DESCRIPTION " + epg_channel_name + "\n\n" + _(language.get(lang, "93")) + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 				self.session.open(MessageBox, epg_channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
 				break
-			if fileContains("/etc/enigma2/" + bouquetiptv, "%3a" + " " + epg_channel_name):
-				self.session.open(MessageBox, "%3a" + " " + epg_channel_name + "\n\n" + _(language.get(lang, "85")) + ":" + epg_channel_name, MessageBox.TYPE_INFO)
-				break
-		self.userEditionResult(epg_channel_name)
+		self.userEditionResult(epg_channel_name, sref)
 
 	def purge(self):
 		for partition in harddiskmanager.getMountedPartitions():
