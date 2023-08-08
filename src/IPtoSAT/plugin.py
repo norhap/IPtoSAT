@@ -1394,33 +1394,40 @@ class AssignService(ChannelSelectionBase):
 
 class EditPlaylist(Screen):
 	skin = """
-	<screen name="EditPlaylistIPToSAT" position="center,center" size="600,450" title="IPToSAT - Edit Playlist">
-		<widget name="list" position="18,22" size="565,350" scrollbarMode="showOnDemand"/>
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,405" zPosition="2" size="165,30" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+	<screen name="PlaylistEditPlaylistIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="222,405" zPosition="2" size="165,30" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="5,185" size="590,28" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" zPosition="3"/>
+		<widget name="status" position="536,583" size="860,60" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
 	def __init__(self, session, *args):
 		self.session = session
 		Screen.__init__(self, session)
-		self["status"] = Label()
 		self.skinName = ["EditPlaylistIPToSAT"]
 		self.setTitle(_(language.get(lang, "26")))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
+		self["status"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
 			"cancel": self.exit,
 			"red": self.keyRed,
 			"green":self.keyGreen,
+			"ok":self.keyGreen,
+			"left": self.goLeft,
+			"right": self.goRight,
+			"down": self.moveDown,
+			"up": self.moveUp,
+			"pageUp": self.pageUp,
+			"pageDown": self.pageDown,
 		}, -2)
 		self.channels = []
 		self.playlist = getPlaylist()
@@ -1439,6 +1446,8 @@ class EditPlaylist(Screen):
 				self["status"].hide()
 				self["key_red"].setText(_(language.get(lang, "27")))
 				self["key_green"].setText(_(language.get(lang, "28")))
+				self["status"].show()
+				self["status"].setText(_(language.get(lang, "95")))
 			else:
 				self["status"].setText(_(language.get(lang, "29")))
 				self["status"].show()
@@ -1449,21 +1458,21 @@ class EditPlaylist(Screen):
 			self['list'].hide()
 
 	def keyGreen(self):
-		if self.playlist and len(self.channels) > 0:
-			index = self['list'].getSelectionIndex()
-			playlist = self.playlist['playlist']
-		if self.playlist and len(self.channels) > 16:
-			del playlist[index + 1]
-			self.playlist['playlist'] = playlist
-			with open(PLAYLIST_PATH, 'w') as f:
-				dump(self.playlist, f , indent = 4)
-		else:
-			if self.playlist and len(self.channels) > 0 or len(self.channels) == 1:
-				del playlist[index]
-				self.playlist['playlist'] = playlist
-				with open(PLAYLIST_PATH, 'w') as f:
-					dump(self.playlist, f , indent = 4)
-		self.iniMenu()
+		try:
+			if self.playlist and len(self.channels) > 0:
+				index = self['list'].getSelectionIndex()
+				playlist = self.playlist['playlist']
+				if index <= 17:
+					del playlist[index]
+					with open(PLAYLIST_PATH, 'w')as f:
+						dump(self.playlist, f , indent = 4)
+				else:
+					del playlist[index + 1]
+					with open(PLAYLIST_PATH, 'w')as f:
+						dump(self.playlist, f , indent = 4)
+			self.iniMenu()
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def deletelistJSON(self, answer):
 		if answer:
@@ -1481,6 +1490,24 @@ class EditPlaylist(Screen):
 
 	def exit(self, ret=None):
 		self.close(True)
+
+	def goRight(self):
+		self["list"].pageDown()
+
+	def goLeft(self):
+		self["list"].pageUp()
+
+	def moveUp(self):
+		self["list"].up()
+
+	def moveDown(self):
+		self["list"].pageDown()
+
+	def pageUp(self):
+		self["list"].self["list"].instance.pageUp
+
+	def pageDown(self):
+		self["list"].self["list"].instance.pageDown
 
 
 class InstallChannelsLists(Screen):

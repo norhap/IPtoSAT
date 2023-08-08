@@ -2,6 +2,8 @@
 	<map context="IPToSATActions">
 		<key id="KEY_LEFT" mapto="left" flags="mr"/>
 		<key id="KEY_RIGHT" mapto="right" flags="mr"/>
+		<key id="KEY_LEFT" mapto="pageUp" flags="mr"/>
+		<key id="KEY_RIGHT" mapto="pageDown" flags="mr"/>
         <key id="KEY_UP" mapto="up" flags="mr"/>
 		<key id="KEY_DOWN" mapto="down" flags="mr"/>
         <key id="KEY_EXIT" mapto="back" flags="m"/>
