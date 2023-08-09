@@ -189,10 +189,18 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
-			if not config.plugins.fccsetup.activate.value:
+			if not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
 				try:
 					config.plugins.fccsetup.activate.value = True
 					config.plugins.fccsetup.activate.save()
+					config.plugins.fccsetup.zapupdown.value = True
+					config.plugins.fccsetup.zapupdown.save()
+					config.plugins.fccsetup.history.value = True
+					config.plugins.fccsetup.history.save()
+					config.plugins.fccsetup.maxfcc.value = 2
+					config.plugins.fccsetup.maxfcc.save()
+					config.plugins.fccsetup.priority.value = "zapupdown"
+					config.plugins.fccsetup.priority.save()
 					self.session.open(TryQuitMainloop, 3)
 				except:
 					pass
