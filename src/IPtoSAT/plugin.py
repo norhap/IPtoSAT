@@ -410,6 +410,9 @@ class AssignService(ChannelSelectionBase):
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			self["key_yellow"].setText(_(language.get(lang, "32")))
+		if not exists(CONFIG_PATH):
+			with open(CONFIG_PATH, 'w') as fw:
+				fw.write("[IPToSat]" + "\n" + 'Host=http://host:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
@@ -1432,6 +1435,29 @@ class EditPlaylist(Screen):
 		self.channels = []
 		self.playlist = getPlaylist()
 		self.iniMenu()
+		self.clearPlayList()
+
+	def clearPlayList(self):
+		try:
+			index = self['list'].getSelectionIndex()
+			playlist = self.playlist['playlist']
+			if self.playlist and range(len(self.channels)):
+				for index, name in enumerate(playlist):
+					if "sref" not in name or "channel" not in name or "url" not in name:
+						del playlist[index]
+						print(index)
+						with open(PLAYLIST_PATH, 'w')as f:
+							dump(self.playlist, f , indent = 4)
+					self.iniMenu()
+		except Exception as err:
+			if exists(PLAYLIST_PATH):
+				with open(PLAYLIST_PATH, 'w') as fw:
+					fw.write("{" + "\n" + '	"playlist": []' + "\n" + "}")
+				self["status"].setText(_(language.get(lang, "96")))
+			else:
+				with open(PLAYLIST_PATH, 'w') as fw:
+					fw.write("{" + "\n" + '	"playlist": []' + "\n" + "}")
+				self["status"].setText(_(language.get(lang, "97")))
 
 	def iniMenu(self):
 		if self.playlist:
@@ -1458,18 +1484,13 @@ class EditPlaylist(Screen):
 			self['list'].hide()
 
 	def keyGreen(self):
+		index = self['list'].getSelectionIndex()
+		playlist = self.playlist['playlist']
 		try:
-			if self.playlist and len(self.channels) > 0:
-				index = self['list'].getSelectionIndex()
-				playlist = self.playlist['playlist']
-				if index <= 17:
-					del playlist[index]
-					with open(PLAYLIST_PATH, 'w')as f:
-						dump(self.playlist, f , indent = 4)
-				else:
-					del playlist[index + 1]
-					with open(PLAYLIST_PATH, 'w')as f:
-						dump(self.playlist, f , indent = 4)
+			if self.playlist and range(len(self.channels)):
+				del playlist[index]
+				with open(PLAYLIST_PATH, 'w')as f:
+					dump(self.playlist, f , indent = 4)
 			self.iniMenu()
 		except Exception as err:
 			print("ERROR: %s" % str(err))
@@ -1501,7 +1522,7 @@ class EditPlaylist(Screen):
 		self["list"].up()
 
 	def moveDown(self):
-		self["list"].pageDown()
+		self["list"].down()
 
 	def pageUp(self):
 		self["list"].self["list"].instance.pageUp
@@ -1647,6 +1668,9 @@ class InstallChannelsLists(Screen):
 	def getListsRepositories(self):
 		if self.storage:
 			try:
+				if not exists(CHANNELS_LISTS_PATH):
+					with open(CHANNELS_LISTS_PATH, 'w') as fw:
+						fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				if not fileContains(CHANNELS_LISTS_PATH, "Jungle-"):  ## JUNGLE TEAM
 					from zipfile import ZipFile
 					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')

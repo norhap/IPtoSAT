@@ -96,6 +96,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 93 = The stream of the following channel has been moved to the right of the channel where I assign EPG, edit the file and correct it:
 94 = If your list has not yet updated the channel name and you can't find it in your archive, in the list of assigned channels there should be the old name along with this ID which is the one that corresponds to this updated channel:
 95 = Press [OK] or GREEN to delete channel.
+96 = The iptosat.json file was corrupted.\nWe do not recommend editing it manually.\nA new one has been created.
+97 = No such file iptosat.json.\nCreated a new one to assign channels.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
@@ -195,3 +197,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 93 = Se ha desplazado el stream del canal que le seguía justo a la derecha del canal donde asigno EPG, edite el archivo y corríjalo:
 94 = Si su lista aún no tiene actualizado el nombre del canal y no lo encuentra en su archivo, en la lista de canales asignados debería estar el antiguo nombre junto con este ID que es el que corresponde a este canal actualizado:
 95 = Pulse [OK] o VERDE para eliminar canal.
+96 = El archivo iptosat.json estaba dañado.\nNo recomendamos editarlo manualmente.\nSe ha creado uno nuevo.
+97 = No existe el archivo iptosat.json.\nSe ha creado uno nuevo para asignar canales.
