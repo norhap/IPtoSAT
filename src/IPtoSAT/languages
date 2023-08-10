@@ -2,7 +2,7 @@
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap
 0 = To assign satellite channels, select the channel in both lists and press OK.\n\nIf the search does not work, press EXIT select again and press 2 to display all channels in the IPTV list.\n\nTo show detailed help how to assign EPG press HELP.\n\nTo show detailed help how to change the list or alternate two subscriptions press PLAY.\n\nWe have detected that you do not have a storage device. For some functions of the program we need a device and that this device is not mounted on the Network.\n\nFor example: Without a device you will not be able to switch your subscription lists or change your subscription with the interface, as well as you will not be able to copy your channel list and install it.
 1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect "No" to continue adding channels.
-2 = Press [OK] or GREEN to install.
+2 = Press OK or GREEN to install.
 3 = You have not yet configured your "iptosat.conf" file located in the /etc/enigma2/ directory\nYou have to set the following in that file:\nHost=URL:port (URL of your subscription plus the port)\nUser=user (assigned by your subscription).\nPass=password (assigned by your subscription).\nWe show details of the functions you can perform:\n   - You can use the EPG assign button EPG to IPTV channels.\n   (*) Press HELP will display EPG assignment details.\n   - You can make a copy of the channel list. Press TV button.\n   - You can install the copy of the channel list. Press REC button.\n   - Install only IPToSAT_EPG bouquet. Press RED button.
 4 = HTTP error in /etc/enigma2/iptosat.conf during API request.\n\nDo you have Internet or are your login details correct?
 5 = IPTV successfully created in your FAVOURITES.\n\nDo you want to restart enigma2 to apply the changes?
@@ -95,7 +95,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 92 = Update date
 93 = The stream of the following channel has been moved to the right of the channel where I assign EPG, edit the file and correct it:
 94 = If your list has not yet updated the channel name and you can't find it in your archive, in the list of assigned channels there should be the old name along with this ID which is the one that corresponds to this updated channel:
-95 = Press [OK] or GREEN to delete channel.
+95 = Press OK or GREEN to delete channel.
 96 = The iptosat.json file was corrupted.\nWe do not recommend editing it manually.\nA new one has been created.
 97 = No such file iptosat.json.\nCreated a new one to assign channels.
 98 = See IPToSAT in main menu *
@@ -105,7 +105,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
 0 = Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.\n\nSi la búsqueda no surte efecto, pulse EXIT seleccione de nuevo y pulse 2 para mostrar todos los canales de la lista IPTV.\n\nPara mostrar ayuda detallada como cambiar de lista o alternar dos suscripciones pulse PLAY.\n\nHemos detectado que no dispone de dispositivo de almacenamiento. Para algunas funciones del programa necesitamos un dispositivo y que este dispositivo no esté montado en Red.\n\nPor ejemplo: Sin dispositivo no podrá alternar sus listas de suscripción ni cambiar su suscripción con la interfaz, así como no podrá hacer copia de su lista de canales e instalarla.
 1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione "No" para seguir añadiendo canales
-2 = Pulse [OK] o VERDE para instalar.
+2 = Pulse OK o VERDE para instalar.
 3 = Aún no ha configurado su archivo "iptosat.conf" ubicado en el directorio /etc/enigma2/\nTiene que establecer en ese archivo lo siguiente:\nHost=URL:puerto (URL de su suscripcion más el puerto)\nUser=usuario (asignado por su suscripción).\nPass=contraseña (asignada por su suscripción).\nMostramos detalles de las funciones que puede realizar:\n   - Puede hacer uso del botón EPG asignar EPG a canales IPTV.\n   (*) Pulse HELP mostrará detalles de asignación EPG.\n   - Puede realizar una copia de la lista de canales. Pulse botón TV.\n   - Puede instalar la copia de la lista de canales. Pulse botón REC.\n   - Instalar solo bouquet IPToSAT_EPG. Pulse botón ROJO.
 4 = Error HTTP en /etc/enigma2/iptosat.conf durante la solicitud de la API.\n\n¿Tiene Internet o son correctos sus datos de acceso?
 5 = IPTV creado con éxito en sus FAVORITOS.\n\n¿Quiere reiniciar enigma2 para aplicar los cambios?
@@ -198,7 +198,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 92 = Fecha actualización
 93 = Se ha desplazado el stream del canal que le seguía justo a la derecha del canal donde asigno EPG, edite el archivo y corríjalo:
 94 = Si su lista aún no tiene actualizado el nombre del canal y no lo encuentra en su archivo, en la lista de canales asignados debería estar el antiguo nombre junto con este ID que es el que corresponde a este canal actualizado:
-95 = Pulse [OK] o VERDE para eliminar canal.
+95 = Pulse OK o VERDE para eliminar canal.
 96 = El archivo iptosat.json estaba dañado.\nNo recomendamos editarlo manualmente.\nSe ha creado uno nuevo.
 97 = No existe el archivo iptosat.json.\nSe ha creado uno nuevo para asignar canales.
 98 = Ver IPToSAT en menú principal *
