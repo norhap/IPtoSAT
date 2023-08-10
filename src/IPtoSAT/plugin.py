@@ -74,10 +74,12 @@ def choices_list():
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
+config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
+
 
 
 def trace_error():
@@ -143,6 +145,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget name="config" itemHeight="50" position="15,10" size="1120,300" scrollbarMode="showOnDemand" />
 		<widget name="key_red" position="25,410" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="210,410" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="footnote" position="395,405" size="745,50" font="Regular;24" zPosition="3" />
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -173,6 +176,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
 		self["key_green"] = Label(_("Save"))
+		self["key_green"] = Label(_("Save"))
+		self["footnote"] = Label(_(language.get(lang, "99")))
 		self.createSetup()
 		self.onLayoutFinish.append(self.layoutFinished)
 
@@ -186,6 +191,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if self.storage:
 			self.list.append(getConfigListEntry(_(language.get(lang, "88")), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
+		self.list.append(getConfigListEntry(_(language.get(lang, "98")), config.plugins.IPToSAT.mainmenu))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
@@ -1765,6 +1771,12 @@ class InstallChannelsLists(Screen):
 		self["list"].pageDown()
 
 
+def startMainMenu(menuid, **kwargs):
+	if menuid != "mainmenu":
+		return []
+	return [(_("IPToSAT"), iptosatSetup, "iptosat_menu", 1)]
+
+
 def autostart(reason, **kwargs):
 	if reason == 0:
 		if config.plugins.IPToSAT.enable.value:
@@ -1782,4 +1794,6 @@ def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
 	Descriptors.append(PluginDescriptor(name="IPToSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " " + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	if config.plugins.IPToSAT.mainmenu.value:
+		Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_MENU], fnc=startMainMenu))
 	return Descriptors

@@ -98,6 +98,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 95 = Press [OK] or GREEN to delete channel.
 96 = The iptosat.json file was corrupted.\nWe do not recommend editing it manually.\nA new one has been created.
 97 = No such file iptosat.json.\nCreated a new one to assign channels.
+98 = See IPToSAT in main menu *
+99 = (*) Requires restart enigma2
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
@@ -199,3 +201,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 95 = Pulse [OK] o VERDE para eliminar canal.
 96 = El archivo iptosat.json estaba dañado.\nNo recomendamos editarlo manualmente.\nSe ha creado uno nuevo.
 97 = No existe el archivo iptosat.json.\nSe ha creado uno nuevo para asignar canales.
+98 = Ver IPToSAT en menú principal *
+99 = (*) Requiere reiniciar enigma2
