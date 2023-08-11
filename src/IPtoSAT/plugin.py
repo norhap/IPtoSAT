@@ -767,7 +767,8 @@ class AssignService(ChannelSelectionBase):
 						text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
 						self.assignWidget("#008000", text)
 				else:
-					text = channel_name + " " + _(language.get(lang, "20") + "  " + sref[7:11])
+					reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
+					text = channel_name + " " + _(language.get(lang, "20") + "  " + reference)
 					self.assignWidget("#00ff2525", text)
 			else:
 				text = _(language.get(lang, "23"))
@@ -1047,7 +1048,8 @@ class AssignService(ChannelSelectionBase):
 		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):
-				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + epg_channel_name + "\n\n" + _(language.get(lang, "94")) + "\n\n" + sref[7:11], MessageBox.TYPE_ERROR)
+				reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
+				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + epg_channel_name + "\n\n" + _(language.get(lang, "94")) + "\n\n" + reference, MessageBox.TYPE_ERROR)
 				break
 
 	def setEPGChannel(self):
@@ -1057,12 +1059,12 @@ class AssignService(ChannelSelectionBase):
 		if self.selectedList == self["list"]:
 			ref = self.getCurrentSelection()
 			ref_satellite = self.getSref()
-		if ref_satellite.startswith('1') and not 'http' in ref_satellite:
-			self.addEPGChannel(channel_name, sref)
-		else:
-			self['managerlistchannels'].show()
-			text = _(language.get(lang, "83"))
-			self.assignWidgetScript("#00ff2525", text)
+			if ref_satellite.startswith('1') and not 'http' in ref_satellite:
+				self.addEPGChannel(channel_name, sref)
+			else:
+				self['managerlistchannels'].show()
+				text = _(language.get(lang, "83"))
+				self.assignWidgetScript("#00ff2525", text)
 
 	def searchBouquetIPTV(self):
 		iptv_channels = False
@@ -1538,7 +1540,8 @@ class EditPlaylist(Screen):
 			list = []
 			for channel in self.playlist['playlist']:
 				try:
-					list.append(str(channel['channel'] + "   " + channel['sref'][7:11]))
+					reference = channel['sref'][7:11] if ":" not in channel['sref'][7:11] else channel['sref'][6:10]
+					list.append(str(channel['channel'] + "   " + reference))
 				except KeyError:pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
