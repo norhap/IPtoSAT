@@ -1410,22 +1410,20 @@ class AssignService(ChannelSelectionBase):
 		list = []
 		js = loads(data)
 		if js != []:
-			for ch in js:
-				if str(search_name) in str(ch['name']):
-					list.append((str(ch['name']), str(ch['stream_id'])))
+			for match in js:
+				if str(channel_satellite[0:6].upper()) in str(match['name'][0:12].upper()):
+					list.append((str(match['name']), str(match['stream_id'])))
 			if list == []:
 				for match in js:
 					if str(search_name) in str(match['epg_channel_id']):
 						list.append((str(match['name']), str(match['stream_id'])))
 			if list == []:
 				for match in js:
-					search_name = channel_satellite[2:5].lower()
-					if str(search_name) in str(match['name']):
+					if str(channel_satellite[2:5].lower()) in str(match['name']):
 						list.append((str(match['name']), str(match['stream_id'])))
 			if list == []:
 				for match in js:
-					search_name = channel_satellite[1:4]
-					if str(search_name) in str(match['name']):
+					if str(channel_satellite[1:4]) in str(match['name']):
 						list.append((str(match['name']), str(match['stream_id'])))
 			if list == []:
 				for match in js:
