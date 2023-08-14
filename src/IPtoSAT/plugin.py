@@ -170,7 +170,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		}, -2)
 		for partition in harddiskmanager.getMountedPartitions():
 			path = normpath(partition.mountpoint)
-			if path != "/" and not "net" in path and not "autofs" in path and "hdd" in path or "usb" in path or "sdcard" in path or "cf" in path:
+			if path != "/" and not "net" in path and not "autofs" in path:
 				if exists(path) and listdir(path):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
@@ -490,7 +490,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
-				if path != "/" and not "net" in path and not "autofs" in path and "hdd" in path or "usb" in path or "sdcard" in path or "cf" in path:
+				if path != "/" and not "net" in path and not "autofs" in path:
 					if exists(path) and listdir(path):
 						self.storage = True
 						backupdirectory = join(path, "IPToSAT/BackupChannelsList")
@@ -1662,7 +1662,7 @@ class InstallChannelsLists(Screen):
 	def chekScenarioToInstall(self):
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
-			if self.path != "/" and not "net" in self.path and not "autofs" in self.path or "hdd" in self.path or "usb" in self.path or "cf" in self.path:
+			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
 				self.storage = True
 				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
 				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
