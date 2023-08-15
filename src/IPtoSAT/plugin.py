@@ -34,6 +34,7 @@ LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
+SOURCE_BOUQUET_IPTV = "/etc/enigma2/iptv.sh"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
 
 try:
@@ -675,7 +676,7 @@ class AssignService(ChannelSelectionBase):
 			self["status"].show()
 			self["status"].setText(_(language.get(lang, "72")))
 			self["description"].hide()
-		if exists("/etc/enigma2/iptv.sh"):
+		if exists(SOURCE_BOUQUET_IPTV):
 			self["key_menu"] = StaticText("MENU")
 			self["codestatus"].show()
 			self["codestatus"].setText(_(language.get(lang, "6")))
@@ -704,7 +705,7 @@ class AssignService(ChannelSelectionBase):
 		self.callAPI(url, self.getData)
 
 	def channelSelected(self):
-		if exists("/etc/enigma2/iptv.sh"):
+		if exists(SOURCE_BOUQUET_IPTV):
 			self["codestatus"].setText(_(language.get(lang, "6")))
 		else:
 			self["codestatus"].hide()
@@ -729,7 +730,7 @@ class AssignService(ChannelSelectionBase):
 				self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def channelSelectedForce(self):
-		if exists("/etc/enigma2/iptv.sh"):
+		if exists(SOURCE_BOUQUET_IPTV):
 			self["codestatus"].setText(_(language.get(lang, "6")))
 		else:
 			self["codestatus"].hide()
@@ -784,9 +785,9 @@ class AssignService(ChannelSelectionBase):
 			self.channelSelected()
 
 	def removeScript(self):
-		if exists("/etc/enigma2/iptv.sh"):
+		if exists(SOURCE_BOUQUET_IPTV):
 			self.Console.ePopen("rm -f /etc/enigma2/iptv.sh")
-			if not exists("/etc/enigma2/iptv.sh"):
+			if not exists(SOURCE_BOUQUET_IPTV):
 				text = _(language.get(lang, "35"))
 				self['codestatus'].hide()
 				self['managerlistchannels'].show()
@@ -979,11 +980,11 @@ class AssignService(ChannelSelectionBase):
 
 	def tryToUpdateIPTVChannels(self, answer):
 		if answer:
-			with open("/etc/enigma2/iptv.sh", "r") as fr:
+			with open(SOURCE_BOUQUET_IPTV, "r") as fr:
 				riptvsh = fr.readlines()
 				for line in riptvsh:
 					bouquetname = line.split("bouquet=")[1].split(";")[0]
-					with open("/etc/enigma2/iptv.sh", "w") as fw:
+					with open(SOURCE_BOUQUET_IPTV, "w") as fw:
 						createbouquet = line.replace(bouquetname, '"iptv_iptosat"')
 						fw.write(createbouquet)
 			createbouquet = ""
@@ -999,45 +1000,44 @@ class AssignService(ChannelSelectionBase):
 						createbouquet = createbouquet + createnamebouquet
 						with open("/etc/enigma2/" + bouquetiptv, "w",) as fw:
 							fw.write(createbouquet + "\n" + content)
-							if exists("/etc/enigma2/iptv.sh"):
+							if exists(SOURCE_BOUQUET_IPTV):
 								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 						if "IPTV_IPToSAT" in BouquetIPToSAT:
 							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=10)
 		else:
 			self.channelSelected()
-			if exists("/etc/enigma2/iptv.sh"):
+			if exists(SOURCE_BOUQUET_IPTV):
 				eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
 
 	def createBouquetIPTV(self):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
-				fp = open(CONFIG_PATH, "r").readlines()
-				for line in fp:
-					if "80" in line:
-						hostport = line.split("Host=")[1].strip()
-						if hostport:
-							eConsoleAppContainer().execute('wget -O /etc/enigma2/iptv.sh' + " " + '"' + hostport + '/get.php?username=' + self.user + '&password=' + self.password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 /etc/enigma2/iptv.sh')
-							sleep(1)
-							if not exists("/etc/enigma2/iptv.sh"):
+				configfile = open(CONFIG_PATH).read()
+				hostport = configfile.split()[1].split("Host=")[1]
+				user = configfile.split()[2].split('User=')[1]
+				password = configfile.split()[3].split('Pass=')[1]
+				eConsoleAppContainer().execute('wget -O /etc/enigma2/iptv.sh' + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 /etc/enigma2/iptv.sh')
+				sleep(0.5)
+				if exists(SOURCE_BOUQUET_IPTV):
+					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+						createbouquet = ""
+						riptvsh = fr.readlines()
+						for line in riptvsh:
+							bouquetname = line.split("bouquet=")[1].split(";")[0]
+							if " " in str(bouquetname) or "  " in str(bouquetname):
+								with open(SOURCE_BOUQUET_IPTV, "w") as fw:
+									bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
+									createbouquet = line.replace(bouquetname, bouquetrename)
+									fw.write(createbouquet)
+									eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+									sleep(1)
+									self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO)
+							elif not 'bouquet=""' in line:
+								eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 								sleep(1)
+								self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO)
 							else:
-								with open("/etc/enigma2/iptv.sh", "r") as fr:
-									createbouquet = ""
-									riptvsh = fr.readlines()
-									for line in riptvsh:
-										bouquetname = line.split("bouquet=")[1].split(";")[0]
-										if " " in str(bouquetname) or "  " in str(bouquetname):
-											with open("/etc/enigma2/iptv.sh", "w") as fw:
-												bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
-												createbouquet = line.replace(bouquetname, bouquetrename)
-												fw.write(createbouquet)
-												eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-												self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
-										elif not 'bouquet=""' in line:
-											eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-											self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO, timeout=10)
-										else:
-											self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
+								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
