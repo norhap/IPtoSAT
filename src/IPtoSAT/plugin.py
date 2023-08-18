@@ -1617,7 +1617,7 @@ class InstallChannelsLists(Screen):
 		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="status" position="536,583" size="860,60" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
@@ -1636,7 +1636,7 @@ class InstallChannelsLists(Screen):
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
-		self["key_blue"] = StaticText("")
+		self["key_yellow"] = StaticText("")
 		self["status"] = Label()
 		self["managerlistchannels"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
@@ -1646,7 +1646,7 @@ class InstallChannelsLists(Screen):
 			"red": self.keyRed,
 			"green":self.keyGreen,
 			"ok":self.keyGreen,
-			"blue": self.getUpdatedChannelLists,
+			"yellow": self.getListsRepositories,
 			"left": self.goLeft,
 			"right": self.goRight,
 			"down": self.moveDown,
@@ -1656,7 +1656,6 @@ class InstallChannelsLists(Screen):
 		}, -2)
 		self.listChannels = getChannelsLists()
 		self.chekScenarioToInstall()
-		self.getListsRepositories()
 		self.iniMenu()
 
 	def chekScenarioToInstall(self):
@@ -1678,6 +1677,13 @@ class InstallChannelsLists(Screen):
 		self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
 
 	def iniMenu(self):
+		if not exists(CHANNELS_LISTS_PATH):
+			with open(CHANNELS_LISTS_PATH, 'w') as fw:
+				fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
+		if fileContains(CHANNELS_LISTS_PATH, '"channelslists": []') or not fileContains(CHANNELS_LISTS_PATH, "Jungle-") or not fileContains(CHANNELS_LISTS_PATH, "Sorys-"):
+			self["key_yellow"].setText(_(language.get(lang, "92")))
+		else:
+			self["key_yellow"].setText("")
 		if self.listChannels:
 			list = []
 			for listtype in self.listChannels['channelslists']:
@@ -1689,7 +1695,6 @@ class InstallChannelsLists(Screen):
 				self["status"].setText(_(language.get(lang, "92")))
 				self["key_red"].setText(_(language.get(lang, "89")))
 				self["key_green"].setText(_(language.get(lang, "90")))
-				self["key_blue"].setText(_(language.get(lang, "92")))
 				self["status"].setText(_(language.get(lang, "2")))
 
 	def keyGreen(self):
@@ -1703,59 +1708,27 @@ class InstallChannelsLists(Screen):
 	def exit(self, ret=None):
 		self.close(True)
 
-	def doUpdatedChannelLists(self):
-		channelslists = self["list"].getCurrent()
-		from zipfile import ZipFile
-		self['managerlistchannels'].hide()
-		try:
-			if not exists(self.folderlistchannels):
-				makedirs(self.folderlistchannels)
-			if "Jungle-" in channelslists:
-				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
-				sleep(3)
-				with ZipFile(self.zipfile, 'r') as zip:
-					zip.extractall(self.folderlistchannels)
-			if "Sorys-" in channelslists:
-				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-				sleep(3)
-				with ZipFile(self.zipfile, 'r') as zip:
-					zip.extractall(self.folderlistchannels)
-			filepath = self.folderlistchannels + '/**/*actualizacion*'
-			if exists(self.zipfile):
-				for file in glob(filepath, recursive=True):
-					with open(file, 'r') as fr:
-						update = fr.readlines()
-						for date in update:
-							self['managerlistchannels'].show()
-							text = _(language.get(lang, "87") + " " + date)
-							self.assignWidgetScript("#008000", text)
-				workdirectory = self.folderlistchannels + '/*'
-				for dirfiles in glob(workdirectory, recursive=True):
-						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
-		except Exception as err:
-			print("ERROR: %s" % str(err))
-
-	def getUpdatedChannelLists(self):
-		channelslists = self["list"].getCurrent()
-		if channelslists and self.storage:
-			self.doUpdatedChannelLists()
-
-	def getListsRepositories(self):
-		if self.storage:
+	def doindexListsRepositories(self, answer):
+		if answer:
 			try:
-				if not exists(CHANNELS_LISTS_PATH):
-					with open(CHANNELS_LISTS_PATH, 'w') as fw:
-						fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				if not fileContains(CHANNELS_LISTS_PATH, "Jungle-"):  ## JUNGLE TEAM
 					from zipfile import ZipFile
 					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
-					sleep(3)
+					sleep(8)
 					if exists(self.zipfile):
 						with ZipFile(self.zipfile, 'r') as zip:
 							zip.extractall(self.folderlistchannels)
-					repository = self.folderlistchannels + '/*/*Jungle-*'
-					for folders in glob(repository, recursive=True):
-						junglelists = folders.split('main/')[1]
+					junglerepository = self.folderlistchannels + '/*/*Jungle-*'
+					jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
+					junglelists = ""
+					index = ""
+					for file in glob(jungleupdatefile, recursive=True):
+						with open(file, 'r') as fr:
+							update = fr.readlines()
+							for index in update:
+								index = index.replace("[", "")
+					for folders in glob(junglerepository, recursive=True):
+						junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
 						indexlistssources = getChannelsLists()
 						indexlistssources['channelslists'].append({'listtype':junglelists})
 						with open(CHANNELS_LISTS_PATH, 'w') as f:
@@ -1763,25 +1736,38 @@ class InstallChannelsLists(Screen):
 				if not fileContains(CHANNELS_LISTS_PATH, "Sorys-"):  ## SORYS
 					from zipfile import ZipFile
 					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-					sleep(3)
+					sleep(8)
 					if exists(self.zipfile):
 						with ZipFile(self.zipfile, 'r') as zip:
 							zip.extractall(self.folderlistchannels)
-					repository = self.folderlistchannels + '/*/*Sorys-*'
-					for folders in glob(repository, recursive=True):
-						soryslists = folders.split('main/')[1]
+					sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
+					sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
+					soryslists = ""
+					index = ""
+					for file in glob(sorysupdatefile, recursive=True):
+						with open(file, 'r') as fr:
+							update = fr.readlines()
+							for index in update:
+								index = index.replace("[", "")
+					for folders in glob(sorysrepository, recursive=True):
+						soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
 						indexlistssources = getChannelsLists()
 						indexlistssources['channelslists'].append({'listtype':soryslists})
 						with open(CHANNELS_LISTS_PATH, 'w') as f:
 							dump(indexlistssources, f, indent = 4)
-					sleep(6)  ## TODO
+					sleep(8)  ## TODO
 					self.listChannels = getChannelsLists()
 					workdirectory = self.folderlistchannels + '/*'
 					for dirfiles in glob(workdirectory, recursive=True):
 						if exists(dirfiles):
 							eConsoleAppContainer().execute('rm -rf ' + dirfiles)
+				self.iniMenu()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
+
+	def getListsRepositories(self):
+		if self.storage and fileContains(CHANNELS_LISTS_PATH, '"channelslists": []') and not fileContains(CHANNELS_LISTS_PATH, "Jungle-") and not fileContains(CHANNELS_LISTS_PATH, "Sorys-"):
+			self.session.openWithCallback(self.doindexListsRepositories, MessageBox, _(language.get(lang, "87")), MessageBox.TYPE_YESNO)
 
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
@@ -1790,12 +1776,12 @@ class InstallChannelsLists(Screen):
 			dirpath = ""
 			try:
 				if "Jungle-" in channelslists:
-					dirpath = self.folderlistchannels + '/**/' + channelslists + '/etc/enigma2'
+					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0] + '/etc/enigma2'
 					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
 				if "Sorys-" in channelslists:
-					dirpath = self.folderlistchannels + '/**/' + channelslists
+					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0]
 					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
-				sleep(3)
+				sleep(8)
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
 						updatefiles = join(dirnewlist, files)
