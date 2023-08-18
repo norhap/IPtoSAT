@@ -1017,7 +1017,7 @@ class AssignService(ChannelSelectionBase):
 				user = configfile.split()[2].split('User=')[1]
 				password = configfile.split()[3].split('Pass=')[1]
 				eConsoleAppContainer().execute('wget -O /etc/enigma2/iptv.sh' + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 /etc/enigma2/iptv.sh')
-				sleep(0.5)
+				sleep(1)
 				if exists(SOURCE_BOUQUET_IPTV):
 					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
 						createbouquet = ""
@@ -1030,12 +1030,12 @@ class AssignService(ChannelSelectionBase):
 									createbouquet = line.replace(bouquetname, bouquetrename)
 									fw.write(createbouquet)
 									eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-									sleep(1)
-									self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO)
+									self['managerlistchannels'].show()
+									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							elif not 'bouquet=""' in line:
 								eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
-								sleep(1)
-								self.session.openWithCallback(self.restarGUI, MessageBox, "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")), MessageBox.TYPE_YESNO)
+								self['managerlistchannels'].show()
+								self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							else:
 								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
 			except Exception as err:
