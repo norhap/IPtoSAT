@@ -1680,10 +1680,7 @@ class InstallChannelsLists(Screen):
 		if not exists(CHANNELS_LISTS_PATH):
 			with open(CHANNELS_LISTS_PATH, 'w') as fw:
 				fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-		if fileContains(CHANNELS_LISTS_PATH, '"channelslists": []') or not fileContains(CHANNELS_LISTS_PATH, "Jungle-") or not fileContains(CHANNELS_LISTS_PATH, "Sorys-") or not fileContains(CHANNELS_LISTS_PATH, "Vuplusmania-"):
-			self["key_yellow"].setText(_(language.get(lang, "92")))
-		else:
-			self["key_yellow"].setText("")
+		self["key_yellow"].setText(_(language.get(lang, "92")))
 		if self.listChannels:
 			list = []
 			for listtype in self.listChannels['channelslists']:
@@ -1712,81 +1709,83 @@ class InstallChannelsLists(Screen):
 		from zipfile import ZipFile
 		if answer:
 			try:
-				if not fileContains(CHANNELS_LISTS_PATH, "Jungle-"):  ## JUNGLE TEAM
-					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
-					sleep(8)
-					if exists(self.zipfile):
-						with ZipFile(self.zipfile, 'r') as zipfile:
-							zipfile.extractall(self.folderlistchannels)
-					junglerepository = self.folderlistchannels + '/*/*Jungle-*'
-					jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
-					junglelists = ""
-					index = ""
-					for file in glob(jungleupdatefile, recursive=True):
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for index in update:
-								index = index.replace("[", "")
-					for folders in glob(junglerepository, recursive=True):
-						junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
-						indexlistssources = getChannelsLists()
-						indexlistssources['channelslists'].append({'listtype':junglelists})
-						with open(CHANNELS_LISTS_PATH, 'w') as f:
-							dump(indexlistssources, f, indent = 4)
-				if not fileContains(CHANNELS_LISTS_PATH, "Sorys-"):  ## SORYS
-					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-					sleep(8)
-					if exists(self.zipfile):
-						with ZipFile(self.zipfile, 'r') as zipfile:
-							zipfile.extractall(self.folderlistchannels)
-					sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
-					sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
-					soryslists = ""
-					index = ""
-					for file in glob(sorysupdatefile, recursive=True):
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for index in update:
-								index = index.replace("[", "")
-					for folders in glob(sorysrepository, recursive=True):
-						soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
-						indexlistssources = getChannelsLists()
-						indexlistssources['channelslists'].append({'listtype':soryslists})
-						with open(CHANNELS_LISTS_PATH, 'w') as f:
-							dump(indexlistssources, f, indent = 4)
-				if not fileContains(CHANNELS_LISTS_PATH, "Vuplusmania-"):  ## VUPLUSMANIA
-					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-					sleep(8)
-					if exists(self.zipfile):
-						with ZipFile(self.zipfile, 'r') as zipfile:
-							zipfile.extractall(self.folderlistchannels)
-					vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
-					vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
-					vuplusmanialists = ""
-					index = ""
-					for file in glob(vuplusmaniaupdatefile, recursive=True):
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for index in update:
-								index = index.replace("[", "")
-					for folders in glob(vuplusmaniarepository, recursive=True):
-						vuplusmanialists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
-						indexlistssources = getChannelsLists()
-						indexlistssources['channelslists'].append({'listtype':vuplusmanialists})
-						with open(CHANNELS_LISTS_PATH, 'w') as f:
-							dump(indexlistssources, f, indent = 4)
-					sleep(8)  ## TODO
-					self.listChannels = getChannelsLists()
-					workdirectory = self.folderlistchannels + '/*'
-					for dirfiles in glob(workdirectory, recursive=True):
-						if exists(dirfiles):
-							eConsoleAppContainer().execute('rm -rf ' + dirfiles)
+				with open(CHANNELS_LISTS_PATH, 'w') as fw:
+					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
+				## JUNGLE TEAM
+				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
+				sleep(8)
+				if exists(self.zipfile):
+					with ZipFile(self.zipfile, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
+				junglerepository = self.folderlistchannels + '/*/*Jungle-*'
+				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
+				junglelists = ""
+				index = ""
+				for file in glob(jungleupdatefile, recursive=True):
+					with open(file, 'r') as fr:
+						update = fr.readlines()
+						for index in update:
+							index = index.replace("[", "")
+				for folders in glob(junglerepository, recursive=True):
+					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					indexlistssources = getChannelsLists()
+					indexlistssources['channelslists'].append({'listtype':junglelists})
+					with open(CHANNELS_LISTS_PATH, 'w') as f:
+						dump(indexlistssources, f, indent = 4)
+				## SORYS
+				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
+				sleep(8)
+				if exists(self.zipfile):
+					with ZipFile(self.zipfile, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
+				sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
+				sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
+				soryslists = ""
+				index = ""
+				for file in glob(sorysupdatefile, recursive=True):
+					with open(file, 'r') as fr:
+						update = fr.readlines()
+						for index in update:
+							index = index.replace("[", "")
+				for folders in glob(sorysrepository, recursive=True):
+					soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					indexlistssources = getChannelsLists()
+					indexlistssources['channelslists'].append({'listtype':soryslists})
+					with open(CHANNELS_LISTS_PATH, 'w') as f:
+						dump(indexlistssources, f, indent = 4)
+				## VUPLUSMANIA
+				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
+				sleep(8)
+				if exists(self.zipfile):
+					with ZipFile(self.zipfile, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
+				vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
+				vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
+				vuplusmanialists = ""
+				index = ""
+				for file in glob(vuplusmaniaupdatefile, recursive=True):
+					with open(file, 'r') as fr:
+						update = fr.readlines()
+						for index in update:
+							index = index.replace("[", "")
+				for folders in glob(vuplusmaniarepository, recursive=True):
+					vuplusmanialists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					indexlistssources = getChannelsLists()
+					indexlistssources['channelslists'].append({'listtype':vuplusmanialists})
+					with open(CHANNELS_LISTS_PATH, 'w') as f:
+						dump(indexlistssources, f, indent = 4)
+				sleep(8)  ## TODO
+				self.listChannels = getChannelsLists()
+				workdirectory = self.folderlistchannels + '/*'
+				for dirfiles in glob(workdirectory, recursive=True):
+					if exists(dirfiles):
+						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 				self.iniMenu()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
 	def getListsRepositories(self):
-		if self.storage and fileContains(CHANNELS_LISTS_PATH, '"channelslists": []') and not fileContains(CHANNELS_LISTS_PATH, "Jungle-") and not fileContains(CHANNELS_LISTS_PATH, "Sorys-") and not fileContains(CHANNELS_LISTS_PATH, "Vuplusmania-"):
+		if self.storage:
 			self.session.openWithCallback(self.doindexListsRepositories, MessageBox, _(language.get(lang, "87")), MessageBox.TYPE_YESNO)
 
 	def doInstallChannelsList(self, answer):
