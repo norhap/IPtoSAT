@@ -155,6 +155,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.skinName = ["IPToSATSetup"]
 		self.setup_title = (_(language.get(lang, "13")))
 		self.storage = False
+		self.path = None
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
@@ -171,9 +172,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			"ok": self.ok,
 		}, -2)
 		for partition in harddiskmanager.getMountedPartitions():
-			path = normpath(partition.mountpoint)
-			if path != "/" and not "net" in path and not "autofs" in path:
-				if exists(path) and listdir(path):
+			self.path = normpath(partition.mountpoint)
+			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+				if exists(self.path) and listdir(self.path):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
 		self["key_green"] = Label(_("Save"))
@@ -429,6 +430,10 @@ class AssignService(ChannelSelectionBase):
 		self.storage = False
 		self.Console = Console()
 		self.backupChannelsListStorage = False
+		self.backupdirectory = None
+		self.alternatefolder = None
+		self.changefolder = None
+		self.path = None
 		self["titlelist"] = Label(_(language.get(lang, "11")))
 		self["titlelist2"] = Label()
 		self["status"] = Label()
@@ -455,6 +460,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_rec"] = StaticText("")
 		self["key_audio"] = StaticText("")
 		self["key_0"] = StaticText("")
+		self.checkStorageDevice()
 		self["ChannelSelectBaseActions"] = ActionMap(["IPToSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -489,25 +495,6 @@ class AssignService(ChannelSelectionBase):
 		if not exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as fw:
 				fw.write("[IPToSat]" + "\n" + 'Host=http://host:port' + "\n" + "User=user" + "\n" + "Pass=pass")
-		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
-				if path != "/" and not "net" in path and not "autofs" in path:
-					if exists(path) and listdir(path):
-						self.storage = True
-						backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-						backupfiles = ""
-						bouquetiptosatepg = ""
-						for files in [x for x in listdir(backupdirectory) if x.endswith(".tv")]:
-							backupfiles = join(backupdirectory, files)
-							bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
-							if backupfiles:
-								self["key_audio"].setText("AUDIO")
-								self.backupChannelsListStorage = True
-							if exists(bouquetiptosatepg):
-								self["key_red"].setText(_(language.get(lang, "18")))
-		except Exception as err:
-			print("ERROR: %s" % str(err))
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
 		if self.storage and not fileContains(CONFIG_PATH, "pass"):
@@ -532,6 +519,29 @@ class AssignService(ChannelSelectionBase):
 		self.getUserData()
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
+
+	def checkStorageDevice(self):
+		try:
+			for partition in harddiskmanager.getMountedPartitions():
+				self.path = normpath(partition.mountpoint)
+				if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+					if exists(self.path) and listdir(self.path):
+						self.storage = True
+						self.backupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
+						self.alternatefolder = join(self.path, "IPToSAT/AlternateList")
+						self.changefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
+						backupfiles = ""
+						bouquetiptosatepg = ""
+						for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
+							backupfiles = join(self.backupdirectory, files)
+							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
+							if backupfiles:
+								self["key_audio"].setText("AUDIO")
+								self.backupChannelsListStorage = True
+							if exists(bouquetiptosatepg):
+								self["key_red"].setText(_(language.get(lang, "18")))
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def showHelpChangeList(self):
 		if self.storage:
@@ -798,46 +808,34 @@ class AssignService(ChannelSelectionBase):
 	def doinstallBouquetIPToSATEPG(self, answer):
 		if answer:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					IPToSAT_EPG = join(backupdirectory, FILE_IPToSAT_EPG)
-					if path != "/" and not "net" in path and not "autofs" in path:
-						if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
-							with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
-								newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
-								with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
-										bouquetstvread = bouquetstvread.readlines()
-										for linesbouquet in bouquetstvread:
-											if "#NAME User - Bouquets (TV)" not in linesbouquet:
-												newbouquetstvwrite.write(linesbouquet)
-							move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
-							copy(IPToSAT_EPG, ENIGMA2_PATH)
-							eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-							self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
-							break
-						else:
-							self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
-							break
+				IPToSAT_EPG = join(self.backupdirectory, FILE_IPToSAT_EPG)
+				if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
+					with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
+						newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
+						with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
+								bouquetstvread = bouquetstvread.readlines()
+								for linesbouquet in bouquetstvread:
+									if "#NAME User - Bouquets (TV)" not in linesbouquet:
+										newbouquetstvwrite.write(linesbouquet)
+					move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
+					copy(IPToSAT_EPG, ENIGMA2_PATH)
+					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
+					self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+				else:
+					self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def installBouquetIPToSATEPG(self):
 		if self.storage:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					IPToSAT_EPG = ""
-					if path != "/" and not "net" in path and not "autofs" in path:
-						for file in [x for x in listdir(backupdirectory) if FILE_IPToSAT_EPG in x]:
-							IPToSAT_EPG = join(backupdirectory, file)
-						if IPToSAT_EPG:
-							self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
-							break
-						else:
-							self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
-							break
+				IPToSAT_EPG = ""
+				for file in [x for x in listdir(self.backupdirectory) if FILE_IPToSAT_EPG in x]:
+					IPToSAT_EPG = join(self.backupdirectory, file)
+				if IPToSAT_EPG:
+					self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
+				else:
+					self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -845,133 +843,104 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					backupfiles = ""
-					enigma2files = ""
-					if answer:
-						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-								backupfiles = join(backupdirectory, files)
-								if backupfiles:
-									for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
-										enigma2files = join(ENIGMA2_PATH, fileschannelslist)
-										if enigma2files:
-											remove(enigma2files)
-							eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
-							break
+				backupfiles = ""
+				enigma2files = ""
+				if answer:
+					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						backupfiles = join(self.backupdirectory, files)
+						if backupfiles:
+							for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+								enigma2files = join(ENIGMA2_PATH, fileschannelslist)
+								if enigma2files:
+									remove(enigma2files)
+					eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def installChannelsList(self):
 		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
-				backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-				backupfiles = ""
-				if path != "/" and not "net" in path and not "autofs" in path:
-					for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-						backupfiles = join(backupdirectory, files)
-						if backupfiles:
-							self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
-							break
-						else:
-							self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
-							break
+			backupfiles = ""
+			for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				backupfiles = join(self.backupdirectory, files)
+				if backupfiles:
+					self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
+					break
+				else:
+					self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
+					break
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
 	def doDeleteChannelsList(self, answer):
 		if self.storage:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					backupfiles = ""
-					if answer:
-						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-								backupfiles = join(backupdirectory, files)
-								remove(backupfiles)
-								self['managerlistchannels'].show()
-								self.assignWidgetScript("#008000", _(language.get(lang, "68")))
-								if fileContains(CONFIG_PATH, "pass"):
-									self["status"].show()
-								self["key_rec"].setText("")
-								self["key_audio"].setText("")
-								self["key_red"].setText("")
+				backupfiles = ""
+				if answer:
+					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						backupfiles = join(self.backupdirectory, files)
+						remove(backupfiles)
+						self['managerlistchannels'].show()
+						self.assignWidgetScript("#008000", _(language.get(lang, "68")))
+						if fileContains(CONFIG_PATH, "pass"):
+							self["status"].show()
+						self["key_rec"].setText("")
+						self["key_audio"].setText("")
+						self["key_red"].setText("")
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
 	def deleteChannelsList(self):
 		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
-				if path != "/" and not "net" in path and not "autofs" in path:
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					backupfiles = ""
-					for files in [x for x in listdir(backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
-						backupfiles = join(backupdirectory, files)
-						if backupfiles:
-							self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
-							break
+			backupfiles = ""
+			for files in [x for x in listdir(self.backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
+				backupfiles = join(self.backupdirectory, files)
+				if backupfiles:
+					self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
+					break
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
 	def dobackupChannelsList(self, answer):
 		if self.storage:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					backupfiles = ""
-					enigma2files = ""
-					bouquetiptosatepg = ""
-					if answer:
-						if path != "/" and not "net" in path and not "autofs" in path:
-							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-								backupfiles = join(backupdirectory, files)
-								remove(backupfiles)
-							for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-								enigma2files = join(ENIGMA2_PATH, fileschannelslist)
-								if enigma2files:
-									copy(enigma2files, backupdirectory)
-									bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
-								if fileContains(CONFIG_PATH, "pass"):
-									self["status"].show()
-							self['managerlistchannels'].show()
-							self.assignWidgetScript("#008000", _(language.get(lang, "66")))
-							self["key_rec"].setText("REC")
-							self["key_audio"].setText("AUDIO")
-							if exists(bouquetiptosatepg):
-								self["key_red"].setText(_(language.get(lang, "18")))
-								break
-					else:
-						self.showFavourites()
-						break
+				backupfiles = ""
+				enigma2files = ""
+				bouquetiptosatepg = ""
+				if answer:
+					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						backupfiles = join(self.backupdirectory, files)
+						remove(backupfiles)
+					for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						enigma2files = join(ENIGMA2_PATH, fileschannelslist)
+						if enigma2files:
+							copy(enigma2files, self.backupdirectory)
+							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
+						if fileContains(CONFIG_PATH, "pass"):
+							self["status"].show()
+					self['managerlistchannels'].show()
+					self.assignWidgetScript("#008000", _(language.get(lang, "66")))
+					self["key_rec"].setText("REC")
+					self["key_audio"].setText("AUDIO")
+					if exists(bouquetiptosatepg):
+						self["key_red"].setText(_(language.get(lang, "18")))
+				else:
+					self.showFavourites()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
 	def backupChannelsList(self):
 		if self.storage:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					backupfiles = ""
-					enigma2files = ""
-					if path != "/" and not "net" in path and not "autofs" in path:
-						if not exists(backupdirectory):
-							makedirs(backupdirectory)
-						for backupfiles in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-							backupfiles = join(backupdirectory, backupfiles)
-						if backupfiles:
-							self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
-							break
-						else:
-							self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "65")), MessageBox.TYPE_YESNO)
-							break
+				backupfiles = ""
+				enigma2files = ""
+				if not exists(self.backupdirectory):
+					makedirs(self.backupdirectory)
+				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					backupfiles = join(self.backupdirectory, backupfiles)
+				if backupfiles:
+					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + self.backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
+				else:
+					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "65")), MessageBox.TYPE_YESNO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1166,176 +1135,133 @@ class AssignService(ChannelSelectionBase):
 		self.userEditionResult(epg_channel_name, sref)
 
 	def purge(self):
-		for partition in harddiskmanager.getMountedPartitions():
-			path = normpath(partition.mountpoint)
-			alternatefolder = join(path, "IPToSAT/AlternateList")
-			changefolder = join(path, "IPToSAT/ChangeList")
-			iptosatconf = join(alternatefolder, "iptosat.conf")
-			iptosat2conf = join(changefolder, "iptosat.conf")
-			if path != "/" and not "net" in path and not "autofs" in path:
-				if exists(iptosatconf) or exists(iptosat2conf):
-					self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, _(language.get(lang, "57")), MessageBox.TYPE_YESNO, default=False)
-				else:
-					self.session.open(MessageBox, _(language.get(lang, "43")), MessageBox.TYPE_INFO)
+		if self.storage:
+			iptosatconf = join(self.alternatefolder, "iptosat.conf")
+			iptosat2conf = join(self.changefolder, "iptosat.conf")
+			if exists(iptosatconf) or exists(iptosat2conf):
+				self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, _(language.get(lang, "57")), MessageBox.TYPE_YESNO, default=False)
+			else:
+				self.session.open(MessageBox, _(language.get(lang, "43")), MessageBox.TYPE_INFO)
 
 	def purgeDeviceFiles(self, answer):
 		if answer:
 			try:
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					alternatefolder = join(path, "IPToSAT/AlternateList")
-					changefolder = join(path, "IPToSAT/ChangeList")
-					iptosatconf = join(alternatefolder, "iptosat.conf")
-					iptosat2conf = join(changefolder, "iptosat.conf")
-					if path != "/" and not "net" in path and not "autofs" in path:
-						if exists(iptosatconf):
-							remove(iptosatconf)
-						if exists(iptosat2conf):
-							remove(iptosat2conf)
-						if not exists(iptosatconf) or not exists(iptosat2conf):
-							self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
-							break
+				iptosatconf = join(self.alternatefolder, "iptosat.conf")
+				iptosat2conf = join(self.changefolder, "iptosat.conf")
+				if exists(iptosatconf):
+					remove(iptosatconf)
+				if exists(iptosat2conf):
+					remove(iptosat2conf)
+				if not exists(iptosatconf) or not exists(iptosat2conf):
+					self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
 	def toggleSecondList(self):
-		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
+		if self.storage:
+			try:
 				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				alternatefolder = join(path, "IPToSAT/AlternateList")
-				iptosat2conf = join(alternatefolder, "iptosat.conf")
-				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
-				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
-				if path != "/" and not "net" in path and not "autofs" in path:
-					self.storage = True
-					if exists(iptosat2conf):
-						if exists(iptosatlist2conf) or exists(iptosatlist1conf):
-							remove(iptosat2conf)
-					if not exists(alternatefolder):
-						makedirs(alternatefolder)
-					if not exists(iptosat2conf) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf):
-						self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + alternatefolder + "/", MessageBox.TYPE_INFO)
-					if exists(CONFIG_PATH) and exists(iptosat2conf):
-						move(CONFIG_PATH, iptosatlist1conf)
-						move(iptosat2conf, fileconf)
-						self.secondSuscription = True
-						break
-					if exists(CONFIG_PATH) and exists(iptosatlist2conf):
-						move(CONFIG_PATH, iptosatlist1conf)
-						move(iptosatlist2conf, fileconf)
-						self.secondSuscription = True
-						break
-					if exists(CONFIG_PATH) and exists(iptosatlist1conf):
-						move(CONFIG_PATH, iptosatlist2conf)
-						move(iptosatlist1conf, fileconf)
-						self.secondSuscription = False
-						break
-			self.getUserData()
-			self["codestatus"].hide()
-		except Exception as err:
-			print("ERROR: %s" % str(err))
-
+				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
+				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
+				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+				if exists(iptosat2conf):
+					if exists(iptosatlist2conf) or exists(iptosatlist1conf):
+						remove(iptosat2conf)
+				if not exists(self.alternatefolder):
+					makedirs(self.alternatefolder)
+				if not exists(iptosat2conf) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf):
+					self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+				if exists(CONFIG_PATH) and exists(iptosat2conf):
+					move(CONFIG_PATH, iptosatlist1conf)
+					move(iptosat2conf, fileconf)
+					self.secondSuscription = True
+				elif exists(CONFIG_PATH) and exists(iptosatlist2conf):
+					move(CONFIG_PATH, iptosatlist1conf)
+					move(iptosatlist2conf, fileconf)
+					self.secondSuscription = True
+				elif exists(CONFIG_PATH) and exists(iptosatlist1conf):
+					move(CONFIG_PATH, iptosatlist2conf)
+					move(iptosatlist1conf, fileconf)
+					self.secondSuscription = False
+				self.getUserData()
+				self["codestatus"].hide()
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 	def doChangeList(self, answer):
-		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
-				alternatefolder = join(path, "IPToSAT/AlternateList")
-				changefolder = join(path, "IPToSAT/ChangeList")
-				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
-				iptosat2change = join(changefolder, "iptosat.conf")
-				iptosatconf = join(alternatefolder, "iptosat.conf")
+		if self.storage:
+			try:
+				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+				iptosat2change = join(self.changefolder, "iptosat.conf")
+				iptosatconf = join(self.alternatefolder, "iptosat.conf")
 				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				if path != "/" and not "net" in path and not "autofs" in path:
-					if answer:
-						if exists(iptosat2change):
-							move(iptosat2change, iptosatlist1conf)
-							break
-					else:
-						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
-						break
-		except Exception as err:
-			print("ERROR: %s" % str(err))
+				if answer:
+					if exists(iptosat2change):
+						move(iptosat2change, iptosatlist1conf)
+				else:
+					self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def doChangeList2(self, answer):
-		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
+		if self.storage:
+			try:
 				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				alternatefolder = join(path, "IPToSAT/AlternateList")
-				changefolder = join(path, "IPToSAT/ChangeList")
-				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
-				iptosat2change = join(changefolder, "iptosat.conf")
-				iptosatconf = join(alternatefolder, "iptosat.conf")
-				if path != "/" and not "net" in path and not "autofs" in path:
-					if answer:
-						move(iptosat2change, iptosatlist2conf)
-						break
-					else:
-						self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
-						break
-		except Exception as err:
-			print("ERROR: %s" % str(err))
+				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
+				iptosat2change = join(self.changefolder, "iptosat.conf")
+				iptosatconf = join(self.alternatefolder, "iptosat.conf")
+				if answer:
+					move(iptosat2change, iptosatlist2conf)
+				else:
+					self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def setChangeList(self):
-		try:
-			for partition in harddiskmanager.getMountedPartitions():
-				path = normpath(partition.mountpoint)
+		if self.storage:
+			try:
 				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				alternatefolder = join(path, "IPToSAT/AlternateList")
-				changefolder = join(path, "IPToSAT/ChangeList")
-				iptosat2change = join(changefolder, "iptosat.conf")
-				iptosatconf = join(alternatefolder, "iptosat.conf")
-				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
-				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
-				if path != "/" and not "net" in path and not "autofs" in path:
-					self.storage = True
-					if not exists(changefolder):
-						makedirs(changefolder)
-					if not exists(alternatefolder):
-						makedirs(alternatefolder)
-					if exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
-						move(fileconf, iptosatlist1conf)
-						move(iptosat2change, fileconf)
-						self.getUserData()
-						host = open(fileconf).read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + alternatefolder + "/", MessageBox.TYPE_INFO)
-						break
-					if not exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
-						self.session.open(MessageBox, _(language.get(lang, "49")) + changefolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
-						break
-					if exists(iptosatconf) and exists(iptosat2change):
-						if exists(iptosatlist1conf):
-							remove(iptosatconf)
-						if exists(iptosatlist2conf):
-							remove(iptosatconf)
-						if exists(iptosatconf):
-							self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
-							break
-					if exists(iptosatconf) and not exists(iptosat2change):
-						self.session.open(MessageBox, _(language.get(lang, "49")) + changefolder + "/", MessageBox.TYPE_INFO)
-						break
-					if exists(iptosatlist1conf) and exists(iptosat2change):
-						host = open(iptosatlist1conf).read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-						self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
-						break
-					if exists(iptosatlist1conf) and not exists(iptosat2change):
-						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
-						break
-					if exists(iptosatlist2conf) and exists(iptosat2change):
-						host = open(iptosatlist2conf).read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-						self.session.openWithCallback(self.doChangeList2, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
-						break
-					if exists(iptosatlist2conf) and not exists(iptosat2change):
-						self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
-						break
+				iptosat2change = join(self.changefolder, "iptosat.conf")
+				iptosatconf = join(self.alternatefolder, "iptosat.conf")
+				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
+				if not exists(self.changefolder):
+					makedirs(self.changefolder)
+				if not exists(self.alternatefolder):
+					makedirs(self.alternatefolder)
+				if exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+					move(fileconf, iptosatlist1conf)
+					move(iptosat2change, fileconf)
+					self.getUserData()
+					host = open(fileconf).read()
+					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+				if not exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+					self.session.open(MessageBox, _(language.get(lang, "49")) + self.changefolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
+				if exists(iptosatconf) and exists(iptosat2change):
+					if exists(iptosatlist1conf):
+						remove(iptosatconf)
+					if exists(iptosatlist2conf):
+						remove(iptosatconf)
+					if exists(iptosatconf):
+						self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
+				if exists(iptosatconf) and not exists(iptosat2change):
+					self.session.open(MessageBox, _(language.get(lang, "49")) + self.changefolder + "/", MessageBox.TYPE_INFO)
+				if exists(iptosatlist1conf) and exists(iptosat2change):
+					host = open(iptosatlist1conf).read()
+					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+				if exists(iptosatlist1conf) and not exists(iptosat2change):
+					self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + self.changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+				if exists(iptosatlist2conf) and exists(iptosat2change):
+					host = open(iptosatlist2conf).read()
+					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					self.session.openWithCallback(self.doChangeList2, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+				if exists(iptosatlist2conf) and not exists(iptosat2change):
+					self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + self.changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
 				self.getUserData()
-			self["codestatus"].hide()
-		except Exception as err:
-			print("ERROR: %s" % str(err))
+				self["codestatus"].hide()
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def exists(self, sref, playlist):
 		try:
