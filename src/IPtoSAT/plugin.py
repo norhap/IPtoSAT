@@ -36,6 +36,7 @@ IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 SOURCE_BOUQUET_IPTV = "/etc/enigma2/iptv.sh"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
+ENIGMA2_PATH = "/etc/enigma2"
 
 try:
 	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
@@ -786,7 +787,7 @@ class AssignService(ChannelSelectionBase):
 
 	def removeScript(self):
 		if exists(SOURCE_BOUQUET_IPTV):
-			self.Console.ePopen("rm -f /etc/enigma2/iptv.sh")
+			self.Console.ePopen("rm -f " + SOURCE_BOUQUET_IPTV)
 			if not exists(SOURCE_BOUQUET_IPTV):
 				text = _(language.get(lang, "35"))
 				self['codestatus'].hide()
@@ -800,7 +801,6 @@ class AssignService(ChannelSelectionBase):
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
 					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					enigma2directory = "/etc/enigma2"
 					IPToSAT_EPG = join(backupdirectory, FILE_IPToSAT_EPG)
 					if path != "/" and not "net" in path and not "autofs" in path:
 						if not fileContains("/etc/enigma2/bouquets.tv", "iptosat_epg"):
@@ -812,7 +812,7 @@ class AssignService(ChannelSelectionBase):
 											if "#NAME User - Bouquets (TV)" not in linesbouquet:
 												newbouquetstvwrite.write(linesbouquet)
 							move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
-							copy(IPToSAT_EPG, enigma2directory)
+							copy(IPToSAT_EPG, ENIGMA2_PATH)
 							eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 							self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
 							break
@@ -848,7 +848,6 @@ class AssignService(ChannelSelectionBase):
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
 					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					enigma2directory = join(path, "/etc/enigma2")
 					backupfiles = ""
 					enigma2files = ""
 					if answer:
@@ -856,11 +855,11 @@ class AssignService(ChannelSelectionBase):
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								if backupfiles:
-									for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
-										enigma2files = join(enigma2directory, fileschannelslist)
+									for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+										enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 										if enigma2files:
 											remove(enigma2files)
-							eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + enigma2directory + "/" + ' && init 3')
+							eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
 							break
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -926,7 +925,6 @@ class AssignService(ChannelSelectionBase):
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
 					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					enigma2directory = "/etc/enigma2"
 					backupfiles = ""
 					enigma2files = ""
 					bouquetiptosatepg = ""
@@ -935,8 +933,8 @@ class AssignService(ChannelSelectionBase):
 							for files in [x for x in listdir(backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 								backupfiles = join(backupdirectory, files)
 								remove(backupfiles)
-							for fileschannelslist in [x for x in listdir(enigma2directory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-								enigma2files = join(enigma2directory, fileschannelslist)
+							for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+								enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 								if enigma2files:
 									copy(enigma2files, backupdirectory)
 									bouquetiptosatepg = join(backupdirectory, FILE_IPToSAT_EPG)
@@ -961,7 +959,6 @@ class AssignService(ChannelSelectionBase):
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
 					backupdirectory = join(path, "IPToSAT/BackupChannelsList")
-					enigma2directory = "/etc/enigma2"
 					backupfiles = ""
 					enigma2files = ""
 					if path != "/" and not "net" in path and not "autofs" in path:
@@ -990,7 +987,7 @@ class AssignService(ChannelSelectionBase):
 			createbouquet = ""
 			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
 			sleep(2)
-			for filelist in [x for x in listdir("/etc/enigma2") if "iptv_iptosat" in x and x.endswith(".tv")]:
+			for filelist in [x for x in listdir(ENIGMA2_PATH) if "iptv_iptosat" in x and x.endswith(".tv")]:
 				bouquetiptv = join(filelist)
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
@@ -1001,13 +998,13 @@ class AssignService(ChannelSelectionBase):
 						with open("/etc/enigma2/" + bouquetiptv, "w",) as fw:
 							fw.write(createbouquet + "\n" + content)
 							if exists(SOURCE_BOUQUET_IPTV):
-								eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
+								eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 						if "IPTV_IPToSAT" in BouquetIPToSAT:
 							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=10)
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
-				eConsoleAppContainer().execute('rm -f /etc/enigma2/iptv.sh')
+				eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 
 	def createBouquetIPTV(self):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
@@ -1016,7 +1013,7 @@ class AssignService(ChannelSelectionBase):
 				hostport = configfile.split()[1].split("Host=")[1]
 				user = configfile.split()[2].split('User=')[1]
 				password = configfile.split()[3].split('Pass=')[1]
-				eConsoleAppContainer().execute('wget -O /etc/enigma2/iptv.sh' + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 /etc/enigma2/iptv.sh')
+				eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
 				sleep(1)
 				if exists(SOURCE_BOUQUET_IPTV):
 					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
@@ -1045,7 +1042,7 @@ class AssignService(ChannelSelectionBase):
 
 	def userEditionResult(self, channel_name, sref):
 		epg_channel_name = channel_name.upper()
-		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
+		for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):
 				reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
@@ -1071,7 +1068,7 @@ class AssignService(ChannelSelectionBase):
 		self['managerlistchannels'].hide()
 		sref = str(self.getSref())
 		channel_name = str(ServiceReference(sref).getServiceName())
-		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
+		for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if fileContains("/etc/enigma2/" + bouquetiptv, channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, "http"):
 				self['managerlistchannels'].show()
@@ -1091,7 +1088,7 @@ class AssignService(ChannelSelectionBase):
 		for character in characterascii:
 			if search(r'[ÁÉÍÓÚÑ]', character):
 				epg_channel_name = character.replace("Ñ", "N").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
-		for filelist in [x for x in listdir("/etc/enigma2") if x.endswith(".tv") or x.endswith(".radio")]:
+		for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
 			bouquetiptv = join(filelist)
 			if fileContains("/etc/enigma2/" + bouquetiptv, ":" + epg_channel_name):
 				with open("/etc/enigma2/" + bouquetiptv, "r") as fr:
@@ -1205,7 +1202,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
-				fileconf = join("/etc/enigma2", "iptosat.conf")
+				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 				alternatefolder = join(path, "IPToSAT/AlternateList")
 				iptosat2conf = join(alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
@@ -1248,7 +1245,7 @@ class AssignService(ChannelSelectionBase):
 				iptosatlist1conf = join(alternatefolder, "iptosat_LIST1.conf")
 				iptosat2change = join(changefolder, "iptosat.conf")
 				iptosatconf = join(alternatefolder, "iptosat.conf")
-				fileconf = join("/etc/enigma2", "iptosat.conf")
+				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 				if path != "/" and not "net" in path and not "autofs" in path:
 					if answer:
 						if exists(iptosat2change):
@@ -1264,7 +1261,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
-				fileconf = join("/etc/enigma2", "iptosat.conf")
+				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 				alternatefolder = join(path, "IPToSAT/AlternateList")
 				changefolder = join(path, "IPToSAT/ChangeList")
 				iptosatlist2conf = join(alternatefolder, "iptosat_LIST2.conf")
@@ -1284,7 +1281,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				path = normpath(partition.mountpoint)
-				fileconf = join("/etc/enigma2", "iptosat.conf")
+				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 				alternatefolder = join(path, "IPToSAT/AlternateList")
 				changefolder = join(path, "IPToSAT/ChangeList")
 				iptosat2change = join(changefolder, "iptosat.conf")
@@ -1629,7 +1626,8 @@ class InstallChannelsLists(Screen):
 		Screen.__init__(self, session)
 		self.storage = False
 		self.folderlistchannels = None
-		self.zipfile = None
+		self.zip_jungle = None
+		self.zip_sorys_vuplusmania = None
 		self.path = None
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(_(language.get(lang, "88")))
@@ -1664,7 +1662,8 @@ class InstallChannelsLists(Screen):
 			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
 				self.storage = True
 				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
-				self.zipfile = join(self.folderlistchannels, "channelslists.zip")
+				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
+				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
 				if not exists(self.folderlistchannels):
 					makedirs(self.folderlistchannels)
 				workdirectory = self.folderlistchannels + '/*'
@@ -1712,10 +1711,10 @@ class InstallChannelsLists(Screen):
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				## JUNGLE TEAM
-				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
-				sleep(8)
-				if exists(self.zipfile):
-					with ZipFile(self.zipfile, 'r') as zipfile:
+				eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
+				sleep(10)
+				if exists(self.zip_jungle):
+					with ZipFile(self.zip_jungle, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				junglerepository = self.folderlistchannels + '/*/*Jungle-*'
 				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
@@ -1732,11 +1731,9 @@ class InstallChannelsLists(Screen):
 					indexlistssources['channelslists'].append({'listtype':junglelists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent = 4)
-				## SORYS
-				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-				sleep(8)
-				if exists(self.zipfile):
-					with ZipFile(self.zipfile, 'r') as zipfile:
+				## SORYS VUPLUSMANIA
+				if exists(self.zip_sorys_vuplusmania):
+					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
 				sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
@@ -1753,12 +1750,6 @@ class InstallChannelsLists(Screen):
 					indexlistssources['channelslists'].append({'listtype':soryslists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent = 4)
-				## VUPLUSMANIA
-				eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
-				sleep(8)
-				if exists(self.zipfile):
-					with ZipFile(self.zipfile, 'r') as zipfile:
-						zipfile.extractall(self.folderlistchannels)
 				vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
 				vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
 				vuplusmanialists = ""
@@ -1774,7 +1765,7 @@ class InstallChannelsLists(Screen):
 					indexlistssources['channelslists'].append({'listtype':vuplusmanialists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent = 4)
-				sleep(8)  ## TODO
+				sleep(5)  ## TODO
 				self.listChannels = getChannelsLists()
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
@@ -1796,18 +1787,18 @@ class InstallChannelsLists(Screen):
 			try:
 				if "Jungle-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0] + '/etc/enigma2'
-					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
+					eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip ' + self.zip_jungle)
 				if "Sorys-" in channelslists or "Vuplusmania-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0]
-					eConsoleAppContainer().execute('wget -O ' + self.zipfile + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip channelslists.zip')
+					eConsoleAppContainer().execute('wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip ' + self.zip_sorys_vuplusmania)
 				sleep(8)
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
 						updatefiles = join(dirnewlist, files)
 						if exists(updatefiles):
 							remove(updatefiles)
-						for installedlist in [x for x in listdir("/etc/enigma2") if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
-							installedfiles = join("/etc/enigma2", installedlist)
+						for installedlist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							installedfiles = join(ENIGMA2_PATH, installedlist)
 							if installedfiles:
 								remove(installedfiles)
 					eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml /etc/tuxbox/ && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
