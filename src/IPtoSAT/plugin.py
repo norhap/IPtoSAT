@@ -840,93 +840,92 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def doinstallChannelsList(self, answer):
-		if self.storage:
-			self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
-			try:
-				backupfiles = ""
-				enigma2files = ""
-				if answer:
-					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-						backupfiles = join(self.backupdirectory, files)
-						if backupfiles:
-							for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
-								enigma2files = join(ENIGMA2_PATH, fileschannelslist)
-								if enigma2files:
-									remove(enigma2files)
-					eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
-			except Exception as err:
-				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+		self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
+		try:
+			backupfiles = ""
+			enigma2files = ""
+			if answer:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					backupfiles = join(self.backupdirectory, files)
+					if backupfiles:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
+							if enigma2files:
+								remove(enigma2files)
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def installChannelsList(self):
-		try:
-			backupfiles = ""
-			for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-				backupfiles = join(self.backupdirectory, files)
-				if backupfiles:
-					self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
-					break
-				else:
-					self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
-					break
-		except Exception as err:
-			print("ERROR: %s" % str(err))
+		if self.storage:
+			try:
+				backupfiles = ""
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					backupfiles = join(self.backupdirectory, files)
+					if backupfiles:
+						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
+						break
+					else:
+						self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
+						break
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def doDeleteChannelsList(self, answer):
-		if self.storage:
-			try:
-				backupfiles = ""
-				if answer:
-					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-						backupfiles = join(self.backupdirectory, files)
-						remove(backupfiles)
-						self['managerlistchannels'].show()
-						self.assignWidgetScript("#008000", _(language.get(lang, "68")))
-						if fileContains(CONFIG_PATH, "pass"):
-							self["status"].show()
-						self["key_rec"].setText("")
-						self["key_audio"].setText("")
-						self["key_red"].setText("")
-			except Exception as err:
-				print("ERROR: %s" % str(err))
-
-	def deleteChannelsList(self):
 		try:
 			backupfiles = ""
-			for files in [x for x in listdir(self.backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
-				backupfiles = join(self.backupdirectory, files)
-				if backupfiles:
-					self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
-					break
+			if answer:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					backupfiles = join(self.backupdirectory, files)
+					remove(backupfiles)
+					self['managerlistchannels'].show()
+					self.assignWidgetScript("#008000", _(language.get(lang, "68")))
+					if fileContains(CONFIG_PATH, "pass"):
+						self["status"].show()
+					self["key_rec"].setText("")
+					self["key_audio"].setText("")
+					self["key_red"].setText("")
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
-	def dobackupChannelsList(self, answer):
+	def deleteChannelsList(self):
 		if self.storage:
 			try:
 				backupfiles = ""
-				enigma2files = ""
-				bouquetiptosatepg = ""
-				if answer:
-					for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-						backupfiles = join(self.backupdirectory, files)
-						remove(backupfiles)
-					for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
-						enigma2files = join(ENIGMA2_PATH, fileschannelslist)
-						if enigma2files:
-							copy(enigma2files, self.backupdirectory)
-							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
-						if fileContains(CONFIG_PATH, "pass"):
-							self["status"].show()
-					self['managerlistchannels'].show()
-					self.assignWidgetScript("#008000", _(language.get(lang, "66")))
-					self["key_rec"].setText("REC")
-					self["key_audio"].setText("AUDIO")
-					if exists(bouquetiptosatepg):
-						self["key_red"].setText(_(language.get(lang, "18")))
-				else:
-					self.showFavourites()
+				for files in [x for x in listdir(self.backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
+					backupfiles = join(self.backupdirectory, files)
+					if backupfiles:
+						self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
+						break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
+
+	def dobackupChannelsList(self, answer):
+		try:
+			backupfiles = ""
+			enigma2files = ""
+			bouquetiptosatepg = ""
+			if answer:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					backupfiles = join(self.backupdirectory, files)
+					remove(backupfiles)
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
+					if enigma2files:
+						copy(enigma2files, self.backupdirectory)
+						bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
+					if fileContains(CONFIG_PATH, "pass"):
+						self["status"].show()
+				self['managerlistchannels'].show()
+				self.assignWidgetScript("#008000", _(language.get(lang, "66")))
+				self["key_rec"].setText("REC")
+				self["key_audio"].setText("AUDIO")
+				if exists(bouquetiptosatepg):
+					self["key_red"].setText(_(language.get(lang, "18")))
+			else:
+				self.showFavourites()
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def backupChannelsList(self):
 		if self.storage:
@@ -954,7 +953,7 @@ class AssignService(ChannelSelectionBase):
 						createbouquet = line.replace(bouquetname, '"iptv_iptosat"')
 						fw.write(createbouquet)
 			createbouquet = ""
-			eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+			eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 			sleep(2)
 			for filelist in [x for x in listdir(ENIGMA2_PATH) if "iptv_iptosat" in x and x.endswith(".tv")]:
 				bouquetiptv = join(filelist)
@@ -995,11 +994,11 @@ class AssignService(ChannelSelectionBase):
 									bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
 									createbouquet = line.replace(bouquetname, bouquetrename)
 									fw.write(createbouquet)
-									eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									self['managerlistchannels'].show()
 									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							elif not 'bouquet=""' in line:
-								eConsoleAppContainer().execute('/etc/enigma2/iptv.sh')
+								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 								self['managerlistchannels'].show()
 								self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							else:
@@ -1187,34 +1186,33 @@ class AssignService(ChannelSelectionBase):
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
+
 	def doChangeList(self, answer):
-		if self.storage:
-			try:
-				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
-				iptosat2change = join(self.changefolder, "iptosat.conf")
-				iptosatconf = join(self.alternatefolder, "iptosat.conf")
-				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				if answer:
-					if exists(iptosat2change):
-						move(iptosat2change, iptosatlist1conf)
-				else:
-					self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
-			except Exception as err:
-				print("ERROR: %s" % str(err))
+		try:
+			iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+			iptosat2change = join(self.changefolder, "iptosat.conf")
+			iptosatconf = join(self.alternatefolder, "iptosat.conf")
+			fileconf = join(ENIGMA2_PATH, "iptosat.conf")
+			if answer:
+				if exists(iptosat2change):
+					move(iptosat2change, iptosatlist1conf)
+			else:
+				self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def doChangeList2(self, answer):
-		if self.storage:
-			try:
-				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
-				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
-				iptosat2change = join(self.changefolder, "iptosat.conf")
-				iptosatconf = join(self.alternatefolder, "iptosat.conf")
-				if answer:
-					move(iptosat2change, iptosatlist2conf)
-				else:
-					self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
-			except Exception as err:
-				print("ERROR: %s" % str(err))
+		try:
+			fileconf = join(ENIGMA2_PATH, "iptosat.conf")
+			iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
+			iptosat2change = join(self.changefolder, "iptosat.conf")
+			iptosatconf = join(self.alternatefolder, "iptosat.conf")
+			if answer:
+				move(iptosat2change, iptosatlist2conf)
+			else:
+				self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def setChangeList(self):
 		if self.storage:
