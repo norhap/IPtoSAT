@@ -316,7 +316,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,357" size="870,140" font="Regular;24" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
-			<widget name="managerlistchannels" position="33,785" size="870,85" font="Regular;24" zPosition="10" />
+			<widget name="managerlistchannels" position="33,775" size="870,110" font="Regular;24" zPosition="10" />
 			<widget name="help" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
 			<widget name="play" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -375,7 +375,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,245" size="540,100" font="Regular;18" zPosition="6" />
 			<widget name="codestatus" position="33,348" size="540,150" font="Regular;18" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,245" size="540,318" font="Regular;18" zPosition="6" />
-			<widget name="managerlistchannels" position="33,500" size="540,25" font="Regular;18" zPosition="10" />
+			<widget name="managerlistchannels" position="33,480" size="540,85" font="Regular;18" zPosition="10" />
 			<widget name="help" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
 			<widget name="play" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,568" zPosition="2" size="110,35" backgroundColor="key_green" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -433,6 +433,8 @@ class AssignService(ChannelSelectionBase):
 		self.backupdirectory = None
 		self.alternatefolder = None
 		self.changefolder = None
+		self.m3ufolder = None
+		self.m3ufile = None
 		self.path = None
 		self["titlelist"] = Label(_(language.get(lang, "11")))
 		self["titlelist2"] = Label()
@@ -530,6 +532,8 @@ class AssignService(ChannelSelectionBase):
 						self.backupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
 						self.alternatefolder = join(self.path, "IPToSAT/AlternateList")
 						self.changefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
+						self.m3ufolder = join(self.path, "IPToSAT/M3U")
+						self.m3ufile = join(self.m3ufolder, "tv_channels.m3u")
 						backupfiles = ""
 						bouquetiptosatepg = ""
 						for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
@@ -981,8 +985,16 @@ class AssignService(ChannelSelectionBase):
 				hostport = configfile.split()[1].split("Host=")[1]
 				user = configfile.split()[2].split('User=')[1]
 				password = configfile.split()[3].split('Pass=')[1]
-				eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
-				sleep(1)
+				if self.storage:
+					if not exists(self.m3ufolder):
+						makedirs(self.m3ufolder)
+					if exists(self.m3ufile):
+						remove(self.m3ufile)
+					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
+					sleep(1)
+				else:
+					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
+					sleep(1)
 				if exists(SOURCE_BOUQUET_IPTV):
 					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
 						createbouquet = ""
@@ -995,14 +1007,27 @@ class AssignService(ChannelSelectionBase):
 									createbouquet = line.replace(bouquetname, bouquetrename)
 									fw.write(createbouquet)
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
-									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
+									if exists(self.m3ufile):
+										self['managerlistchannels'].show()
+										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
+									else:
+										self['managerlistchannels'].show()
+										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							elif not 'bouquet=""' in line:
 								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
-								self['managerlistchannels'].show()
-								self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
+								if exists(self.m3ufile):
+									self['managerlistchannels'].show()
+									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
+								else:
+									self['managerlistchannels'].show()
+									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
 							else:
+								if exists(self.m3ufile):
+									self['managerlistchannels'].show()
+									self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
 								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
+				if exists(self.m3ufile) and not isPluginInstalled("MediaPlayer"):
+					eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
 				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
@@ -1307,7 +1332,7 @@ class AssignService(ChannelSelectionBase):
 					self["codestatus"].hide()
 					self["key_menu"].setText("")
 				if not fileContains(CONFIG_PATH, "pass"):
-					self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR, timeout=10)
+					self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
