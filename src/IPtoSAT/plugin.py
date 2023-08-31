@@ -991,10 +991,10 @@ class AssignService(ChannelSelectionBase):
 					if exists(self.m3ufile):
 						remove(self.m3ufile)
 					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
-					sleep(1)
+					sleep(3)
 				else:
 					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
-					sleep(1)
+					sleep(3)
 				if exists(SOURCE_BOUQUET_IPTV):
 					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
 						createbouquet = ""
