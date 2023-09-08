@@ -178,7 +178,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
 		self["key_green"] = Label(_("Save"))
-		self["key_green"] = Label(_("Save"))
 		self["footnote"] = Label(_(language.get(lang, "99")))
 		self.createSetup()
 		self.onLayoutFinish.append(self.layoutFinished)
