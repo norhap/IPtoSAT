@@ -196,8 +196,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and not fileContains("/etc/issue", "openspa") and config.plugins.IPToSAT.enable.value:
-			if not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
-				try:
+			try:
+				if config.usage.remote_fallback_enabled.value or not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
 					config.plugins.fccsetup.activate.value = True
 					config.plugins.fccsetup.activate.save()
 					config.plugins.fccsetup.zapupdown.value = True
@@ -208,9 +208,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.fccsetup.maxfcc.save()
 					config.plugins.fccsetup.priority.value = "zapupdown"
 					config.plugins.fccsetup.priority.save()
+					config.usage.remote_fallback_enabled.value = False
+					config.usage.remote_fallback_enabled.save()
 					self.session.open(TryQuitMainloop, 3)
-				except:
-					pass
+			except:
+				pass
 
 	def ok(self):
 		current = self["config"].getCurrent()
