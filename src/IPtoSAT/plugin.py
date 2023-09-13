@@ -195,7 +195,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(language.get(lang, "98")), config.plugins.IPToSAT.mainmenu))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value:
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and not fileContains("/etc/issue", "openspa") and config.plugins.IPToSAT.enable.value:
 			if not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
 				try:
 					config.plugins.fccsetup.activate.value = True
