@@ -1097,10 +1097,7 @@ class AssignService(ChannelSelectionBase):
 					with open("/etc/enigma2/" + bouquetiptv, "r") as file:
 						for line in file:
 							line = line.strip()
-							if "4097" in line or "5001" in line or "5002" in line:
-								ref = line[9:31]
-							else:
-								ref = line[9:28]
+							ref = line.split('http')[0].replace("#SERVICE ", "")
 							if "#NAME" in line:
 								bouquetnamemsgbox = line.replace("#NAME ", "")
 								bouquetname = line
