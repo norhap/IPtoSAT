@@ -9,6 +9,7 @@ from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.MenuList import MenuList
 from Components.Label import Label
+from Components.SystemInfo import BoxInfo
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
@@ -67,7 +68,7 @@ def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
-	elif isPluginInstalled("FastChannelChange"):
+	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
 		return [("gstplayer", _("GstPlayer"))]
 	else:
 		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
@@ -195,7 +196,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(language.get(lang, "98")), config.plugins.IPToSAT.mainmenu))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and not fileContains("/etc/issue", "openspa") and config.plugins.IPToSAT.enable.value:
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
 			try:
 				if config.usage.remote_fallback_enabled.value or not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
 					config.plugins.fccsetup.activate.value = True
