@@ -846,11 +846,11 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def doinstallChannelsList(self, answer):
-		self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
 		try:
 			backupfiles = ""
 			enigma2files = ""
 			if answer:
+				self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
