@@ -76,7 +76,7 @@ def choices_list():
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
-config.plugins.IPToSAT.enable = ConfigYesNo(default=True)
+config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
