@@ -31,6 +31,7 @@ from re import search
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
+SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
@@ -1553,9 +1554,8 @@ class EditPlaylist(Screen):
 
 class InstallChannelsLists(Screen):
 	skin = """
-	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Install Channels Lists">
+	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,655" title="IPToSAT - Install Channels Lists">
 		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
-		<widget name="managerlistchannels" position="7,545" size="1364,35" font="Regular;24" zPosition="10" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -1565,7 +1565,10 @@ class InstallChannelsLists(Screen):
 		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="536,583" size="860,60" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,583" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="712,560" size="684,93" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -1583,8 +1586,8 @@ class InstallChannelsLists(Screen):
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
+		self["key_blue"] = StaticText(_(language.get(lang, "102")))
 		self["status"] = Label()
-		self["managerlistchannels"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -1593,6 +1596,7 @@ class InstallChannelsLists(Screen):
 			"green":self.keyGreen,
 			"ok":self.keyGreen,
 			"yellow": self.getListsRepositories,
+			"blue": self.getSourceUpdated,
 			"left": self.goLeft,
 			"right": self.goRight,
 			"down": self.moveDown,
@@ -1618,10 +1622,6 @@ class InstallChannelsLists(Screen):
 				for dirfiles in glob(workdirectory, recursive=True):
 					if exists(dirfiles):
 						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
-
-	def assignWidgetScript(self, color, text):
-		self['managerlistchannels'].setText(text)
-		self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
 
 	def iniMenu(self):
 		if not exists(CHANNELS_LISTS_PATH):
@@ -1727,6 +1727,18 @@ class InstallChannelsLists(Screen):
 		if self.storage:
 			self.session.openWithCallback(self.doindexListsRepositories, MessageBox, _(language.get(lang, "87")), MessageBox.TYPE_YESNO)
 
+	def getSourceUpdated(self):
+		if self.storage:
+			self.session.openWithCallback(self.dogetSourceUpdated, MessageBox, _(language.get(lang, "101")), MessageBox.TYPE_YESNO)
+
+	def dogetSourceUpdated(self, answer):
+		try:
+			if answer:
+				self.session.open(MessageBox, _(language.get(lang, "103")), MessageBox.TYPE_INFO, simple=True)
+				eConsoleAppContainer().execute('wget -O ' + self.folderlistchannels + "/" + "IPtoSAT-main.zip"' https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
+		except Exception as err:
+			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
 		if answer:
@@ -1735,10 +1747,10 @@ class InstallChannelsLists(Screen):
 			try:
 				if "Jungle-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0] + '/etc/enigma2'
-					eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip ' + self.zip_jungle)
+					eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip ' + self.zip_jungle)
 				if "Sorys-" in channelslists or "Vuplusmania-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0]
-					eConsoleAppContainer().execute('wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + " " + '&& unzip ' + self.zip_sorys_vuplusmania)
+					eConsoleAppContainer().execute('wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip ' + self.zip_sorys_vuplusmania)
 				sleep(8)
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
