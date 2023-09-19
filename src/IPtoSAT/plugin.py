@@ -319,8 +319,8 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,357" size="870,140" font="Regular;24" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
-			<widget name="managerlistchannels" position="33,775" size="870,110" font="Regular;24" zPosition="10" />
-			<widget name="help" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
+			<widget name="managerlistchannels" position="33,785" size="870,110" font="Regular;24" zPosition="10" />
+			<widget name="help" position="925,355" size="900,565" font="Regular;24" zPosition="3" />
 			<widget name="play" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,923" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,923" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -377,9 +377,9 @@ class AssignService(ChannelSelectionBase):
 			<widget name="description" position="600,245" size="595,320" font="Regular;18" zPosition="6" />
 			<widget name="assign" position="33,245" size="540,100" font="Regular;18" zPosition="6" />
 			<widget name="codestatus" position="33,348" size="540,150" font="Regular;18" zPosition="10" />
-			<widget name="helpbouquetepg" position="33,245" size="540,318" font="Regular;18" zPosition="6" />
+			<widget name="helpbouquetepg" position="33,245" size="540,318" font="Regular;17" zPosition="6" />
 			<widget name="managerlistchannels" position="33,480" size="540,85" font="Regular;18" zPosition="10" />
-			<widget name="help" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
+			<widget name="help" position="600,245" size="595,322" font="Regular;17" zPosition="3" />
 			<widget name="play" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,568" zPosition="2" size="110,35" backgroundColor="key_green" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="127,568" zPosition="2" size="110,35" backgroundColor="key_blue" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
