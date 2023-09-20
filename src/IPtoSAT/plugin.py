@@ -309,8 +309,8 @@ class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
 		<screen name="IPToSAT Service Assign" position="40,85" size="1840,980" title="IPToSAT Service Assign">
-			<widget name="titlelist" position="200,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-			<widget name="titlelist2" position="1075,05" size="580,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget name="list" position="33,42" size="875,310" scrollbarMode="showOnDemand" />
 			<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
 			<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
@@ -368,8 +368,8 @@ class AssignService(ChannelSelectionBase):
 	else:
 		skin = """
 		<screen name="IPToSAT Service Assign" position="40,85" size="1200,605" title="IPToSAT Service Assign">
-			<widget name="titlelist" position="60,05" size="400,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-			<widget name="titlelist2" position="600,05" size="400,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+			<widget name="titleChannelsList" position="33,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+			<widget name="titleSuscriptionList" position="600,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget name="list" position="33,42" size="550,198" scrollbarMode="showOnDemand" />
 			<widget name="list2" position="600,42" size="550,200" scrollbarMode="showOnDemand" />
 			<widget name="please" position="600,42" size="540,35" font="Regular;18" zPosition="12" />
@@ -439,8 +439,8 @@ class AssignService(ChannelSelectionBase):
 		self.m3ufolder = None
 		self.m3ufile = None
 		self.path = None
-		self["titlelist"] = Label(_(language.get(lang, "11")))
-		self["titlelist2"] = Label()
+		self["titleChannelsList"] = Label(_(language.get(lang, "11")))
+		self["titleSuscriptionList"] = Label()
 		self["status"] = Label()
 		self["please"] = Label()
 		self["description"] = Label()
@@ -684,9 +684,9 @@ class AssignService(ChannelSelectionBase):
 
 	def getUserData(self):
 		if not self.secondSuscription:
-			self["titlelist2"].setText(_(language.get(lang, "12")))
+			self["titleSuscriptionList"].setText(_(language.get(lang, "12")))
 		else:
-			self["titlelist2"].setText(_(language.get(lang, "44")))
+			self["titleSuscriptionList"].setText(_(language.get(lang, "44")))
 		if not fileContains(CONFIG_PATH, "pass") and self.storage:
 			self["status"].hide()
 			self["description"].setText(_(language.get(lang, "60")))
