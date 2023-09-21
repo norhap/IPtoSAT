@@ -1425,7 +1425,7 @@ class EditPlaylist(Screen):
 		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="536,583" size="860,60" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="status" position="360,562" size="860,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -1505,16 +1505,22 @@ class EditPlaylist(Screen):
 			self['list'].hide()
 
 	def keyGreen(self):
-		index = self['list'].getSelectionIndex()
-		playlist = self.playlist['playlist']
-		try:
-			if self.playlist and range(len(self.channels)):
-				del playlist[index]
-				with open(PLAYLIST_PATH, 'w')as f:
-					dump(self.playlist, f , indent = 4)
-			self.iniMenu()
-		except Exception as err:
-			print("ERROR: %s" % str(err))
+		index = self['list'].getCurrent()
+		message = _(language.get(lang, "104"))
+		self.session.openWithCallback(self.deleteChannel, MessageBox, message + str(index), MessageBox.TYPE_YESNO, default=False)
+
+	def deleteChannel(self, answer):
+		if answer:
+			index = self['list'].getSelectionIndex()
+			playlist = self.playlist['playlist']
+			try:
+				if self.playlist and range(len(self.channels)):
+					del playlist[index]
+					with open(PLAYLIST_PATH, 'w')as f:
+						dump(self.playlist, f , indent = 4)
+				self.iniMenu()
+			except Exception as err:
+				print("ERROR: %s" % str(err))
 
 	def deletelistJSON(self, answer):
 		if answer:
