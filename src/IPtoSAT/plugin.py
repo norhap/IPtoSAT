@@ -9,7 +9,7 @@ from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.MenuList import MenuList
 from Components.Label import Label
-from Components.SystemInfo import BoxInfo
+from Components.SystemInfo import BoxInfo, MODEL
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
@@ -532,10 +532,10 @@ class AssignService(ChannelSelectionBase):
 				if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
 					if exists(self.path) and listdir(self.path):
 						self.storage = True
-						self.backupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
-						self.alternatefolder = join(self.path, "IPToSAT/AlternateList")
-						self.changefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
-						self.m3ufolder = join(self.path, "IPToSAT/M3U")
+						self.backupdirectory = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
+						self.alternatefolder = join(self.path, "IPToSAT/%s/AlternateList" % MODEL)
+						self.changefolder = join(self.path, "IPToSAT/%s/ChangeSuscriptionList" % MODEL)
+						self.m3ufolder = join(self.path, "IPToSAT/%s/M3U" % MODEL)
 						self.m3ufile = join(self.m3ufolder, "tv_channels.m3u")
 						backupfiles = ""
 						bouquetiptosatepg = ""
@@ -547,6 +547,31 @@ class AssignService(ChannelSelectionBase):
 								self.backupChannelsListStorage = True
 							if exists(bouquetiptosatepg):
 								self["key_red"].setText(_(language.get(lang, "18")))
+		except Exception as err:
+			print("ERROR: %s" % str(err))
+		try:  # user help move old directory REMOVE LINE 552 to 576 coming soon
+			for partition in harddiskmanager.getMountedPartitions():
+				self.path = normpath(partition.mountpoint)
+				if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+					if exists(self.path) and listdir(self.path):
+						oldbackupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
+						oldealternatefolder = join(self.path, "IPToSAT/AlternateList")
+						oldchangefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
+						oldm3ufolder = join(self.path, "IPToSAT/M3U")
+						oldchannelslists = join(self.path, "IPToSAT/ChannelsLists")
+						newdirectorywork = join(self.path, "IPToSAT/" + MODEL)
+						if not exists(newdirectorywork):
+							makedirs(newdirectorywork)
+						if exists(oldbackupdirectory):
+							move(oldbackupdirectory, newdirectorywork)
+						if exists(oldealternatefolder):
+							move(oldealternatefolder, newdirectorywork)
+						if exists(oldchangefolder):
+							move(oldchangefolder, newdirectorywork)
+						if exists(oldm3ufolder):
+							move(oldm3ufolder, newdirectorywork)
+						if exists(oldchannelslists):
+							eConsoleAppContainer().execute("rm -rf " + oldchannelslists)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -867,7 +892,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			try:
 				backupfiles = ""
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
 						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
@@ -913,10 +938,10 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			bouquetiptosatepg = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
@@ -941,7 +966,7 @@ class AssignService(ChannelSelectionBase):
 				enigma2files = ""
 				if not exists(self.backupdirectory):
 					makedirs(self.backupdirectory)
-				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
 				if backupfiles:
 					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + self.backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
@@ -1619,7 +1644,7 @@ class InstallChannelsLists(Screen):
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
 				self.storage = True
-				self.folderlistchannels = join(self.path, "IPToSAT/ChannelsLists")
+				self.folderlistchannels = join(self.path, "IPToSAT/%s/ChannelsLists" % MODEL)
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
 				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
 				if not exists(self.folderlistchannels):
