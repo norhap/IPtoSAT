@@ -1494,7 +1494,7 @@ class EditPlaylist(Screen):
 						with open(PLAYLIST_PATH, 'w')as f:
 							dump(self.playlist, f , indent = 4)
 					self.iniMenu()
-		except Exception as err:
+		except Exception:
 			if exists(PLAYLIST_PATH):
 				with open(PLAYLIST_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"playlist": []' + "\n" + "}")
@@ -1511,7 +1511,8 @@ class EditPlaylist(Screen):
 				try:
 					reference = channel['sref'][7:11] if ":" not in channel['sref'][7:11] else channel['sref'][6:10]
 					list.append(str(channel['channel'] + "   " + reference))
-				except KeyError:pass
+				except KeyError:
+					pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self.channels = sorted(list)
@@ -1664,7 +1665,8 @@ class InstallChannelsLists(Screen):
 			for listtype in self.listChannels['channelslists']:
 				try:
 					list.append(str(listtype['listtype']))
-				except KeyError:pass
+				except KeyError:
+					pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self["status"].setText(_(language.get(lang, "92")))
