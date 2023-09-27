@@ -1,4 +1,4 @@
-from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB ,eConsoleAppContainer, getDesktop
+from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB, eConsoleAppContainer, getDesktop
 from Screens.ChannelSelection import ChannelSelectionBase
 from Components.ServiceList import ServiceList
 from Screens.Screen import Screen
@@ -58,7 +58,7 @@ try:
 	language.read(LANGUAGE_PATH, encoding="utf8")
 except:
 	try:
-		lang="en"
+		lang = "en"
 		language = ConfigParser()
 		language.read(LANGUAGE_PATH, encoding="utf8")
 	except:
@@ -68,11 +68,11 @@ except:
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gst-play-1.0", _("OE-2.5 Player")),("exteplayer3", _("ExtEplayer3")),]
+		return [("gst-play-1.0", _("OE-2.5 Player")), ("exteplayer3", _("ExtEplayer3")),]
 	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
 		return [("gstplayer", _("GstPlayer"))]
 	else:
-		return [("gstplayer", _("GstPlayer")),("exteplayer3", _("ExtEplayer3")),]
+		return [("gstplayer", _("GstPlayer")), ("exteplayer3", _("ExtEplayer3")),]
 
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
@@ -80,9 +80,9 @@ config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
-config.plugins.IPToSAT.assign = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
-config.plugins.IPToSAT.playlist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
-config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices = [("1", _(language.get(lang, "34")))], default = "1")
+config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
+config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
+config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
 
 
 def trace_error():
@@ -804,9 +804,9 @@ class AssignService(ChannelSelectionBase):
 				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref):
 					from unicodedata import normalize
-					playlist['playlist'].append({'sref':sref,'channel':normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url':url})
+					playlist['playlist'].append({'sref': sref, 'channel': normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url': url})
 					with open(PLAYLIST_PATH, 'w') as f:
-						dump(playlist, f, indent = 4)
+						dump(playlist, f, indent=4)
 					if fileContains(PLAYLIST_PATH, sref):
 						text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
 						self.assignWidget("#008000", text)
@@ -1468,8 +1468,8 @@ class EditPlaylist(Screen):
 			"back": self.close,
 			"cancel": self.exit,
 			"red": self.keyRed,
-			"green":self.keyGreen,
-			"ok":self.keyGreen,
+			"green": self.keyGreen,
+			"ok": self.keyGreen,
 			"left": self.goLeft,
 			"right": self.goRight,
 			"down": self.moveDown,
@@ -1492,7 +1492,7 @@ class EditPlaylist(Screen):
 						del playlist[index]
 						print(index)
 						with open(PLAYLIST_PATH, 'w')as f:
-							dump(self.playlist, f , indent = 4)
+							dump(self.playlist, f, indent=4)
 					self.iniMenu()
 		except Exception:
 			if exists(PLAYLIST_PATH):
@@ -1543,7 +1543,7 @@ class EditPlaylist(Screen):
 				if self.playlist and range(len(self.channels)):
 					del playlist[index]
 					with open(PLAYLIST_PATH, 'w')as f:
-						dump(self.playlist, f , indent = 4)
+						dump(self.playlist, f, indent=4)
 				self.iniMenu()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1552,7 +1552,7 @@ class EditPlaylist(Screen):
 		if answer:
 			self.playlist['playlist'] = []
 			with open(PLAYLIST_PATH, 'w') as f:
-				dump(self.playlist, f , indent = 4)
+				dump(self.playlist, f, indent=4)
 			self.iniMenu()
 		else:
 			self.iniMenu()
@@ -1625,8 +1625,8 @@ class InstallChannelsLists(Screen):
 			"back": self.close,
 			"cancel": self.exit,
 			"red": self.keyRed,
-			"green":self.keyGreen,
-			"ok":self.keyGreen,
+			"green": self.keyGreen,
+			"ok": self.keyGreen,
 			"yellow": self.getListsRepositories,
 			"blue": self.getSourceUpdated,
 			"left": self.goLeft,
@@ -1707,11 +1707,11 @@ class InstallChannelsLists(Screen):
 						for index in update:
 							index = index.replace("[", "")
 				for folders in glob(junglerepository, recursive=True):
-					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources = getChannelsLists()
-					indexlistssources['channelslists'].append({'listtype':junglelists})
+					indexlistssources['channelslists'].append({'listtype': junglelists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent = 4)
+						dump(indexlistssources, f, indent=4)
 				## SORYS VUPLUSMANIA
 				if exists(self.zip_sorys_vuplusmania):
 					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
@@ -1726,11 +1726,11 @@ class InstallChannelsLists(Screen):
 						for index in update:
 							index = index.replace("[", "")
 				for folders in glob(sorysrepository, recursive=True):
-					soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources = getChannelsLists()
-					indexlistssources['channelslists'].append({'listtype':soryslists})
+					indexlistssources['channelslists'].append({'listtype': soryslists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent = 4)
+						dump(indexlistssources, f, indent=4)
 				vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
 				vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
 				vuplusmanialists = ""
@@ -1741,11 +1741,11 @@ class InstallChannelsLists(Screen):
 						for index in update:
 							index = index.replace("[", "")
 				for folders in glob(vuplusmaniarepository, recursive=True):
-					vuplusmanialists = str([folders.split('main/')[1], index])[1:-1].replace('\'','').replace(',', '   ')
+					vuplusmanialists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources = getChannelsLists()
-					indexlistssources['channelslists'].append({'listtype':vuplusmanialists})
+					indexlistssources['channelslists'].append({'listtype': vuplusmanialists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent = 4)
+						dump(indexlistssources, f, indent=4)
 				sleep(5)  ## TODO
 				self.listChannels = getChannelsLists()
 				workdirectory = self.folderlistchannels + '/*'
