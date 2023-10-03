@@ -68,11 +68,11 @@ except:
 def choices_list():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gst-play-1.0", _("OE-2.5 Player")), ("exteplayer3", _("ExtEplayer3")),]
+		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
 	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
-		return [("gstplayer", _("GstPlayer"))]
+		return [("gstplayer", "GstPlayer")]
 	else:
-		return [("gstplayer", _("GstPlayer")), ("exteplayer3", _("ExtEplayer3")),]
+		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
 
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
@@ -80,9 +80,9 @@ config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
-config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
-config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
-config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", _(language.get(lang, "34")))], default="1")
+config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 
 
 def trace_error():
@@ -155,7 +155,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["IPToSATSetup"]
-		self.setup_title = (_(language.get(lang, "13")))
+		self.setup_title = language.get(lang, "13")
 		self.storage = False
 		self.path = None
 		self.onChangedEntry = []
@@ -178,23 +178,23 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				if exists(self.path) and listdir(self.path):
 					self.storage = True
-		self["key_red"] = Label(_("Cancel"))
-		self["key_green"] = Label(_("Save"))
-		self["footnote"] = Label(_(language.get(lang, "99")))
+		self["key_red"] = Label(_("Cancel"))  # noqa: F821
+		self["key_green"] = Label(_("Save"))  # noqa: F821
+		self["footnote"] = Label(language.get(lang, "99"))
 		self.createSetup()
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.setTitle(_(language.get(lang, "13")))
+		self.setTitle(language.get(lang, "13"))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(_(language.get(lang, "14")), config.plugins.IPToSAT.enable)]
-		self.list.append(getConfigListEntry(_(language.get(lang, "15")), config.plugins.IPToSAT.assign))
-		self.list.append(getConfigListEntry(_(language.get(lang, "16")), config.plugins.IPToSAT.playlist))
+		self.list = [getConfigListEntry(language.get(lang, "14"), config.plugins.IPToSAT.enable)]
+		self.list.append(getConfigListEntry(language.get(lang, "15"), config.plugins.IPToSAT.assign))
+		self.list.append(getConfigListEntry(language.get(lang, "16"), config.plugins.IPToSAT.playlist))
 		if self.storage:
-			self.list.append(getConfigListEntry(_(language.get(lang, "88")), config.plugins.IPToSAT.installchannelslist))
-		self.list.append(getConfigListEntry(_(language.get(lang, "17")), config.plugins.IPToSAT.player))
-		self.list.append(getConfigListEntry(_(language.get(lang, "98")), config.plugins.IPToSAT.mainmenu))
+			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
+		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
+		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
@@ -439,7 +439,7 @@ class AssignService(ChannelSelectionBase):
 		self.m3ufolder = None
 		self.m3ufile = None
 		self.path = None
-		self["titleChannelsList"] = Label(_(language.get(lang, "11")))
+		self["titleChannelsList"] = Label(language.get(lang, "11"))
 		self["titleSuscriptionList"] = Label()
 		self["status"] = Label()
 		self["please"] = Label()
@@ -453,8 +453,8 @@ class AssignService(ChannelSelectionBase):
 		self["key_volumeup"] = StaticText("")
 		self["key_volumedown"] = StaticText("")
 		self["key_stop"] = StaticText("")
-		self["key_green"] = StaticText(_(language.get(lang, "36")))
-		self["key_blue"] = StaticText(_(language.get(lang, "37")))
+		self["key_green"] = StaticText(language.get(lang, "36"))
+		self["key_blue"] = StaticText(language.get(lang, "37"))
 		self["key_yellow"] = StaticText("")
 		self["key_red"] = StaticText("")
 		self["key_epg"] = StaticText("EPG")
@@ -496,7 +496,7 @@ class AssignService(ChannelSelectionBase):
 		}, -2)
 		self.errortimer = eTimer()
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
-			self["key_yellow"].setText(_(language.get(lang, "32")))
+			self["key_yellow"].setText(language.get(lang, "32"))
 		if not exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as fw:
 				fw.write("[IPToSat]" + "\n" + 'Host=http://host:port' + "\n" + "User=user" + "\n" + "Pass=pass")
@@ -504,12 +504,12 @@ class AssignService(ChannelSelectionBase):
 			self["key_rec"].setText("REC")
 		if self.storage and not fileContains(CONFIG_PATH, "pass"):
 			self["key_tv"].setText("TV")
-			self["description"].setText(_(language.get(lang, "60")))
+			self["description"].setText(language.get(lang, "60"))
 		elif self.storage and fileContains(CONFIG_PATH, "pass"):
 			self["key_tv"].setText("TV")
-			self["description"].setText(_(language.get(lang, "78")))
+			self["description"].setText(language.get(lang, "78"))
 		else:
-			self["description"] = Label(_(language.get(lang, "0")))
+			self["description"] = Label(language.get(lang, "0"))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except:
@@ -546,7 +546,7 @@ class AssignService(ChannelSelectionBase):
 								self["key_audio"].setText("AUDIO")
 								self.backupChannelsListStorage = True
 							if exists(bouquetiptosatepg):
-								self["key_red"].setText(_(language.get(lang, "18")))
+								self["key_red"].setText(language.get(lang, "18"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 		try:  # user help move old directory REMOVE LINE 552 to 576 coming soon
@@ -577,9 +577,9 @@ class AssignService(ChannelSelectionBase):
 
 	def showHelpChangeList(self):
 		if self.storage:
-			self["play"].setText(_(language.get(lang, "58")))
+			self["play"].setText(language.get(lang, "58"))
 		else:
-			self["play"].setText(_(language.get(lang, "61")))
+			self["play"].setText(language.get(lang, "61"))
 			self["key_volumeup"] = StaticText("")
 			self["key_volumedown"] = StaticText("")
 			self["key_stop"] = StaticText("")
@@ -589,13 +589,13 @@ class AssignService(ChannelSelectionBase):
 		self["help"].hide()
 		self["helpbouquetepg"].hide()
 		self["play"].show()
-		self["key_volumeup"].setText(_(language.get(lang, "39")))
-		self["key_volumedown"].setText(_(language.get(lang, "47")))
-		self["key_stop"].setText(_(language.get(lang, "51")))
+		self["key_volumeup"].setText(language.get(lang, "39"))
+		self["key_volumedown"].setText(language.get(lang, "47"))
+		self["key_stop"].setText(language.get(lang, "51"))
 
 	def showHelpEPG(self):
-		epghelp = _(language.get(lang, "9"))
-		helpbouquetepg = _(language.get(lang, "74"))
+		epghelp = language.get(lang, "9")
+		helpbouquetepg = language.get(lang, "74")
 		self["description"].hide()
 		self["key_0"].setText("0")
 		self["play"].hide()
@@ -709,20 +709,20 @@ class AssignService(ChannelSelectionBase):
 
 	def getUserData(self):
 		if not self.secondSuscription:
-			self["titleSuscriptionList"].setText(_(language.get(lang, "12")))
+			self["titleSuscriptionList"].setText(language.get(lang, "12"))
 		else:
-			self["titleSuscriptionList"].setText(_(language.get(lang, "44")))
+			self["titleSuscriptionList"].setText(language.get(lang, "44"))
 		if not fileContains(CONFIG_PATH, "pass") and self.storage:
 			self["status"].hide()
-			self["description"].setText(_(language.get(lang, "60")))
+			self["description"].setText(language.get(lang, "60"))
 		if fileContains(CONFIG_PATH, "pass") and not self.storage:
 			self["status"].show()
-			self["status"].setText(_(language.get(lang, "72")))
+			self["status"].setText(language.get(lang, "72"))
 			self["description"].hide()
 		if exists(SOURCE_BOUQUET_IPTV):
 			self["key_menu"] = StaticText("MENU")
 			self["codestatus"].show()
-			self["codestatus"].setText(_(language.get(lang, "6")))
+			self["codestatus"].setText(language.get(lang, "6"))
 		else:
 			self["codestatus"].hide()
 		if fileExists(CONFIG_PATH):
@@ -741,7 +741,7 @@ class AssignService(ChannelSelectionBase):
 			self.close(True)
 
 	def errorMessage(self):
-		self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "19")), MessageBox.TYPE_ERROR, timeout=10)
+		self.session.openWithCallback(self.exit, MessageBox, language.get(lang, "19"), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getCategories(self, url):
 		url += '&action=get_live_categories'
@@ -749,7 +749,7 @@ class AssignService(ChannelSelectionBase):
 
 	def channelSelected(self):
 		if exists(SOURCE_BOUQUET_IPTV):
-			self["codestatus"].setText(_(language.get(lang, "6")))
+			self["codestatus"].setText(language.get(lang, "6"))
 		else:
 			self["codestatus"].hide()
 		if self.selectedList == self["list"]:
@@ -774,7 +774,7 @@ class AssignService(ChannelSelectionBase):
 
 	def channelSelectedForce(self):
 		if exists(SOURCE_BOUQUET_IPTV):
-			self["codestatus"].setText(_(language.get(lang, "6")))
+			self["codestatus"].setText(language.get(lang, "6"))
 		else:
 			self["codestatus"].hide()
 		if self.selectedList == self["list"]:
@@ -808,17 +808,17 @@ class AssignService(ChannelSelectionBase):
 					with open(PLAYLIST_PATH, 'w') as f:
 						dump(playlist, f, indent=4)
 					if fileContains(PLAYLIST_PATH, sref):
-						text = channel_name + " " + _(language.get(lang, "21")) + " " + xtream_channel
+						text = (channel_name + " " + language.get(lang, "21") + " " + xtream_channel)
 						self.assignWidget("#008000", text)
 				else:
 					reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
-					text = channel_name + " " + _(language.get(lang, "20") + "  " + reference)
+					text = (channel_name + " " + language.get(lang, "20") + "  " + reference)
 					self.assignWidget("#00ff2525", text)
 			else:
-				text = _(language.get(lang, "23"))
+				text = (language.get(lang, "23"))
 				self.assignWidget("#00ff2525", text)
 		else:
-			text = _(language.get(lang, "22"))
+			text = (language.get(lang, "22"))
 			self.assignWidget("#00ff2525", text)
 
 	def restarGUI(self, answer):
@@ -831,7 +831,7 @@ class AssignService(ChannelSelectionBase):
 		if exists(SOURCE_BOUQUET_IPTV):
 			self.Console.ePopen("rm -f " + SOURCE_BOUQUET_IPTV)
 			if not exists(SOURCE_BOUQUET_IPTV):
-				text = _(language.get(lang, "35"))
+				text = (language.get(lang, "35"))
 				self['codestatus'].hide()
 				self['managerlistchannels'].show()
 				self.assignWidgetScript("#008000", text)
@@ -845,18 +845,18 @@ class AssignService(ChannelSelectionBase):
 					with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
 						newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
 						with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
-								bouquetstvread = bouquetstvread.readlines()
-								for linesbouquet in bouquetstvread:
-									if "#NAME User - Bouquets (TV)" not in linesbouquet:
-										newbouquetstvwrite.write(linesbouquet)
+							bouquetstvread = bouquetstvread.readlines()
+							for linesbouquet in bouquetstvread:
+								if "#NAME User - Bouquets (TV)" not in linesbouquet:
+									newbouquetstvwrite.write(linesbouquet)
 					move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					copy(IPToSAT_EPG, ENIGMA2_PATH)
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-					self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "80")), MessageBox.TYPE_INFO, simple=True, timeout=5)
+					self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "80"), MessageBox.TYPE_INFO, simple=True, timeout=5)
 				else:
-					self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + _(language.get(lang, "82")), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "82"), MessageBox.TYPE_INFO)
 			except Exception as err:
-				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def installBouquetIPToSATEPG(self):
 		if self.storage:
@@ -865,9 +865,9 @@ class AssignService(ChannelSelectionBase):
 				for file in [x for x in listdir(self.backupdirectory) if FILE_IPToSAT_EPG in x]:
 					IPToSAT_EPG = join(self.backupdirectory, file)
 				if IPToSAT_EPG:
-					self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
+					self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, language.get(lang, "79") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
 				else:
-					self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + self.backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
+					self.session.open(MessageBox, language.get(lang, "81") + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + self.backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -876,7 +876,7 @@ class AssignService(ChannelSelectionBase):
 			backupfiles = ""
 			enigma2files = ""
 			if answer:
-				self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
+				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
@@ -886,7 +886,7 @@ class AssignService(ChannelSelectionBase):
 								remove(enigma2files)
 				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + "/" + "*" + " " + ENIGMA2_PATH + "/" + ' && init 3')
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def installChannelsList(self):
 		if self.storage:
@@ -895,10 +895,10 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
-						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, _(language.get(lang, "71")), MessageBox.TYPE_YESNO)
+						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, language.get(lang, "71"), MessageBox.TYPE_YESNO)
 						break
 					else:
-						self.session.open(MessageBox, _(language.get(lang, "70")), MessageBox.TYPE_ERROR, default=False, timeout=10)
+						self.session.open(MessageBox, language.get(lang, "70"), MessageBox.TYPE_ERROR, default=False, timeout=10)
 						break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -911,7 +911,7 @@ class AssignService(ChannelSelectionBase):
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
-					self.assignWidgetScript("#008000", _(language.get(lang, "68")))
+					self.assignWidgetScript("#008000", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
 						self["status"].show()
 					self["key_rec"].setText("")
@@ -927,7 +927,7 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if x.endswith(".radio") or x.endswith(".tv")]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
-						self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, _(language.get(lang, "67")), MessageBox.TYPE_YESNO)
+						self.session.openWithCallback(self.doDeleteChannelsList, MessageBox, language.get(lang, "67"), MessageBox.TYPE_YESNO)
 						break
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -949,11 +949,11 @@ class AssignService(ChannelSelectionBase):
 					if fileContains(CONFIG_PATH, "pass"):
 						self["status"].show()
 				self['managerlistchannels'].show()
-				self.assignWidgetScript("#008000", _(language.get(lang, "66")))
+				self.assignWidgetScript("#008000", language.get(lang, "66"))
 				self["key_rec"].setText("REC")
 				self["key_audio"].setText("AUDIO")
 				if exists(bouquetiptosatepg):
-					self["key_red"].setText(_(language.get(lang, "18")))
+					self["key_red"].setText(language.get(lang, "18"))
 			else:
 				self.showFavourites()
 		except Exception as err:
@@ -969,9 +969,9 @@ class AssignService(ChannelSelectionBase):
 				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
 				if backupfiles:
-					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "63")) + " " + self.backupdirectory + "/" + "\n\n" + _(language.get(lang, "64")), MessageBox.TYPE_YESNO)
+					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, language.get(lang, "63") + " " + self.backupdirectory + "/" + "\n\n" + language.get(lang, "64"), MessageBox.TYPE_YESNO)
 				else:
-					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, _(language.get(lang, "65")), MessageBox.TYPE_YESNO)
+					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, language.get(lang, "65"), MessageBox.TYPE_YESNO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1000,7 +1000,7 @@ class AssignService(ChannelSelectionBase):
 							if exists(SOURCE_BOUQUET_IPTV):
 								eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 						if "IPTV_IPToSAT" in BouquetIPToSAT:
-							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + _(language.get(lang, "38")), MessageBox.TYPE_INFO, simple=True, timeout=10)
+							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + language.get(lang, "38"), MessageBox.TYPE_INFO, simple=True, timeout=10)
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1037,29 +1037,29 @@ class AssignService(ChannelSelectionBase):
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(self.m3ufile):
 										self['managerlistchannels'].show()
-										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
+										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 									else:
 										self['managerlistchannels'].show()
-										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
+										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 							elif 'bouquet=""' not in line:
 								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 								if exists(self.m3ufile):
 									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
+									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 								else:
 									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
+									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 							else:
 								if exists(self.m3ufile):
 									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + _(language.get(lang, "5")) + "\n" + _(language.get(lang, "100")) + " " + self.m3ufile)
-								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, _(language.get(lang, "8")), MessageBox.TYPE_YESNO, default=False)
+									self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
 				if exists(self.m3ufile) and not isPluginInstalled("MediaPlayer"):
 					eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
-				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
-			self.session.open(MessageBox, _(language.get(lang, "33")), MessageBox.TYPE_ERROR, default=False, timeout=5)
+			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False, timeout=5)
 
 	def userEditionResult(self, channel_name, sref):
 		epg_channel_name = channel_name.upper()
@@ -1067,7 +1067,7 @@ class AssignService(ChannelSelectionBase):
 			bouquetiptv = join(filelist)
 			if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):
 				reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
-				self.session.open(MessageBox, _(language.get(lang, "84")) + "\n\n" + ":" + epg_channel_name + "\n\n" + _(language.get(lang, "94")) + "\n\n" + reference, MessageBox.TYPE_ERROR)
+				self.session.open(MessageBox, language.get(lang, "84") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + reference, MessageBox.TYPE_ERROR)
 				break
 
 	def setEPGChannel(self):
@@ -1081,7 +1081,7 @@ class AssignService(ChannelSelectionBase):
 				self.addEPGChannel(channel_name, sref)
 			else:
 				self['managerlistchannels'].show()
-				text = _(language.get(lang, "83"))
+				text = (language.get(lang, "83"))
 				self.assignWidgetScript("#00ff2525", text)
 
 	def searchBouquetIPTV(self):
@@ -1093,13 +1093,13 @@ class AssignService(ChannelSelectionBase):
 			bouquetiptv = join(filelist)
 			if fileContains("/etc/enigma2/" + bouquetiptv, channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, "http"):
 				self['managerlistchannels'].show()
-				text = _("/etc/enigma2/" + bouquetiptv)
+				text = ("/etc/enigma2/" + bouquetiptv)
 				self.assignWidgetScript("#008000", text)
 				iptv_channels = True
 				break
 		if not iptv_channels:
 			self['managerlistchannels'].show()
-			text = _(language.get(lang, "86"))
+			text = (language.get(lang, "86"))
 			self.assignWidgetScript("#00ff2525", text)
 		self.showFavourites()
 
@@ -1166,20 +1166,20 @@ class AssignService(ChannelSelectionBase):
 						with open("/etc/enigma2/newbouquetstv.txt", "a") as newbouquetstvwrite:
 							newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
 							with open("/etc/enigma2/bouquets.tv", "r") as bouquetstvread:
-									bouquetstvread = bouquetstvread.readlines()
-									for linesbouquet in bouquetstvread:
-										if "#NAME User - Bouquets (TV)" not in linesbouquet:
-											newbouquetstvwrite.write(linesbouquet)
+								bouquetstvread = bouquetstvread.readlines()
+								for linesbouquet in bouquetstvread:
+									if "#NAME User - Bouquets (TV)" not in linesbouquet:
+										newbouquetstvwrite.write(linesbouquet)
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
-					self.session.open(MessageBox, _(language.get(lang, "24")) + epg_channel_name + "\n\n" + _(language.get(lang, "75")) + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
 				if fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
-					self.session.open(MessageBox, _(language.get(lang, "85")) + "#DESCRIPTION " + epg_channel_name + "\n\n" + _(language.get(lang, "93")) + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "85") + "#DESCRIPTION " + epg_channel_name + "\n\n" + language.get(lang, "93") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
-				self.session.open(MessageBox, epg_channel_name + " " + _(language.get(lang, "76")), MessageBox.TYPE_INFO)
+				self.session.open(MessageBox, epg_channel_name + " " + language.get(lang, "76"), MessageBox.TYPE_INFO)
 				break
 		self.userEditionResult(epg_channel_name, sref)
 
@@ -1188,9 +1188,9 @@ class AssignService(ChannelSelectionBase):
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			iptosat2conf = join(self.changefolder, "iptosat.conf")
 			if exists(iptosatconf) or exists(iptosat2conf):
-				self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, _(language.get(lang, "57")), MessageBox.TYPE_YESNO, default=False)
+				self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, language.get(lang, "57"), MessageBox.TYPE_YESNO, default=False)
 			else:
-				self.session.open(MessageBox, _(language.get(lang, "43")), MessageBox.TYPE_INFO)
+				self.session.open(MessageBox, language.get(lang, "43"), MessageBox.TYPE_INFO)
 
 	def purgeDeviceFiles(self, answer):
 		if answer:
@@ -1202,7 +1202,7 @@ class AssignService(ChannelSelectionBase):
 				if exists(iptosat2conf):
 					remove(iptosat2conf)
 				if not exists(iptosatconf) or not exists(iptosat2conf):
-					self.session.open(MessageBox, _(language.get(lang, "52")), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "52"), MessageBox.TYPE_INFO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1219,7 +1219,7 @@ class AssignService(ChannelSelectionBase):
 				if not exists(self.alternatefolder):
 					makedirs(self.alternatefolder)
 				if not exists(iptosat2conf) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf):
-					self.session.open(MessageBox, _(language.get(lang, "40")) + "\n\n" + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/", MessageBox.TYPE_INFO)
 				if exists(CONFIG_PATH) and exists(iptosat2conf):
 					move(CONFIG_PATH, iptosatlist1conf)
 					move(iptosat2conf, fileconf)
@@ -1247,7 +1247,7 @@ class AssignService(ChannelSelectionBase):
 				if exists(iptosat2change):
 					move(iptosat2change, iptosatlist1conf)
 			else:
-				self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1260,7 +1260,7 @@ class AssignService(ChannelSelectionBase):
 			if answer:
 				move(iptosat2change, iptosatlist2conf)
 			else:
-				self.session.open(MessageBox, _(language.get(lang, "46")) + "\n\n" + _(language.get(lang, "42")), MessageBox.TYPE_INFO)
+				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1282,30 +1282,30 @@ class AssignService(ChannelSelectionBase):
 					self.getUserData()
 					host = open(fileconf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-					self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "73")) + self.host + "\n\n" + _(language.get(lang, "59")) + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "73") + self.host + "\n\n" + language.get(lang, "59") + self.alternatefolder + "/", MessageBox.TYPE_INFO)
 				if not exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
-					self.session.open(MessageBox, _(language.get(lang, "49")) + self.changefolder + "/" + "\n\n" + _(language.get(lang, "50")), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/" + "\n\n" + language.get(lang, "50"), MessageBox.TYPE_INFO)
 				if exists(iptosatconf) and exists(iptosat2change):
 					if exists(iptosatlist1conf):
 						remove(iptosatconf)
 					if exists(iptosatlist2conf):
 						remove(iptosatconf)
 					if exists(iptosatconf):
-						self.session.open(MessageBox, _(language.get(lang, "53")) + "\n\n" + iptosatconf + "\n\n" + _(language.get(lang, "54")) + "\n\n" + iptosat2change + "\n\n" + _(language.get(lang, "41")), MessageBox.TYPE_INFO)
+						self.session.open(MessageBox, language.get(lang, "53") + "\n\n" + iptosatconf + "\n\n" + language.get(lang, "54") + "\n\n" + iptosat2change + "\n\n" + language.get(lang, "41"), MessageBox.TYPE_INFO)
 				if exists(iptosatconf) and not exists(iptosat2change):
-					self.session.open(MessageBox, _(language.get(lang, "49")) + self.changefolder + "/", MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/", MessageBox.TYPE_INFO)
 				if exists(iptosatlist1conf) and exists(iptosat2change):
 					host = open(iptosatlist1conf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-					self.session.openWithCallback(self.doChangeList, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if exists(iptosatlist1conf) and not exists(iptosat2change):
-					self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + self.changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				if exists(iptosatlist2conf) and exists(iptosat2change):
 					host = open(iptosatlist2conf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
-					self.session.openWithCallback(self.doChangeList2, MessageBox, _(language.get(lang, "48")) + self.host + "\n\n" + _(language.get(lang, "45")), MessageBox.TYPE_YESNO, default=False)
+					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if exists(iptosatlist2conf) and not exists(iptosat2change):
-					self.session.open(MessageBox, _(language.get(lang, "55")) + "\n\n" + self.changefolder + "/" + _(language.get(lang, "56")), MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
 				self["codestatus"].hide()
 			except Exception as err:
@@ -1337,7 +1337,7 @@ class AssignService(ChannelSelectionBase):
 	def callAPI(self, url, callback):
 		self['list2'].hide()
 		self["please"].show()
-		self["please"].setText(_(language.get(lang, "31")))
+		self["please"].setText(language.get(lang, "31"))
 		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
 	def error(self, error=None):
@@ -1347,17 +1347,17 @@ class AssignService(ChannelSelectionBase):
 				self['list2'].hide()
 				self["status"].show()
 				if fileContains(CONFIG_PATH, "pass") and self.storage:
-					self["status"].setText(_(language.get(lang, "3")))
+					self["status"].setText(language.get(lang, "3"))
 					self["please"].hide()
 					self["codestatus"].hide()
 					self["key_menu"].setText("")
 				if fileContains(CONFIG_PATH, "pass") and not self.storage:
 					self["description"].hide()
-					self["status"].setText(_(language.get(lang, "72")))
+					self["status"].setText(language.get(lang, "72"))
 					self["codestatus"].hide()
 					self["key_menu"].setText("")
 				if not fileContains(CONFIG_PATH, "pass"):
-					self.session.openWithCallback(self.exit, MessageBox, _(language.get(lang, "4")), MessageBox.TYPE_ERROR)
+					self.session.openWithCallback(self.exit, MessageBox, language.get(lang, "4"), MessageBox.TYPE_ERROR)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -1458,7 +1458,7 @@ class EditPlaylist(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self.skinName = ["EditPlaylistIPToSAT"]
-		self.setTitle(_(language.get(lang, "26")))
+		self.setTitle(language.get(lang, "26"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
@@ -1498,11 +1498,11 @@ class EditPlaylist(Screen):
 			if exists(PLAYLIST_PATH):
 				with open(PLAYLIST_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"playlist": []' + "\n" + "}")
-				self["status"].setText(_(language.get(lang, "96")))
+				self["status"].setText(language.get(lang, "96"))
 			else:
 				with open(PLAYLIST_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"playlist": []' + "\n" + "}")
-				self["status"].setText(_(language.get(lang, "97")))
+				self["status"].setText(language.get(lang, "97"))
 
 	def iniMenu(self):
 		if self.playlist:
@@ -1517,22 +1517,22 @@ class EditPlaylist(Screen):
 				self['list'].l.setList(list)
 				self.channels = sorted(list)
 				self["status"].hide()
-				self["key_red"].setText(_(language.get(lang, "27")))
-				self["key_green"].setText(_(language.get(lang, "28")))
+				self["key_red"].setText(language.get(lang, "27"))
+				self["key_green"].setText(language.get(lang, "28"))
 				self["status"].show()
-				self["status"].setText(_(language.get(lang, "95")))
+				self["status"].setText(language.get(lang, "95"))
 			else:
-				self["status"].setText(_(language.get(lang, "29")))
+				self["status"].setText(language.get(lang, "29"))
 				self["status"].show()
 				self['list'].hide()
 		else:
-			self["status"].setText(_(language.get(lang, "30")))
+			self["status"].setText(language.get(lang, "30"))
 			self["status"].show()
 			self['list'].hide()
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
-		message = _(language.get(lang, "104"))
+		message = language.get(lang, "104")
 		self.session.openWithCallback(self.deleteChannel, MessageBox, message + str(index), MessageBox.TYPE_YESNO, default=False)
 
 	def deleteChannel(self, answer):
@@ -1558,7 +1558,7 @@ class EditPlaylist(Screen):
 			self.iniMenu()
 
 	def keyRed(self):
-		message = _(language.get(lang, "7"))
+		message = language.get(lang, "7")
 		if self.playlist and len(self.channels) > 0:
 			self.session.openWithCallback(self.deletelistJSON, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
@@ -1613,12 +1613,12 @@ class InstallChannelsLists(Screen):
 		self.zip_sorys_vuplusmania = None
 		self.path = None
 		self.skinName = ["InstallChannelsListsIPToSAT"]
-		self.setTitle(_(language.get(lang, "88")))
+		self.setTitle(language.get(lang, "88"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
-		self["key_blue"] = StaticText(_(language.get(lang, "102")))
+		self["key_blue"] = StaticText(language.get(lang, "102"))
 		self["status"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
@@ -1659,7 +1659,7 @@ class InstallChannelsLists(Screen):
 		if not exists(CHANNELS_LISTS_PATH):
 			with open(CHANNELS_LISTS_PATH, 'w') as fw:
 				fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-		self["key_yellow"].setText(_(language.get(lang, "92")))
+		self["key_yellow"].setText(language.get(lang, "92"))
 		if self.listChannels:
 			list = []
 			for listtype in self.listChannels['channelslists']:
@@ -1669,15 +1669,15 @@ class InstallChannelsLists(Screen):
 					pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
-				self["status"].setText(_(language.get(lang, "92")))
-				self["key_red"].setText(_(language.get(lang, "89")))
-				self["key_green"].setText(_(language.get(lang, "90")))
-				self["status"].setText(_(language.get(lang, "2")))
+				self["status"].setText(language.get(lang, "92"))
+				self["key_red"].setText(language.get(lang, "89"))
+				self["key_green"].setText(language.get(lang, "90"))
+				self["status"].setText(language.get(lang, "2"))
 
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
 		if channelslists and self.storage:
-			self.session.openWithCallback(self.doInstallChannelsList, MessageBox, _(language.get(lang, "91")) + " " + channelslists, MessageBox.TYPE_YESNO)
+			self.session.openWithCallback(self.doInstallChannelsList, MessageBox, language.get(lang, "91") + " " + channelslists, MessageBox.TYPE_YESNO)
 
 	def keyRed(self):
 		self.close(True)
@@ -1758,24 +1758,24 @@ class InstallChannelsLists(Screen):
 
 	def getListsRepositories(self):
 		if self.storage:
-			self.session.openWithCallback(self.doindexListsRepositories, MessageBox, _(language.get(lang, "87")), MessageBox.TYPE_YESNO)
+			self.session.openWithCallback(self.doindexListsRepositories, MessageBox, language.get(lang, "87"), MessageBox.TYPE_YESNO)
 
 	def getSourceUpdated(self):
 		if self.storage:
-			self.session.openWithCallback(self.dogetSourceUpdated, MessageBox, _(language.get(lang, "101")), MessageBox.TYPE_YESNO)
+			self.session.openWithCallback(self.dogetSourceUpdated, MessageBox, language.get(lang, "101"), MessageBox.TYPE_YESNO)
 
 	def dogetSourceUpdated(self, answer):
 		try:
 			if answer:
-				self.session.open(MessageBox, _(language.get(lang, "103")), MessageBox.TYPE_INFO, simple=True)
+				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				eConsoleAppContainer().execute('wget -O ' + self.folderlistchannels + "/" + "IPtoSAT-main.zip"' https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
-			self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
 		if answer:
-			self.session.open(MessageBox, _(language.get(lang, "77")), MessageBox.TYPE_INFO, simple=True)
+			self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
 			dirpath = ""
 			try:
 				if "Jungle-" in channelslists:
@@ -1800,7 +1800,7 @@ class InstallChannelsLists(Screen):
 					if exists(dirfiles):
 						eConsoleAppContainer().execute('sleep 15 && rm -rf ' + dirfiles)
 			except Exception as err:
-				self.session.open(MessageBox, _("ERROR: %s" % str(err)), MessageBox.TYPE_ERROR, default=False, timeout=10)
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def goRight(self):
 		self["list"].pageDown()
@@ -1824,7 +1824,7 @@ class InstallChannelsLists(Screen):
 def startMainMenu(menuid, **kwargs):
 	if menuid != "mainmenu":
 		return []
-	return [(_("IPToSAT"), iptosatSetup, "iptosat_menu", 1)]
+	return [("IPToSAT", iptosatSetup, "iptosat_menu", 1)]
 
 
 def autostart(reason, **kwargs):
@@ -1843,7 +1843,7 @@ def iptosatSetup(session, **kwargs):
 def Plugins(**kwargs):
 	Descriptors = []
 	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
-	Descriptors.append(PluginDescriptor(name="IPToSAT", description=_(language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " " + "{}".format(VERSION) + " " + "by norhap")), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
+	Descriptors.append(PluginDescriptor(name="IPToSAT", description=language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " " + "{}".format(VERSION) + " " + "by norhap"), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	if config.plugins.IPToSAT.mainmenu.value:
 		Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_MENU], fnc=startMainMenu))
 	return Descriptors
