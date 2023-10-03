@@ -1,12 +1,12 @@
 from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB, eConsoleAppContainer, getDesktop
 from Screens.ChannelSelection import ChannelSelectionBase
-from Components.ServiceList import ServiceList
+from Components.ServiceList import ServiceList  # noqa: F401
 from Screens.Screen import Screen
 from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
 from Components.ServiceEventTracker import ServiceEventTracker
-from Components.ConfigList import ConfigList, ConfigListScreen
+from Components.ConfigList import ConfigList, ConfigListScreen  # noqa: F401
 from Components.MenuList import MenuList
 from Components.Label import Label
 from Components.SystemInfo import BoxInfo, MODEL
@@ -175,7 +175,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		}, -2)
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
-			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				if exists(self.path) and listdir(self.path):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))
@@ -529,7 +529,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
-				if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(self.path) and listdir(self.path):
 						self.storage = True
 						self.backupdirectory = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
@@ -552,7 +552,7 @@ class AssignService(ChannelSelectionBase):
 		try:  # user help move old directory REMOVE LINE 552 to 576 coming soon
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
-				if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(self.path) and listdir(self.path):
 						oldbackupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
 						oldealternatefolder = join(self.path, "IPToSAT/AlternateList")
@@ -758,7 +758,7 @@ class AssignService(ChannelSelectionBase):
 				self.enterPath(ref)
 				self.in_bouquets = True
 		elif self.selectedList == self["list2"]:
-			if self.url and self.in_channels == False and len(self.categories) > 0:
+			if self.url and not self.in_channels and len(self.categories) > 0:
 				index = self['list2'].getSelectionIndex()
 				cat_id = self.categories[index][1]
 				url = self.url
@@ -783,7 +783,7 @@ class AssignService(ChannelSelectionBase):
 				self.enterPath(ref)
 				self.in_bouquets = True
 		elif self.selectedList == self["list2"]:
-			if self.url and self.in_channels == False and len(self.categories) > 0:
+			if self.url and not self.in_channels and len(self.categories) > 0:
 				index = self['list2'].getSelectionIndex()
 				cat_id = self.categories[index][1]
 				url = self.url
@@ -800,7 +800,7 @@ class AssignService(ChannelSelectionBase):
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
 		playlist = getPlaylist()
 		if playlist:
-			if sref.startswith('1') and not 'http' in sref:
+			if sref.startswith('1') and 'http' not in sref:
 				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref):
 					from unicodedata import normalize
@@ -867,7 +867,7 @@ class AssignService(ChannelSelectionBase):
 				if IPToSAT_EPG:
 					self.session.openWithCallback(self.doinstallBouquetIPToSATEPG, MessageBox, _(language.get(lang, "79")) + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_YESNO)
 				else:
-					self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
+					self.session.open(MessageBox, _(language.get(lang, "81")) + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + self.backupdirectory + "/", MessageBox.TYPE_ERROR, timeout=10)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
@@ -1041,7 +1041,7 @@ class AssignService(ChannelSelectionBase):
 									else:
 										self['managerlistchannels'].show()
 										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + _(language.get(lang, "5")))
-							elif not 'bouquet=""' in line:
+							elif 'bouquet=""' not in line:
 								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 								if exists(self.m3ufile):
 									self['managerlistchannels'].show()
@@ -1077,7 +1077,7 @@ class AssignService(ChannelSelectionBase):
 		if self.selectedList == self["list"]:
 			ref = self.getCurrentSelection()
 			ref_satellite = self.getSref()
-			if ref_satellite.startswith('1') and not 'http' in ref_satellite:
+			if ref_satellite.startswith('1') and 'http' not in ref_satellite:
 				self.addEPGChannel(channel_name, sref)
 			else:
 				self['managerlistchannels'].show()
@@ -1314,7 +1314,7 @@ class AssignService(ChannelSelectionBase):
 	def exists(self, sref, playlist):
 		try:
 			refs = [ref['sref'] for ref in playlist['playlist']]
-			return False if not sref in refs else True
+			return False if sref not in refs else True
 		except KeyError:
 			pass
 
@@ -1367,7 +1367,7 @@ class AssignService(ChannelSelectionBase):
 		if js != []:
 			for cat in js:
 				list.append((str(cat['category_name']),
-							 str(cat['category_id'])))
+					str(cat['category_id'])))
 		self['list2'].show()
 		self["please"].hide()
 		self['list2'].l.setList(list)
@@ -1643,7 +1643,7 @@ class InstallChannelsLists(Screen):
 	def chekScenarioToInstall(self):
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
-			if self.path != "/" and not "net" in self.path and not "autofs" in self.path:
+			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
 				self.folderlistchannels = join(self.path, "IPToSAT/%s/ChannelsLists" % MODEL)
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
@@ -1691,7 +1691,7 @@ class InstallChannelsLists(Screen):
 			try:
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-				## JUNGLE TEAM
+				# JUNGLE TEAM
 				eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
 				sleep(10)
 				if exists(self.zip_jungle):
@@ -1712,7 +1712,7 @@ class InstallChannelsLists(Screen):
 					indexlistssources['channelslists'].append({'listtype': junglelists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
-				## SORYS VUPLUSMANIA
+				# SORYS VUPLUSMANIA
 				if exists(self.zip_sorys_vuplusmania):
 					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
@@ -1746,7 +1746,7 @@ class InstallChannelsLists(Screen):
 					indexlistssources['channelslists'].append({'listtype': vuplusmanialists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
-				sleep(5)  ## TODO
+				sleep(5)  # TODO
 				self.listChannels = getChannelsLists()
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
