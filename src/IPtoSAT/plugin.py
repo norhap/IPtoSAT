@@ -176,7 +176,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
-				if exists(self.path) and listdir(self.path):
+				if exists(str(self.path)) and listdir(self.path):
 					self.storage = True
 		self["key_red"] = Label(_("Cancel"))  # noqa: F821
 		self["key_green"] = Label(_("Save"))  # noqa: F821
@@ -530,7 +530,7 @@ class AssignService(ChannelSelectionBase):
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
-					if exists(self.path) and listdir(self.path):
+					if exists(str(self.path)) and listdir(self.path):
 						self.storage = True
 						self.backupdirectory = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
 						self.alternatefolder = join(self.path, "IPToSAT/%s/AlternateList" % MODEL)
@@ -545,7 +545,7 @@ class AssignService(ChannelSelectionBase):
 							if backupfiles:
 								self["key_audio"].setText("AUDIO")
 								self.backupChannelsListStorage = True
-							if exists(bouquetiptosatepg):
+							if exists(str(bouquetiptosatepg)):
 								self["key_red"].setText(language.get(lang, "18"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
@@ -553,24 +553,24 @@ class AssignService(ChannelSelectionBase):
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
-					if exists(self.path) and listdir(self.path):
+					if exists(str(self.path)) and listdir(self.path):
 						oldbackupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
 						oldealternatefolder = join(self.path, "IPToSAT/AlternateList")
 						oldchangefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
 						oldm3ufolder = join(self.path, "IPToSAT/M3U")
 						oldchannelslists = join(self.path, "IPToSAT/ChannelsLists")
 						newdirectorywork = join(self.path, "IPToSAT/" + MODEL)
-						if not exists(newdirectorywork):
+						if not exists(str(newdirectorywork)):
 							makedirs(newdirectorywork)
-						if exists(oldbackupdirectory):
+						if exists(str(oldbackupdirectory)):
 							move(oldbackupdirectory, newdirectorywork)
-						if exists(oldealternatefolder):
+						if exists(str(oldealternatefolder)):
 							move(oldealternatefolder, newdirectorywork)
-						if exists(oldchangefolder):
+						if exists(str(oldchangefolder)):
 							move(oldchangefolder, newdirectorywork)
-						if exists(oldm3ufolder):
+						if exists(str(oldm3ufolder)):
 							move(oldm3ufolder, newdirectorywork)
-						if exists(oldchannelslists):
+						if exists(str(oldchannelslists)):
 							eConsoleAppContainer().execute("rm -rf " + oldchannelslists)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
@@ -952,7 +952,7 @@ class AssignService(ChannelSelectionBase):
 				self.assignWidgetScript("#008000", language.get(lang, "66"))
 				self["key_rec"].setText("REC")
 				self["key_audio"].setText("AUDIO")
-				if exists(bouquetiptosatepg):
+				if exists(str(bouquetiptosatepg)):
 					self["key_red"].setText(language.get(lang, "18"))
 			else:
 				self.showFavourites()
@@ -964,7 +964,7 @@ class AssignService(ChannelSelectionBase):
 			try:
 				backupfiles = ""
 				enigma2files = ""
-				if not exists(self.backupdirectory):
+				if not exists(str(self.backupdirectory)):
 					makedirs(self.backupdirectory)
 				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
@@ -1014,9 +1014,9 @@ class AssignService(ChannelSelectionBase):
 				user = configfile.split()[2].split('User=')[1]
 				password = configfile.split()[3].split('Pass=')[1]
 				if self.storage:
-					if not exists(self.m3ufolder):
+					if not exists(str(self.m3ufolder)):
 						makedirs(self.m3ufolder)
-					if exists(self.m3ufile):
+					if exists(str(self.m3ufile)):
 						remove(self.m3ufile)
 					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
 					sleep(3)
@@ -1035,7 +1035,7 @@ class AssignService(ChannelSelectionBase):
 									createbouquet = line.replace(bouquetname, bouquetrename)
 									fw.write(createbouquet)
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
-									if exists(self.m3ufile):
+									if exists(str(self.m3ufile)):
 										self['managerlistchannels'].show()
 										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 									else:
@@ -1043,18 +1043,18 @@ class AssignService(ChannelSelectionBase):
 										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 							elif 'bouquet=""' not in line:
 								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
-								if exists(self.m3ufile):
+								if exists(str(self.m3ufile)):
 									self['managerlistchannels'].show()
 									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 								else:
 									self['managerlistchannels'].show()
 									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 							else:
-								if exists(self.m3ufile):
+								if exists(str(self.m3ufile)):
 									self['managerlistchannels'].show()
 									self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
-				if exists(self.m3ufile) and not isPluginInstalled("MediaPlayer"):
+				if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
 					eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -1187,7 +1187,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			iptosat2conf = join(self.changefolder, "iptosat.conf")
-			if exists(iptosatconf) or exists(iptosat2conf):
+			if exists(str(iptosatconf)) or exists(str(iptosat2conf)):
 				self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, language.get(lang, "57"), MessageBox.TYPE_YESNO, default=False)
 			else:
 				self.session.open(MessageBox, language.get(lang, "43"), MessageBox.TYPE_INFO)
@@ -1197,11 +1197,11 @@ class AssignService(ChannelSelectionBase):
 			try:
 				iptosatconf = join(self.alternatefolder, "iptosat.conf")
 				iptosat2conf = join(self.changefolder, "iptosat.conf")
-				if exists(iptosatconf):
+				if exists(str(iptosatconf)):
 					remove(iptosatconf)
-				if exists(iptosat2conf):
+				if exists(str(iptosat2conf)):
 					remove(iptosat2conf)
-				if not exists(iptosatconf) or not exists(iptosat2conf):
+				if not exists(str(iptosatconf)) or not exists(str(iptosat2conf)):
 					self.session.open(MessageBox, language.get(lang, "52"), MessageBox.TYPE_INFO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1213,22 +1213,22 @@ class AssignService(ChannelSelectionBase):
 				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
-				if exists(iptosat2conf):
-					if exists(iptosatlist2conf) or exists(iptosatlist1conf):
+				if exists(str(iptosat2conf)):
+					if exists(str(iptosatlist2conf)) or exists(str(iptosatlist1conf)):
 						remove(iptosat2conf)
-				if not exists(self.alternatefolder):
+				if not exists(str(self.alternatefolder)):
 					makedirs(self.alternatefolder)
-				if not exists(iptosat2conf) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf):
+				if not exists(str(iptosat2conf)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)):
 					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/", MessageBox.TYPE_INFO)
-				if exists(CONFIG_PATH) and exists(iptosat2conf):
+				if exists(CONFIG_PATH) and exists(str(iptosat2conf)):
 					move(CONFIG_PATH, iptosatlist1conf)
 					move(iptosat2conf, fileconf)
 					self.secondSuscription = True
-				elif exists(CONFIG_PATH) and exists(iptosatlist2conf):
+				elif exists(CONFIG_PATH) and exists(str(iptosatlist2conf)):
 					move(CONFIG_PATH, iptosatlist1conf)
 					move(iptosatlist2conf, fileconf)
 					self.secondSuscription = True
-				elif exists(CONFIG_PATH) and exists(iptosatlist1conf):
+				elif exists(CONFIG_PATH) and exists(str(iptosatlist1conf)):
 					move(CONFIG_PATH, iptosatlist2conf)
 					move(iptosatlist1conf, fileconf)
 					self.secondSuscription = False
@@ -1244,7 +1244,7 @@ class AssignService(ChannelSelectionBase):
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 			if answer:
-				if exists(iptosat2change):
+				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
@@ -1272,39 +1272,39 @@ class AssignService(ChannelSelectionBase):
 				iptosatconf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
-				if not exists(self.changefolder):
+				if not exists(str(self.changefolder)):
 					makedirs(self.changefolder)
-				if not exists(self.alternatefolder):
+				if not exists(str(self.alternatefolder)):
 					makedirs(self.alternatefolder)
-				if exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+				if exists(str(iptosat2change)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)) and not exists(str(iptosatconf)):
 					move(fileconf, iptosatlist1conf)
 					move(iptosat2change, fileconf)
 					self.getUserData()
 					host = open(fileconf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "73") + self.host + "\n\n" + language.get(lang, "59") + self.alternatefolder + "/", MessageBox.TYPE_INFO)
-				if not exists(iptosat2change) and not exists(iptosatlist1conf) and not exists(iptosatlist2conf) and not exists(iptosatconf):
+				if not exists(str(iptosat2change)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)) and not exists(str(iptosatconf)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/" + "\n\n" + language.get(lang, "50"), MessageBox.TYPE_INFO)
-				if exists(iptosatconf) and exists(iptosat2change):
-					if exists(iptosatlist1conf):
+				if exists(str(iptosatconf)) and exists(str(iptosat2change)):
+					if exists(str(iptosatlist1conf)):
 						remove(iptosatconf)
-					if exists(iptosatlist2conf):
+					if exists(str(iptosatlist2conf)):
 						remove(iptosatconf)
-					if exists(iptosatconf):
+					if exists(str(iptosatconf)):
 						self.session.open(MessageBox, language.get(lang, "53") + "\n\n" + iptosatconf + "\n\n" + language.get(lang, "54") + "\n\n" + iptosat2change + "\n\n" + language.get(lang, "41"), MessageBox.TYPE_INFO)
-				if exists(iptosatconf) and not exists(iptosat2change):
+				if exists(str(iptosatconf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/", MessageBox.TYPE_INFO)
-				if exists(iptosatlist1conf) and exists(iptosat2change):
+				if exists(str(iptosatlist1conf)) and exists(str(iptosat2change)):
 					host = open(iptosatlist1conf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
-				if exists(iptosatlist1conf) and not exists(iptosat2change):
+				if exists(str(iptosatlist1conf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
-				if exists(iptosatlist2conf) and exists(iptosat2change):
+				if exists(str(iptosatlist2conf)) and exists(str(iptosat2change)):
 					host = open(iptosatlist2conf).read()
 					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
 					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
-				if exists(iptosatlist2conf) and not exists(iptosat2change):
+				if exists(str(iptosatlist2conf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
 				self["codestatus"].hide()
@@ -1648,11 +1648,11 @@ class InstallChannelsLists(Screen):
 				self.folderlistchannels = join(self.path, "IPToSAT/%s/ChannelsLists" % MODEL)
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
 				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
-				if not exists(self.folderlistchannels):
+				if not exists(str(self.folderlistchannels)):
 					makedirs(self.folderlistchannels)
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
-					if exists(dirfiles):
+					if exists(str(dirfiles)):
 						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 
 	def iniMenu(self):
@@ -1694,7 +1694,7 @@ class InstallChannelsLists(Screen):
 				# JUNGLE TEAM
 				eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
 				sleep(10)
-				if exists(self.zip_jungle):
+				if exists(str(self.zip_jungle)):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				junglerepository = self.folderlistchannels + '/*/*Jungle-*'
@@ -1713,7 +1713,7 @@ class InstallChannelsLists(Screen):
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
 				# SORYS VUPLUSMANIA
-				if exists(self.zip_sorys_vuplusmania):
+				if exists(str(self.zip_sorys_vuplusmania)):
 					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
@@ -1750,7 +1750,7 @@ class InstallChannelsLists(Screen):
 				self.listChannels = getChannelsLists()
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
-					if exists(dirfiles):
+					if exists(str(dirfiles)):
 						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
 				self.iniMenu()
 			except Exception as err:
@@ -1788,7 +1788,7 @@ class InstallChannelsLists(Screen):
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
 						updatefiles = join(dirnewlist, files)
-						if exists(updatefiles):
+						if exists(str(updatefiles)):
 							remove(updatefiles)
 						for installedlist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 							installedfiles = join(ENIGMA2_PATH, installedlist)
@@ -1797,7 +1797,7 @@ class InstallChannelsLists(Screen):
 					eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml /etc/tuxbox/ && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
-					if exists(dirfiles):
+					if exists(str(dirfiles)):
 						eConsoleAppContainer().execute('sleep 15 && rm -rf ' + dirfiles)
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
