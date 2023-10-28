@@ -23,13 +23,14 @@ from glob import glob
 from os import listdir, makedirs, remove
 from os.path import join, exists, normpath
 from configparser import ConfigParser
-from time import sleep
+from time import sleep, time
 from Components.Harddisk import harddiskmanager
 from shutil import move, copy
 from re import search
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
+SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -733,6 +734,7 @@ class AssignService(ChannelSelectionBase):
 				self.password = xtream.split()[3].split('Pass=')[1]
 				self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
 				self.getCategories(self.url)
+				self.getUserSuscription(self.url)
 			except:
 				trace_error()
 				self.errortimer.start(200, True)
@@ -746,6 +748,9 @@ class AssignService(ChannelSelectionBase):
 	def getCategories(self, url):
 		url += '&action=get_live_categories'
 		self.callAPI(url, self.getData)
+
+	def getUserSuscription(self, url):
+		self.suscription(url, self.getSuscriptionData)
 
 	def channelSelected(self):
 		if exists(SOURCE_BOUQUET_IPTV):
@@ -1340,6 +1345,9 @@ class AssignService(ChannelSelectionBase):
 		self["please"].setText(language.get(lang, "31"))
 		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
+	def suscription(self, url, callback):
+		getPage(str.encode(url)).addCallback(callback)
+
 	def error(self, error=None):
 		try:
 			if error:
@@ -1373,6 +1381,35 @@ class AssignService(ChannelSelectionBase):
 		self['list2'].l.setList(list)
 		self.categories = list
 		self.in_channels = False
+
+	def getSuscriptionData(self, data):
+		try:
+			status = ""
+			exp_date = ""
+			expires = ""
+			max_connections = ""
+			suscription = loads(data)
+			with open(SUSCRIPTION_USER_DATA, "w") as datawrite:
+				dump(suscription, datawrite)
+			with open(SUSCRIPTION_USER_DATA, "r") as line:
+				for userdata in line:
+					userdata = userdata.strip()
+					status = userdata.split('"status": "')[1].split('", "exp_date"')[0] if not fileContains(SUSCRIPTION_USER_DATA, "Active") else language.get(lang, "110")
+					exp_date = userdata.split('"exp_date": "')[1].split('", "is_trial')[0] if not fileContains(SUSCRIPTION_USER_DATA, '"exp_date": null') else "null"
+					expires = str(datetime.fromtimestamp(int(exp_date)).strftime("%d-%m-%Y")) if "null" not in exp_date else "null"
+					max_connections = userdata.split('"max_connections": "')[1].split('", "allowed_output_formats"')[0]
+			self['managerlistchannels'].show()
+			if "null" not in exp_date:
+				if int(time()) < int(exp_date):
+					self.assignWidgetScript("#008000", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "107") + " " + max_connections)
+				else:
+					self.assignWidgetScript("#00ff2525", language.get(lang, "108") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "107") + " " + max_connections)
+			else:
+				self.assignWidgetScript("#008000", language.get(lang, "109") + " " + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "107") + " " + max_connections)
+			if exists(SUSCRIPTION_USER_DATA):
+				remove(SUSCRIPTION_USER_DATA)
+		except Exception as err:
+			print("ERROR: %s" % str(err))
 
 	def getChannels(self, data):
 		sref = str(self.getSref())
