@@ -2,7 +2,7 @@ from enigma import iPlayableService, iServiceInformation, iFrontendInformation, 
 from Screens.ChannelSelection import ChannelSelectionBase
 from Components.ServiceList import ServiceList  # noqa: F401
 from Screens.Screen import Screen
-from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigSubsection
+from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection
 from Plugins.Plugin import PluginDescriptor
 from Components.ActionMap import ActionMap
 from Components.ServiceEventTracker import ServiceEventTracker
@@ -80,10 +80,15 @@ default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPl
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
+config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.domain = ConfigText(default="http://hostname", fixed_size=False)
+config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
+config.plugins.IPToSAT.username = ConfigText(default=language.get(lang, "113"), fixed_size=False)
+config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), fixed_size=False)
 
 
 def trace_error():
@@ -145,17 +150,20 @@ def getChannelsLists():
 
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-	<screen name="IPToSATSetup" position="center,center" size="1150,450" title="IPToSATSetup settings">
-		<widget name="config" itemHeight="50" position="15,10" size="1120,300" scrollbarMode="showOnDemand" />
-		<widget name="key_red" position="25,410" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget name="key_green" position="210,410" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget name="footnote" position="395,405" size="745,50" font="Regular;24" zPosition="3" />
+	<screen name="IPToSATSetup" position="center,center" size="1150,700" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="50" position="15,10" size="1120,550" scrollbarMode="showOnDemand" />
+		<widget name="footnote" position="35,575" size="1110,80" font="Regular;24" zPosition="3" />
+		<widget name="key_red" position="25,660" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="key_green" position="210,660" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="VKeyIcon" text="TEXT" render="Label" position="e-200,e-50" size="90,40" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;20" foregroundColor="key_text" halign="center" valign="center">
+			<convert type="ConditionalShowHide" />
+		</widget>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.skinName = ["IPToSATSetup"]
+		self.skinName = ["Setup"]
 		self.setup_title = language.get(lang, "13")
 		self.storage = False
 		self.path = None
@@ -192,12 +200,19 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.list = [getConfigListEntry(language.get(lang, "14"), config.plugins.IPToSAT.enable)]
 		self.list.append(getConfigListEntry(language.get(lang, "15"), config.plugins.IPToSAT.assign))
 		self.list.append(getConfigListEntry(language.get(lang, "16"), config.plugins.IPToSAT.playlist))
+		if config.plugins.IPToSAT.showuserdata.value:
+			self.list.append(getConfigListEntry(language.get(lang, "111"), config.plugins.IPToSAT.domain))
+			self.list.append(getConfigListEntry(language.get(lang, "112"), config.plugins.IPToSAT.serverport))
+			self.list.append(getConfigListEntry(language.get(lang, "113"), config.plugins.IPToSAT.username))
+			self.list.append(getConfigListEntry(language.get(lang, "114"), config.plugins.IPToSAT.password))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
+		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
+		self.saveConfig()
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
 			try:
 				if config.usage.remote_fallback_enabled.value or not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
@@ -217,6 +232,27 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			except:
 				pass
 
+	def saveConfig(self):
+		if fileExists(CONFIG_PATH):
+			try:
+				with open(CONFIG_PATH, "r") as f:
+					iptosatconfread = f.read()
+					host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
+					port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
+					user = iptosatconfread.split()[2].split('User=')[1]
+					password = iptosatconfread.split()[3].split('Pass=')[1]
+					config.plugins.IPToSAT.domain.value = host
+					config.plugins.IPToSAT.domain.save()
+					config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
+					config.plugins.IPToSAT.serverport.save()
+					config.plugins.IPToSAT.username.value = user
+					config.plugins.IPToSAT.username.save()
+					config.plugins.IPToSAT.password.value = password
+					config.plugins.IPToSAT.password.save()
+			except Exception as err:
+				print("ERROR: %s" % str(err))
+		self.saveiptosatconf()
+
 	def ok(self):
 		current = self["config"].getCurrent()
 		if current[1] == config.plugins.IPToSAT.assign:
@@ -231,6 +267,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x()
 
 	def keySave(self):
+		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
 
 	def moveUp(self):
@@ -244,6 +281,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keyRight(self):
 		ConfigListScreen.keyRight(self)
+
+	def saveiptosatconf(self):
+		with open(CONFIG_PATH, 'w') as iptosatconf:
+			iptosatconf.write("[IPToSat]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
 
 
 class IPToSAT(Screen):
@@ -500,7 +541,7 @@ class AssignService(ChannelSelectionBase):
 			self["key_yellow"].setText(language.get(lang, "32"))
 		if not exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as fw:
-				fw.write("[IPToSat]" + "\n" + 'Host=http://host:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+				fw.write("[IPToSat]" + "\n" + 'Host=http://hostname:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
 		if self.storage and not fileContains(CONFIG_PATH, "pass"):
@@ -1238,6 +1279,7 @@ class AssignService(ChannelSelectionBase):
 					move(iptosatlist1conf, fileconf)
 					self.secondSuscription = False
 				self.getUserData()
+				IPToSATSetup.saveConfig(self)
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1251,6 +1293,7 @@ class AssignService(ChannelSelectionBase):
 			if answer:
 				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
+					IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1264,6 +1307,7 @@ class AssignService(ChannelSelectionBase):
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			if answer:
 				move(iptosat2change, iptosatlist2conf)
+				IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1285,8 +1329,9 @@ class AssignService(ChannelSelectionBase):
 					move(fileconf, iptosatlist1conf)
 					move(iptosat2change, fileconf)
 					self.getUserData()
-					host = open(fileconf).read()
-					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					with open(fileconf, "r") as f:
+						host = f.read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(fileconf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "73") + self.host + "\n\n" + language.get(lang, "59") + self.alternatefolder + "/", MessageBox.TYPE_INFO)
 				if not exists(str(iptosat2change)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)) and not exists(str(iptosatconf)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/" + "\n\n" + language.get(lang, "50"), MessageBox.TYPE_INFO)
@@ -1300,18 +1345,21 @@ class AssignService(ChannelSelectionBase):
 				if exists(str(iptosatconf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/", MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist1conf)) and exists(str(iptosat2change)):
-					host = open(iptosatlist1conf).read()
-					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					with open(iptosatlist1conf, "r") as f:
+						host = f.read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist1conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if exists(str(iptosatlist1conf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist2conf)) and exists(str(iptosat2change)):
-					host = open(iptosatlist2conf).read()
-					self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://")
+					with open(iptosatlist2conf, "r") as f:
+						host = f.read()
+						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist2conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if exists(str(iptosatlist2conf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
+				IPToSATSetup.saveConfig(self)
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
