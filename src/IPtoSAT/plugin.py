@@ -110,10 +110,11 @@ def getversioninfo():
 	currversion = '1.0'
 	if exists(VERSION_PATH):
 		try:
-			fp = open(VERSION_PATH, 'r').readlines()
-			for line in fp:
-				if 'version' in line:
-					currversion = line.split('=')[1].strip()
+			with open(VERSION_PATH, 'r') as versionread:
+				version = versionread.readlines()
+				for line in version:
+					if 'version' in line:
+						currversion = line.split('=')[1].strip()
 		except:
 			pass
 	return (currversion)
@@ -768,14 +769,15 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self["codestatus"].hide()
 		if fileExists(CONFIG_PATH):
-			xtream = open(CONFIG_PATH).read()
 			try:
-				self.host = xtream.split()[1].split('Host=')[1]
-				self.user = xtream.split()[2].split('User=')[1]
-				self.password = xtream.split()[3].split('Pass=')[1]
-				self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
-				self.getCategories(self.url)
-				self.getUserSuscription(self.url)
+				with open(CONFIG_PATH, "r") as fr:
+					xtream = fr.read()
+					self.host = xtream.split()[1].split('Host=')[1]
+					self.user = xtream.split()[2].split('User=')[1]
+					self.password = xtream.split()[3].split('Pass=')[1]
+					self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
+					self.getCategories(self.url)
+					self.getUserSuscription(self.url)
 			except:
 				trace_error()
 				self.errortimer.start(200, True)
@@ -1055,31 +1057,40 @@ class AssignService(ChannelSelectionBase):
 	def createBouquetIPTV(self):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
-				configfile = open(CONFIG_PATH).read()
-				hostport = configfile.split()[1].split("Host=")[1]
-				user = configfile.split()[2].split('User=')[1]
-				password = configfile.split()[3].split('Pass=')[1]
-				if self.storage:
-					if not exists(str(self.m3ufolder)):
-						makedirs(self.m3ufolder)
-					if exists(str(self.m3ufile)):
-						remove(self.m3ufile)
-					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
-					sleep(3)
-				else:
-					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
-					sleep(3)
-				if exists(SOURCE_BOUQUET_IPTV):
-					with open(SOURCE_BOUQUET_IPTV, "r") as fr:
-						createbouquet = ""
-						riptvsh = fr.readlines()
-						for line in riptvsh:
-							bouquetname = line.split("bouquet=")[1].split(";")[0]
-							if " " in str(bouquetname) or "  " in str(bouquetname):
-								with open(SOURCE_BOUQUET_IPTV, "w") as fw:
-									bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
-									createbouquet = line.replace(bouquetname, bouquetrename)
-									fw.write(createbouquet)
+				with open(CONFIG_PATH, "r") as fr:
+					configfile = fr.read()
+					hostport = configfile.split()[1].split("Host=")[1]
+					user = configfile.split()[2].split('User=')[1]
+					password = configfile.split()[3].split('Pass=')[1]
+					if self.storage:
+						if not exists(str(self.m3ufolder)):
+							makedirs(self.m3ufolder)
+						if exists(str(self.m3ufile)):
+							remove(self.m3ufile)
+						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
+						sleep(3)
+					else:
+						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
+						sleep(3)
+					if exists(SOURCE_BOUQUET_IPTV):
+						with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+							createbouquet = ""
+							riptvsh = fr.readlines()
+							for line in riptvsh:
+								bouquetname = line.split("bouquet=")[1].split(";")[0]
+								if " " in str(bouquetname) or "  " in str(bouquetname):
+									with open(SOURCE_BOUQUET_IPTV, "w") as fw:
+										bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
+										createbouquet = line.replace(bouquetname, bouquetrename)
+										fw.write(createbouquet)
+										eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
+										if exists(str(self.m3ufile)):
+											self['managerlistchannels'].show()
+											self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+										else:
+											self['managerlistchannels'].show()
+											self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+								elif 'bouquet=""' not in line:
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(str(self.m3ufile)):
 										self['managerlistchannels'].show()
@@ -1087,21 +1098,13 @@ class AssignService(ChannelSelectionBase):
 									else:
 										self['managerlistchannels'].show()
 										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
-							elif 'bouquet=""' not in line:
-								eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
-								if exists(str(self.m3ufile)):
-									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 								else:
-									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
-							else:
-								if exists(str(self.m3ufile)):
-									self['managerlistchannels'].show()
-									self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
-								self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
-				if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
-					eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
+									if exists(str(self.m3ufile)):
+										self['managerlistchannels'].show()
+										self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+									self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
+					if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
+						eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
