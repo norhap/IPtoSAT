@@ -1047,8 +1047,11 @@ class AssignService(ChannelSelectionBase):
 							fw.write(createbouquet + "\n" + content)
 							if exists(SOURCE_BOUQUET_IPTV):
 								eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
-						if "IPTV_IPToSAT" in BouquetIPToSAT:
+						if "IPTV_IPToSAT" in BouquetIPToSAT and not self.storage:
 							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + language.get(lang, "38"), MessageBox.TYPE_INFO, simple=True, timeout=10)
+						elif "IPTV_IPToSAT" in BouquetIPToSAT and exists(str(self.m3ufile)):
+							self['managerlistchannels'].show()
+							self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1099,9 +1102,6 @@ class AssignService(ChannelSelectionBase):
 										self['managerlistchannels'].show()
 										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								else:
-									if exists(str(self.m3ufile)):
-										self['managerlistchannels'].show()
-										self.assignWidgetScript("#008000", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 									self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
 					if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
 						eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
