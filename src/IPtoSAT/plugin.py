@@ -1451,8 +1451,10 @@ class AssignService(ChannelSelectionBase):
 					max_connections = userdata.split('"max_connections": "')[1].split('", "allowed_output_formats"')[0]
 			self['managerlistchannels'].show()
 			if "null" not in exp_date:
-				if int(time()) < int(exp_date):
+				if int(time()) < int(exp_date) and "Banned" not in status:
 					self.assignWidgetScript("#008000", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "107") + " " + max_connections)
+				elif int(time()) < int(exp_date):
+					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "108") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "107") + " " + max_connections)
 			else:

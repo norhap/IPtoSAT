@@ -117,6 +117,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 114 = Password
 115 = port
 116 = Show your login details
+117 = Temporarily banned
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
@@ -237,3 +238,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 114 = Contraseña
 115 = puerto
 116 = Mostrar sus datos de acceso
+117 = Prohibida temporalmente
