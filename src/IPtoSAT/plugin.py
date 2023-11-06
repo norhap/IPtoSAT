@@ -352,10 +352,14 @@ class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
 		<screen name="IPToSAT Service Assign" position="0,60" size="1920,1020" title="IPToSAT Service Assign">
+			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,3"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,3" size="3,1020"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,1017" size="1917,3"/>
+			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="3,1020"/>
 			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
-			<widget name="list" position="33,42" size="875,310" scrollbarMode="showOnDemand" />
-			<widget name="list2" position="925,42" size="880,305" scrollbarMode="showOnDemand" />
+			<widget name="list" position="33,42" size="875,310" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="list2" position="925,42" size="962,305" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
 			<widget name="status" position="33,357" size="870,400" font="Regular;24" zPosition="10" />
 			<widget name="description" position="925,355" size="900,565" font="Regular;24" zPosition="6" />
