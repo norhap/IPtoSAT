@@ -43,6 +43,7 @@
 		<key id="KEY_PAUSE" mapto="play" flags="m" />
 		<key id="KEY_PLAYPAUSE" mapto="play" flags="m" />
 		<key id="KEY_TV" mapto="showTv" flags="m" />
+		<key id="KEY_TV2" mapto="showTv" flags="m" />
 		<key id="KEY_RADIO" mapto="showTv" flags="m" />
 		<key id="KEY_AUDIO" mapto="audio" flags="m" />
 		<key id="KEY_RECORD" mapto="rec" flags="m" />
