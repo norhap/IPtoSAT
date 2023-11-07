@@ -1095,24 +1095,24 @@ class AssignService(ChannelSelectionBase):
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
-											self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 										else:
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
-											self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								elif 'bouquet=""' not in line:
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(str(self.m3ufile)):
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
-										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 									else:
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
-										self.assignWidgetScript("#008000", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								else:
 									self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
 					if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
