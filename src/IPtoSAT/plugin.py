@@ -362,12 +362,12 @@ class AssignService(ChannelSelectionBase):
 			<widget name="list2" position="925,42" size="962,305" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="925,42" size="870,35" font="Regular;24" zPosition="12" />
 			<widget name="status" position="33,357" size="870,400" font="Regular;24" zPosition="10" />
-			<widget name="description" position="925,355" size="900,565" font="Regular;24" zPosition="6" />
+			<widget name="description" position="925,355" size="900,605" font="Regular;24" zPosition="6" />
 			<widget name="assign" position="33,357" size="870,140" font="Regular;24" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" zPosition="10" />
-			<widget name="helpbouquetepg" position="33,355" size="870,510" font="Regular;24" zPosition="6" />
-			<widget name="managerlistchannels" position="33,745" size="870,165" font="Regular;24" zPosition="10" />
-			<widget name="help" position="925,355" size="900,565" font="Regular;24" zPosition="3" />
+			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" zPosition="6" />
+			<widget name="managerlistchannels" position="33,750" size="870,165" font="Regular;24" zPosition="10" />
+			<widget name="help" position="925,355" size="900,605" font="Regular;24" zPosition="3" />
 			<widget name="play" position="925,355" size="900,530" font="Regular;24" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,968" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,968" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
