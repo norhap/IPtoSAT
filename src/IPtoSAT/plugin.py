@@ -1092,11 +1092,13 @@ class AssignService(ChannelSelectionBase):
 										fw.write(createbouquet)
 										eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 										if exists(str(self.m3ufile)):
+											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 										else:
+											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
@@ -1104,11 +1106,13 @@ class AssignService(ChannelSelectionBase):
 								elif 'bouquet=""' not in line:
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(str(self.m3ufile)):
+										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
 										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
 									else:
+										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
