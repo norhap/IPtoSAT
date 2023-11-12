@@ -27,10 +27,15 @@ from time import sleep, time
 from Components.Harddisk import harddiskmanager
 from shutil import move, copy
 from re import search
+from sys import stdout
 
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
+BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
+BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
+REFERENCES_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat_references")
+CONFIG_PATH_M3U = "/etc/enigma2/iptosatm3u.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -92,10 +97,9 @@ config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), 
 
 
 def trace_error():
-	import sys
 	import traceback
 	try:
-		traceback.print_exc(file=sys.stdout)
+		traceback.print_exc(file=stdout)
 		traceback.print_exc(file=open('/tmp/IPToSAT.log', 'a'))
 	except:
 		pass
@@ -284,10 +288,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		ConfigListScreen.keyRight(self)
 
 	def saveiptosatconf(self):
-		with open(CONFIG_PATH, 'w') as iptosatconf:
-			iptosatconf.write("[IPToSat]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
-
-
+		if exists(CONFIG_PATH):
+			with open(CONFIG_PATH, 'w') as iptosatconf:
+				iptosatconf.write("[IPToSat]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
+		else:
+			with open(CONFIG_PATH, 'w') as iptosatconf:
+				iptosatconf.write("[IPToSat]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 class IPToSAT(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -583,9 +589,11 @@ class AssignService(ChannelSelectionBase):
 						self.alternatefolder = join(self.path, "IPToSAT/%s/AlternateList" % MODEL)
 						self.changefolder = join(self.path, "IPToSAT/%s/ChangeSuscriptionList" % MODEL)
 						self.m3ufolder = join(self.path, "IPToSAT/%s/M3U" % MODEL)
-						self.m3ufile = join(self.m3ufolder, "tv_channels.m3u")
+						self.m3ufile = join(self.m3ufolder, "iptosat_norhap.m3u")
 						backupfiles = ""
 						bouquetiptosatepg = ""
+						if exists(str(BUILDBOUQUETS_SOURCE)):
+							move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 						for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
 							backupfiles = join(self.backupdirectory, files)
 							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
@@ -903,7 +911,7 @@ class AssignService(ChannelSelectionBase):
 									newbouquetstvwrite.write(linesbouquet)
 					move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
 					copy(IPToSAT_EPG, ENIGMA2_PATH)
-					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
+					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2" ; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 					self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "80"), MessageBox.TYPE_INFO, simple=True, timeout=5)
 				else:
 					self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "82"), MessageBox.TYPE_INFO)
@@ -1055,13 +1063,16 @@ class AssignService(ChannelSelectionBase):
 							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + language.get(lang, "38"), MessageBox.TYPE_INFO, simple=True, timeout=10)
 						elif "IPTV_IPToSAT" in BouquetIPToSAT and exists(str(self.m3ufile)):
 							self['managerlistchannels'].show()
-							self.assignWidgetScript("#86dc3d", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+							self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
+							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH  + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH  + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
 				eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 
 	def createBouquetIPTV(self):
+		if exists(str(BUILDBOUQUETS_FILE)):
+			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
 				with open(CONFIG_PATH, "r") as fr:
@@ -1096,7 +1107,8 @@ class AssignService(ChannelSelectionBase):
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
-											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
+											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH  + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH  + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 										else:
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
@@ -1110,7 +1122,8 @@ class AssignService(ChannelSelectionBase):
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
-										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile)
+										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
+										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH  + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH  + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 									else:
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
@@ -1236,7 +1249,7 @@ class AssignService(ChannelSelectionBase):
 									if "#NAME User - Bouquets (TV)" not in linesbouquet:
 										newbouquetstvwrite.write(linesbouquet)
 						move("/etc/enigma2/newbouquetstv.txt", "/etc/enigma2/bouquets.tv")
-					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
+					eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2" ; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 				if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name) and not fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
 					self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO)
 					break
@@ -1439,16 +1452,26 @@ class AssignService(ChannelSelectionBase):
 
 	def getData(self, data):
 		list = []
+		bouquets_categories = []
 		js = loads(data)
 		if js != []:
 			for cat in js:
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
+				bouquets_categories.append((str(cat['category_name']), str(cat['category_name'])))
 		self['list2'].show()
 		self["please"].hide()
 		self['list2'].l.setList(list)
 		self.categories = list
+		self.bouquets = bouquets_categories
 		self.in_channels = False
+		m3uread = ""
+		with open(CONFIG_PATH_M3U, "w") as categories:
+			dump(self.bouquets, categories)
+		with open(CONFIG_PATH_M3U, "r") as jsonread:
+			m3uread = jsonread.read()
+		with open(CONFIG_PATH_M3U, "w") as jsonwrite:
+			jsonwrite.write("{" + "\n" + '    "PORT": 80,' + "\n" + '    "USER": "",' + "\n" + '    "PASSWORD": "",' + "\n" + '    "CATEGORIES": {'  + "\n" + '    ' + m3uread.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]') + "\n" + "  }" + "\n" + "}")
 
 	def getSuscriptionData(self, data):
 		try:

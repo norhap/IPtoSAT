@@ -1,0 +1,322 @@
+#Convert m3u into favorite enigma2 by jungle-team based on dictionary keywords.
+
+from os.path import exists, splitext, basename, join
+from re import search, sub, match
+from glob import glob
+from sys import argv, exit
+import requests
+from urllib.parse import urlsplit, urlunsplit
+from json import load
+
+
+def load_json_file(file_path):
+	with open(file_path, "r") as file:
+		config = load(file)
+	return config
+
+
+config = load_json_file("/etc/enigma2/iptosatm3u.json")
+
+PORT = config["PORT"]
+USER = config["USER"]
+PASSWORD = config["PASSWORD"]
+CATEGORIES = config["CATEGORIES"]
+bouquets_categories = {categorie: [] for categorie in CATEGORIES.keys()}
+
+
+def parse_m3u(file_path):
+	tvg_ids = []
+	with open(file_path, 'r') as file:
+		lines = file.readlines()
+
+		for line in lines:
+			tvg_id = search(r'tvg-id="(.*?)"', line)
+			if tvg_id:
+				service_ref = tvg_id.group(1)
+				modified_service_ref = sub(r'C00000', '21', service_ref)
+				tvg_ids.append(modified_service_ref)
+	return tvg_ids
+
+
+def order_channels(channels_list):
+	occupied_orders = []
+	ordered_channels = []
+	unordered_channels = []
+	for channel in channels_list:
+		if channel[0] is None:
+			unordered_channels.append(channel)
+		else:
+			ordered_channels.append(channel)
+			occupied_orders.append(channel[0])
+
+	def get_free_order(occupied_orders):
+		free_order = 1
+		while True:
+			if free_order not in occupied_orders:
+				yield free_order
+			free_order += 1
+
+	free_order_gen = get_free_order(occupied_orders)
+	for channel in unordered_channels:
+		order = next(free_order_gen)
+		ordered_channels.append((order, *channel[1:]))
+	ordered_channels.sort(key=lambda x: x[0])
+	return ordered_channels
+
+
+def remove_accents(text):
+	accent_replacements = {
+		'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+		'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+		'ü': 'u', 'Ü': 'U', 'ñ': 'n', 'Ñ': 'N'
+	}
+	for original, replacement in accent_replacements.items():
+		text = text.replace(original, replacement)
+	return text
+
+
+def clean_channel_name(channel_name):
+	cleaned_name = remove_accents(channel_name.lower())
+	return sub(r'\W+', '', cleaned_name)
+
+
+def is_valid_name(name):
+	return bool(match(r'^[\w\s#]+$', name))
+
+
+def load_satellite_reference(file_path):
+	with open(file_path, "r") as file:
+		data = {}
+		for line in file.readlines():
+			try:
+				parts = line.strip().split("-->")
+				if len(parts) == 4:
+					name, ref, display_name, order = parts
+					order = int(order)
+				elif len(parts) == 3:
+					name, ref, display_name_or_order = parts
+					try:
+						order = int(display_name_or_order)
+						display_name = None
+					except ValueError:
+						display_name = display_name_or_order
+						order = None
+				else:
+					name, ref = parts
+					display_name = None
+					order = None
+				if is_valid_name(name):
+					data[clean_channel_name(name)] = (ref, display_name, order)
+				else:
+					print(f"you have an error on the line {line.strip()}")
+			except ValueError:
+				print(f"you have an error on the line: {line.strip()}")
+		return data
+
+
+def find_channel_with_keyword(channel_name, satellite_reference):
+	cleaned_channel_name = clean_channel_name(channel_name)
+	matched_keyword = None
+	max_length = 0
+	for keyword, ref in satellite_reference.items():
+		cleaned_keyword = clean_channel_name(keyword)
+		if cleaned_keyword in cleaned_channel_name and len(cleaned_keyword) > max_length:
+			matched_keyword = keyword
+			max_length = len(cleaned_keyword)
+	return matched_keyword
+
+
+def add_to_bouquets_tv(favorite_name):
+	bouquets_tv_path = "/etc/enigma2/bouquets.tv"
+	content_bouquets_tv = '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.{}.tv" ORDER BY bouquet\n'.format(favorite_name)
+	if not exists(bouquets_tv_path):
+		with open(bouquets_tv_path, "w") as bouquets_tv_file:
+			bouquets_tv_file.write(content_bouquets_tv)
+			bouquets_tv_file.write("\n")
+	else:
+		with open(bouquets_tv_path, "r") as bouquets_tv_file:
+			lines = bouquets_tv_file.readlines()
+		if lines and not lines[-1].strip():
+			lines.pop()
+		if content_bouquets_tv not in lines:
+			with open(bouquets_tv_path, "w") as bouquets_tv_file:
+				for line in lines:
+					bouquets_tv_file.write(line)
+					if not line.strip():
+						break
+				bouquets_tv_file.write(content_bouquets_tv.strip())
+				bouquets_tv_file.write("\n")
+				bouquets_tv_file.writelines(lines[len(lines) - (len(lines) - lines.index(line)) + 1:])
+		else:
+			print("The name on bouquet.tv is not overwritten as it already exists previously")
+
+
+def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
+	enigma2_file = open(splitext(enigma2_file)[0] + ".tv", "w")
+	satellite_reference = load_satellite_reference(satellite_reference_file)
+	favorite_name = splitext(basename(input_file))[0]
+	enigma2_file.write("#NAME {}\n".format(favorite_name))
+	unique_id = 1
+	channel_reference = None
+	channels = []
+	occupied_orders = []
+	skip_channel = False
+	is_video_channel = False
+	tvg_ids = parse_m3u(input_file)
+	channel_index = 0
+	with open(input_file, "rb") as m3u_file:
+		for raw_line in m3u_file:
+			try:
+				line = raw_line.decode('utf-8')
+			except UnicodeDecodeError as e:
+				continue
+			if line.startswith("#EXTINF:"):
+				if skip_channel:
+					skip_channel = False
+					continue
+				channel_name = search('tvg-name="(.*?)"', line)
+				if channel_name:
+					channel_name = channel_name.group(1)
+				else:
+					channel_name = search('tvg-id="(.*?)"', line)
+					if channel_name:
+						channel_name = channel_name.group(1)
+					else:
+						channel_name_match = search(',(.*)', line)
+						if channel_name_match:
+							channel_name = channel_name_match.group(1)
+						else:
+							print(f"Error: Could not extract channel name from line: {line.strip()}")
+							continue
+				original_channel_name = channel_name
+				group_title = search('group-title\s*=\s*["\'](.*?)["\']', line)
+				if group_title:
+					group_title = group_title.group(1)
+				if not is_video_channel:
+					original_channel_name = channel_name
+					matching_channel_name = find_channel_with_keyword(channel_name, satellite_reference)
+					if matching_channel_name:
+						channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower())
+						if channel_display_name:
+							channel_name = channel_display_name
+						if order is not None:
+							occupied_orders.append(order)
+					else:
+						channel_reference = "4097:0:1:{:X}:0:0:0:0:0:0:".format(unique_id)
+						unique_id += 1
+						order = None
+				else:
+					channel_reference = "4097:0:1:{:X}:0:0:0:0:0:0:".format(unique_id)
+					unique_id += 1
+					order = None
+			if line.startswith("http"):
+				is_video_channel = line.strip().endswith(".mkv") or line.strip().endswith(".avi") or line.strip().endswith(".mp4") or line.strip().endswith(".flv")
+				if is_video_channel:
+					skip_channel = True
+					channel_reference = None
+					continue
+				if channel_reference is not None and not skip_channel:
+					channel_url = line.strip()
+					parsed_url = urlsplit(channel_url)
+					if parsed_url.scheme == "https":
+						enigma2_url = urlunsplit(("https", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
+					else:
+						enigma2_url = urlunsplit(("http", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
+						enigma2_url = enigma2_url.replace(":", "%3a")
+					readprefix = group_title
+					added_to_favorites = False
+					for categorie, prefixes in CATEGORIES.items():
+						if added_to_favorites:
+							break
+						for prefix in prefixes:
+							if readprefix.startswith(prefix):
+								bouquets_categories[categorie].append((order, channel_reference, enigma2_url, channel_name))
+								added_to_favorites = True
+								break
+					channels.append((order, channel_reference, enigma2_url, channel_name))
+				elif skip_channel:
+					skip_channel = False
+
+	def get_free_order():
+		free_order = 1
+		while True:
+			if free_order not in occupied_orders:
+				yield free_order
+			free_order += 1
+	free_order_gen = get_free_order()
+	ordered_channels = []
+	unordered_channels = []
+	for channel in channels:
+		if channel[0] is None:
+			unordered_channels.append(channel)
+		else:
+			ordered_channels.append(channel)
+	if ordered_channels:
+		max_order = max(ordered_channels, key=lambda x: x[0])[0]
+	else:
+		max_order = 0
+	for i, channel in enumerate(unordered_channels, start=max_order + 1):
+		ordered_channels.append((i, *channel[1:]))
+	ordered_channels.sort(key=lambda x: x[0])
+	for _, channel_reference, enigma2_url, channel_name in ordered_channels:
+		enigma2_file.write("#SERVICE {}{}\n".format(channel_reference, enigma2_url))
+		enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
+	enigma2_file.close()
+
+
+def refresh_bouquets():
+	try:
+		base_url = f'http://localhost:{PORT}/api/'
+		requests.get(base_url + 'servicelistreload?mode=2', auth=(USER, PASSWORD))
+		print("Channel list updated successfully.")
+	except Exception as e:
+		print(f"Error updating channel list: {str(e)}")
+
+
+if __name__ == "__main__":
+	enigma2_dir = "/etc/enigma2"
+	if len(argv) > 1:
+		m3u_url = argv[1]
+		headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
+		try:
+			response = requests.get(m3u_url, headers=headers)
+		except requests.exceptions.RequestException as e:
+			print(f"Could not download m3u file {m3u_url}")
+			exit(1)
+		if response.status_code == 200:
+			if len(argv) > 2:
+				filename = argv[2]
+				if not filename.endswith(".m3u") and not filename.endswith(".m3u8"):
+					filename += ".m3u"
+			else:
+				filename = "temp.m3u"
+			output_path = join(enigma2_dir, filename)
+			with open(output_path, "wb") as temp_m3u:
+				temp_m3u.write(response.content)
+			m3u_files = [output_path]
+		else:
+			print(f"Could not download m3u file {m3u_url}. Status code: {response.status_code}")
+			exit(1)
+	else:
+		m3u_files = glob(enigma2_dir + "/*.m3u") + glob(enigma2_dir + "/*.m3u8")
+		if not m3u_files:
+			print("Not souch file m3u")
+			exit(1)
+	satellite_reference_file = "/etc/enigma2/iptosat_references"
+	for input_file in m3u_files:
+		enigma2_file = join(enigma2_dir, "userbouquet." + splitext(basename(input_file))[0] + ".tv")
+		favorite_name = splitext(basename(input_file))[0]
+		convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file)
+		for categorie, favorites in bouquets_categories.items():
+			categorie_favorite_name = f"{favorite_name}_{categorie}"
+			if "\u2606" not in categorie_favorite_name:
+				country_output_file = join(enigma2_dir, f"userbouquet.{categorie_favorite_name}.tv")
+				with open(country_output_file, "w") as bouquet_enigma2_file:
+					bouquet_enigma2_file.write(f"#NAME {categorie_favorite_name}\n")
+					ordered_channels_by_country = order_channels(favorites)
+					for order, channel_reference, enigma2_url, channel_name in ordered_channels_by_country:
+						bouquet_enigma2_file.write("#SERVICE {}{}\n".format(channel_reference, enigma2_url))
+						bouquet_enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
+				add_to_bouquets_tv(categorie_favorite_name)
+				add_to_bouquets_tv(favorite_name)
+	refresh_bouquets()
