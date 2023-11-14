@@ -1535,7 +1535,10 @@ class AssignService(ChannelSelectionBase):
 					exp_date = userdata.split('"exp_date": "')[1].split('", "is_trial')[0] if not fileContains(SUSCRIPTION_USER_DATA, '"exp_date": null') else "null"
 					expires = str(datetime.fromtimestamp(int(exp_date)).strftime("%d-%m-%Y")) if "null" not in exp_date else ""
 					max_connections = userdata.split('"max_connections": "')[1].split('", "allowed_output_formats"')[0]
-					active_cons = userdata.split('"active_cons": "')[1].split('", "created_at"')[0]
+					if '"active_cons": "' in userdata:  # not all lists have the same syntax
+						active_cons = userdata.split('"active_cons": "')[1].split('", "created_at"')[0]
+					else:
+						active_cons = userdata.split('"active_cons": ')[1].split(', "created_at"')[0]
 			self['managerlistchannels'].show()
 			if "null" not in exp_date:
 				if int(time()) < int(exp_date) and "Banned" not in status:
