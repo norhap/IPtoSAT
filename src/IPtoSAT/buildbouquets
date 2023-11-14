@@ -302,7 +302,7 @@ if __name__ == "__main__":
 		if not m3u_files:
 			print("Not souch file m3u")
 			exit(1)
-	satellite_reference_file = "/etc/enigma2/iptosat_references"
+	satellite_reference_file = "/etc/enigma2/iptosatreferences"
 	for input_file in m3u_files:
 		enigma2_file = join(enigma2_dir, "userbouquet." + splitext(basename(input_file))[0] + ".tv")
 		favorite_name = splitext(basename(input_file))[0]

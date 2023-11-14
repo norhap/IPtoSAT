@@ -34,7 +34,7 @@ CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
 BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
 BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
-REFERENCES_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat_references")
+REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_M3U = "/etc/enigma2/iptosatm3u.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
@@ -940,10 +940,10 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or x.startswith("iptosatreferences") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
@@ -955,7 +955,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			try:
 				backupfiles = ""
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
 						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, language.get(lang, "71"), MessageBox.TYPE_YESNO)
@@ -970,7 +970,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
@@ -1001,10 +1001,10 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			bouquetiptosatepg = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
@@ -1029,7 +1029,7 @@ class AssignService(ChannelSelectionBase):
 				enigma2files = ""
 				if not exists(str(self.backupdirectory)):
 					makedirs(self.backupdirectory)
-				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
 				if backupfiles:
 					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, language.get(lang, "63") + " " + self.backupdirectory + "/" + "\n\n" + language.get(lang, "64"), MessageBox.TYPE_YESNO)
@@ -1067,7 +1067,7 @@ class AssignService(ChannelSelectionBase):
 						elif "IPTV_IPToSAT" in BouquetIPToSAT and exists(str(self.m3ufile)):
 							self['managerlistchannels'].show()
 							self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
-							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1111,7 +1111,7 @@ class AssignService(ChannelSelectionBase):
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 										else:
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
@@ -1126,7 +1126,7 @@ class AssignService(ChannelSelectionBase):
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
 										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ;  ln -s " + REFERENCES_FILE + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 									else:
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
