@@ -17,9 +17,6 @@ def load_json_file(file_path):
 
 config = load_json_file("/etc/enigma2/iptosatm3u.json")
 
-PORT = config["PORT"]
-USER = config["USER"]
-PASSWORD = config["PASSWORD"]
 CATEGORIES = config["CATEGORIES"]
 bouquets_categories = {categorie: [] for categorie in CATEGORIES.keys()}
 
@@ -264,15 +261,6 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 	enigma2_file.close()
 
 
-def refresh_bouquets():
-	try:
-		base_url = f'http://localhost:{PORT}/api/'
-		requests.get(base_url + 'servicelistreload?mode=2', auth=(USER, PASSWORD))
-		print("Channel list updated successfully.")
-	except Exception as e:
-		print(f"Error updating channel list: {str(e)}")
-
-
 if __name__ == "__main__":
 	enigma2_dir = "/etc/enigma2"
 	if len(argv) > 1:
@@ -319,4 +307,3 @@ if __name__ == "__main__":
 						bouquet_enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
 				add_to_bouquets_tv(categorie_favorite_name)
 				add_to_bouquets_tv(favorite_name)
-	refresh_bouquets()

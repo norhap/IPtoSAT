@@ -1518,7 +1518,7 @@ class AssignService(ChannelSelectionBase):
 		with open(CONFIG_PATH_M3U, "r") as jsonread:
 			m3uread = jsonread.read()
 		with open(CONFIG_PATH_M3U, "w") as jsonwrite:
-			jsonwrite.write("{" + "\n" + '    "PORT": 80,' + "\n" + '    "USER": "",' + "\n" + '    "PASSWORD": "",' + "\n" + '    "CATEGORIES": {' + "\n" + '        ' + m3uread.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]') + "\n" + "    }" + "\n" + "}")
+			jsonwrite.write("{" + "\n" + '    "CATEGORIES": {' + "\n" + '        ' + m3uread.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]') + "\n" + "    }" + "\n" + "}")
 
 	def getSuscriptionData(self, data):
 		try:
