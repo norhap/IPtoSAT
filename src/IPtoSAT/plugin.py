@@ -373,7 +373,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="managerlistchannels" position="33,750" size="870,165" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
-			<widget name="help" position="925,355" size="900,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
+			<widget name="help" position="925,355" size="957,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget name="play" position="925,355" size="900,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,965" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,965" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1179,7 +1179,6 @@ class AssignService(ChannelSelectionBase):
 				satreferencename = ""
 				bouquetnamemsgbox = ""
 				bouquetname = ""
-				SID = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
 				for character in characterascii:
 					if search(r'[ÁÉÍÓÚÑ]', character):
 						epg_channel_name = character.replace("Ñ", "N").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
@@ -1249,25 +1248,26 @@ class AssignService(ChannelSelectionBase):
 						if fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
 							self.session.open(MessageBox, language.get(lang, "85") + "#DESCRIPTION " + epg_channel_name + "\n\n" + language.get(lang, "93") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
-					if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
-						self.session.open(MessageBox, epg_channel_name + ":" + "   " + language.get(lang, "76"), MessageBox.TYPE_INFO, simple=True)
-						break
-				stream_iptv_norhap = ""
+					if "." not in epg_channel_name:  # it is not a valid channel
+						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
+							self.session.open(MessageBox, epg_channel_name + ":" + "   " + language.get(lang, "76"), MessageBox.TYPE_INFO, simple=True)
+							break
+				stream_iptv = ""
 				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
-					bouquetnorhap = join(filelist)
-					with open("/etc/enigma2/" + bouquetnorhap, "r") as file:
+					bouquets_categories = join(filelist)
+					with open("/etc/enigma2/" + bouquets_categories, "r") as file:
 						lines = file.readlines()
 						for line in lines:
-							if SID in line and "http" in line:
-								stream_iptv_norhap = line
-				if stream_iptv_norhap and not fileContains(IPToSAT_EPG_PATH, epg_channel_name):  # add stream IPTV with EPG to IPToSAT_EPG
+							if sref in line and "http" in line:
+								stream_iptv = line
+				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name):  # add stream IPTV with EPG to IPToSAT_EPG
 					if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
 						with open(IPToSAT_EPG_PATH, "w") as fw:
 							fw.write('#NAME IPToSAT_EPG' + "\n")
 						eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2" ; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 					else:
 						with open(IPToSAT_EPG_PATH, "a") as fw:
-							fw.write(stream_iptv_norhap + "#DESCRIPTION " + epg_channel_name + "\n")
+							fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name + "\n")
 						eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2" ; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1279,33 +1279,39 @@ class AssignService(ChannelSelectionBase):
 			sref_update = sref.upper()
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
-			for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
-				bouquetiptv = join(filelist)
-				SID = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
-				if not fileContains(IPToSAT_EPG_PATH, epg_channel_name):
-					self.addEPGChannel(channel_name, sref)
-					break
-				if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, SID):
-					self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
-					break
-			with open(REFERENCES_FILE, "r") as file:  # write services references
-				filereference = file.readlines()
-				for line in filereference:
-					for character in characterascii:
-						if search(r'[áéíóúñm+]', channel_update):
-							channel_update = character.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("m+", "").replace(" ", "")
-							with open(REFERENCES_FILE, "a") as updatefile:
-								removeduplicate = "".join({c:":-->" for c in line.split("-->")[1]})
-								updatereference = removeduplicate.split("1:")[0]
-								updatefile.write(updatereference)
-						if not fileContains(REFERENCES_FILE, str(sref_update)):
-							with open(REFERENCES_FILE, "a") as updatefile:
-								if not fileContains(REFERENCES_FILE, '#UPDATE CHANNELS#'):
-									updatefile.write("\n" + "#UPDATE CHANNELS#" + "\n" + str(channel_update) + "-->" + str(sref_update))
-								else:
-									updatefile.write("\n" + str(channel_update) + "-->" + str(sref_update))
+			SID = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
+			if exists(REFERENCES_FILE):
+				try:
+					with open(REFERENCES_FILE, "r") as file:  # write services references
+						filereference = file.readlines()
+						for line in filereference:
+							for character in characterascii:
+								if search(r'[áÁéÉíÍóÓúÚñÑ]', channel_update):
+									channel_update = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("ñ", "n").encode('ascii', 'ignore').decode()
+									with open(REFERENCES_FILE, "a") as updatefile:
+										removeduplicate = "".join({c:":-->" for c in line.split("-->")[1]})
+										updatereference = removeduplicate.split("1:")[0]
+										updatefile.write(updatereference)
+								if not fileContains(REFERENCES_FILE, str(sref_update)):
+									with open(REFERENCES_FILE, "a") as updatefile:
+										if not fileContains(REFERENCES_FILE, '#CHANNEL UPDATE#'):
+											updatefile.write("\n" + "#CHANNEL UPDATE#" + "\n" + str(channel_update) + "-->" + str(sref_update))
+										else:
+											updatefile.write("\n" + str(channel_update) + "-->" + str(sref_update))
+				except Exception:
+					pass
+			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
+				self.addEPGChannel(channel_name, sref)
+				return
+			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, SID):
+				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
+				return
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, SID):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+			self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+		elif "." in epg_channel_name:  # it is not a valid channel
+			self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 
 	def purge(self):
 		if self.storage:
