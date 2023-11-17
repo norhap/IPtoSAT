@@ -1088,6 +1088,16 @@ class AssignService(ChannelSelectionBase):
 							makedirs(self.m3ufolder)
 						if exists(str(self.m3ufile)):
 							remove(self.m3ufile)
+						for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
+							with open("/etc/enigma2/bouquets.tv", "r") as fr:
+								bouquetread = fr.readlines()
+								with open("/etc/enigma2/bouquets.tv", "w") as bouquetswrite:
+									for line in bouquetread:
+										if "norhap" not in line:
+											bouquetswrite.write(line)
+							enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
+							if enigma2files:
+								remove(enigma2files)
 						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
 						sleep(3)
 					else:
@@ -1275,40 +1285,36 @@ class AssignService(ChannelSelectionBase):
 
 	def resultEditionBouquets(self, channel_name, sref):
 		try:
-			channel_update = channel_name.lower()
+			channel_update = channel_name.upper()
 			sref_update = sref.upper()
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
-			SID = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
 			if exists(REFERENCES_FILE):
 				try:
+					for character in characterascii:
+						if search(r'[áÁéÉíÍóÓúÚñÑM+m+]', channel_update):
+							channel_update = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("m+", "").encode('ascii', 'ignore').decode()
+						if not fileContains(REFERENCES_FILE, str(sref_update)) or fileContains(REFERENCES_FILE, channel_name.lower()) and not fileContains(REFERENCES_FILE, str(sref_update)) or fileContains(REFERENCES_FILE, channel_name.upper()) and not fileContains(REFERENCES_FILE, str(sref_update)):
+							with open(REFERENCES_FILE, "a") as updatefile:
+								if fileContains(REFERENCES_FILE, '# UPDATE REFERENCES #'):
+									updatefile.write("\n" + str(channel_update).lower() + "-->" + str(sref_update) + "-->1")
+								else:
+									updatefile.write("\n" + "# UPDATE REFERENCES #" + "\n" + str(channel_update) + "-->" + str(sref_update) + "-->1")
 					with open(REFERENCES_FILE, "r") as file:  # write services references
 						filereference = file.readlines()
-						for line in filereference:
-							for character in characterascii:
-								if search(r'[áÁéÉíÍóÓúÚñÑ]', channel_update):
-									channel_update = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("ñ", "n").encode('ascii', 'ignore').decode()
-									with open(REFERENCES_FILE, "a") as updatefile:
-										removeduplicate = "".join({c:":-->" for c in line.split("-->")[1]})
-										updatereference = removeduplicate.split("1:")[0]
-										updatefile.write(updatereference)
-								if not fileContains(REFERENCES_FILE, str(sref_update)):
-									with open(REFERENCES_FILE, "a") as updatefile:
-										if not fileContains(REFERENCES_FILE, '#CHANNEL UPDATE#'):
-											updatefile.write("\n" + "#CHANNEL UPDATE#" + "\n" + str(channel_update) + "-->" + str(sref_update))
-										else:
-											updatefile.write("\n" + str(channel_update) + "-->" + str(sref_update))
+						with open(REFERENCES_FILE, "w") as finalfile:
+							for line in filereference:
+								if str(channel_update).lower() in line and str(sref_update) in line or str(channel_update).lower() not in line and str(sref_update) not in line:
+									finalfile.write(line)
 				except Exception:
 					pass
-			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
+			if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
 				self.addEPGChannel(channel_name, sref)
-				return
-			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, SID):
+			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
-				return
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-		if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, SID):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+		if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
 			self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
 		elif "." in epg_channel_name:  # it is not a valid channel
 			self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
@@ -1511,20 +1517,21 @@ class AssignService(ChannelSelectionBase):
 			for cat in js:
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
-				bouquets_categories.append((str(cat['category_name']), str(cat['category_name'])))
+				if not search(r'[/]', str(cat['category_name'])):
+					bouquets_categories.append((str(cat['category_name']), str(cat['category_name'])))
 		self['list2'].show()
 		self["please"].hide()
 		self['list2'].l.setList(list)
 		self.categories = list
 		self.bouquets = bouquets_categories
 		self.in_channels = False
-		m3uread = ""
+		categorieslist = ""
 		with open(CONFIG_PATH_M3U, "w") as categories:
 			dump(self.bouquets, categories)
-		with open(CONFIG_PATH_M3U, "r") as jsonread:
-			m3uread = jsonread.read()
-		with open(CONFIG_PATH_M3U, "w") as jsonwrite:
-			jsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + m3uread.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
+		with open(CONFIG_PATH_M3U, "r") as m3ujsonread:
+			categorieslist = m3ujsonread.read()
+		with open(CONFIG_PATH_M3U, "w") as m3ujsonwrite:
+			m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + categorieslist.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
 
 	def getSuscriptionData(self, data):
 		try:
