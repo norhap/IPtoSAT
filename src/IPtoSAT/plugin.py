@@ -1067,7 +1067,7 @@ class AssignService(ChannelSelectionBase):
 						elif "IPTV_IPToSAT" in BouquetIPToSAT and exists(str(self.m3ufile)):
 							self['managerlistchannels'].show()
 							self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
-							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1121,7 +1121,7 @@ class AssignService(ChannelSelectionBase):
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 										else:
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
@@ -1136,7 +1136,7 @@ class AssignService(ChannelSelectionBase):
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
 										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 									else:
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()

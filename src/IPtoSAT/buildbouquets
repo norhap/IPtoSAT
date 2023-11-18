@@ -126,26 +126,27 @@ def find_channel_with_keyword(channel_name, satellite_reference):
 def add_to_bouquets_tv(favorite_name):
 	bouquets_tv_path = "/etc/enigma2/bouquets.tv"
 	content_bouquets_tv = '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.{}.tv" ORDER BY bouquet\n'.format(favorite_name)
-	if not exists(bouquets_tv_path):
-		with open(bouquets_tv_path, "w") as bouquets_tv_file:
-			bouquets_tv_file.write(content_bouquets_tv)
-			bouquets_tv_file.write("\n")
-	else:
-		with open(bouquets_tv_path, "r") as bouquets_tv_file:
-			lines = bouquets_tv_file.readlines()
-		if lines and not lines[-1].strip():
-			lines.pop()
-		if content_bouquets_tv not in lines:
+	if '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.iptosat_norhap.tv" ORDER BY bouquet' not in content_bouquets_tv:
+		if not exists(bouquets_tv_path):
 			with open(bouquets_tv_path, "w") as bouquets_tv_file:
-				for line in lines:
-					bouquets_tv_file.write(line)
-					if not line.strip():
-						break
-				bouquets_tv_file.write(content_bouquets_tv.strip())
+				bouquets_tv_file.write(content_bouquets_tv)
 				bouquets_tv_file.write("\n")
-				bouquets_tv_file.writelines(lines[len(lines) - (len(lines) - lines.index(line)) + 1:])
 		else:
-			print("The name on bouquet.tv is not overwritten as it already exists previously")
+			with open(bouquets_tv_path, "r") as bouquets_tv_file:
+				lines = bouquets_tv_file.readlines()
+			if lines and not lines[-1].strip():
+				lines.pop()
+			if content_bouquets_tv not in lines:
+				with open(bouquets_tv_path, "w") as bouquets_tv_file:
+					for line in lines:
+						bouquets_tv_file.write(line)
+						if not line.strip():
+							break
+					bouquets_tv_file.write(content_bouquets_tv.strip())
+					bouquets_tv_file.write("\n")
+					bouquets_tv_file.writelines(lines[len(lines) - (len(lines) - lines.index(line)) + 1:])
+			else:
+				print("The name on bouquet.tv is not overwritten as it already exists previously")
 
 
 def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
