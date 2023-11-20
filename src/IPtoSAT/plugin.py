@@ -1258,7 +1258,7 @@ class AssignService(ChannelSelectionBase):
 						if fileContains("/etc/enigma2/" + bouquetiptv, epg_channel_name + "#SERVICE"):
 							self.session.open(MessageBox, language.get(lang, "85") + "#DESCRIPTION " + epg_channel_name + "\n\n" + language.get(lang, "93") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
-					if "." not in epg_channel_name:  # it is not a valid channel
+					if epg_channel_name != ".":  # it is not a valid channel
 						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains("/etc/enigma2/bouquets.tv", FILE_IPToSAT_EPG):
 							self.session.open(MessageBox, epg_channel_name + ":" + "   " + language.get(lang, "76"), MessageBox.TYPE_INFO, simple=True)
 							break
@@ -1285,26 +1285,22 @@ class AssignService(ChannelSelectionBase):
 
 	def resultEditionBouquets(self, channel_name, sref):
 		try:
-			channel_update = channel_name.upper()
 			sref_update = sref.upper()
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
 			if exists(REFERENCES_FILE):
 				try:
 					for character in characterascii:
-						if search(r'[áÁéÉíÍóÓúÚñÑM+m+]', channel_update):
-							channel_update = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("m+", "").encode('ascii', 'ignore').decode()
-						if not fileContains(REFERENCES_FILE, str(sref_update)) or fileContains(REFERENCES_FILE, channel_name.lower()) and not fileContains(REFERENCES_FILE, str(sref_update)) or fileContains(REFERENCES_FILE, channel_name.upper()) and not fileContains(REFERENCES_FILE, str(sref_update)):
+						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
+							channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "").replace("MOVISTAR", "").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "").replace("m+", "m").replace("movistar", "").replace(".", "").encode('ascii', 'ignore').decode()
+						if not fileContains(REFERENCES_FILE, channel_name.lower()):
 							with open(REFERENCES_FILE, "a") as updatefile:
-								if fileContains(REFERENCES_FILE, '# UPDATE REFERENCES #'):
-									updatefile.write("\n" + str(channel_update).lower() + "-->" + str(sref_update) + "-->1")
-								else:
-									updatefile.write("\n" + "# UPDATE REFERENCES #" + "\n" + str(channel_update) + "-->" + str(sref_update) + "-->1")
-					with open(REFERENCES_FILE, "r") as file:  # write services references
+								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
+					with open(REFERENCES_FILE, "r") as file:  # clear old services references
 						filereference = file.readlines()
 						with open(REFERENCES_FILE, "w") as finalfile:
 							for line in filereference:
-								if str(channel_update).lower() in line and str(sref_update) in line or str(channel_update).lower() not in line and str(sref_update) not in line:
+								if str(channel_name).lower() + "." in line and str(sref_update) in line or str(channel_name).lower() in line and str(sref_update) in line or str(channel_name).lower() not in line and str(sref_update) not in line:
 									finalfile.write(line)
 				except Exception:
 					pass
@@ -1316,7 +1312,7 @@ class AssignService(ChannelSelectionBase):
 			print("ERROR: %s" % str(err))
 		if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
 			self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
-		elif "." in epg_channel_name:  # it is not a valid channel
+		elif epg_channel_name == ".":  # it is not a valid channel
 			self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 
 	def purge(self):
