@@ -35,7 +35,7 @@ SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
 BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
 BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
 REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
-CONFIG_PATH_M3U = "/etc/enigma2/iptosatcategories.json"
+CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -1522,11 +1522,11 @@ class AssignService(ChannelSelectionBase):
 		self.bouquets = bouquets_categories
 		self.in_channels = False
 		iptosatcategoriesjson = ""
-		with open(CONFIG_PATH_M3U, "w") as categories:
+		with open(CONFIG_PATH_CATEGORIES, "w") as categories:
 			dump(self.bouquets, categories)
-		with open(CONFIG_PATH_M3U, "r") as m3ujsonread:
+		with open(CONFIG_PATH_CATEGORIES, "r") as m3ujsonread:
 			iptosatcategoriesjson = m3ujsonread.read()
-		with open(CONFIG_PATH_M3U, "w") as m3ujsonwrite:
+		with open(CONFIG_PATH_CATEGORIES, "w") as m3ujsonwrite:
 			m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + iptosatcategoriesjson.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
 
 	def getSuscriptionData(self, data):
