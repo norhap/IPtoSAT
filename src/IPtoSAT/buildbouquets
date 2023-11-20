@@ -200,11 +200,11 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						if order is not None:
 							occupied_orders.append(order)
 					else:
-						channel_reference = "4097:0:1:{:X}:0:0:0:0:0:0:".format(unique_id)
+						channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
 						unique_id += 1
 						order = None
 				else:
-					channel_reference = "4097:0:1:{:X}:0:0:0:0:0:0:".format(unique_id)
+					channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
 					unique_id += 1
 					order = None
 			if line.startswith("http"):
