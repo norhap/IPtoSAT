@@ -1321,12 +1321,22 @@ class AssignService(ChannelSelectionBase):
 				self.addEPGChannel(channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
+			bouquetname = ""
+			try:
+				with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+					riptvsh = fr.readlines()
+					for line in riptvsh:
+						bouquetname = line.split("bouquet=")[1].split(";")[0]
+			except Exception as err:
+				print("ERROR: %s" % str(err))
+			if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+				self.session.open(MessageBox, language.get(lang, "128") + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+			elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+				self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+			if epg_channel_name == ".":  # it is not a valid channel
+				self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-		if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-			self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
-		elif epg_channel_name == ".":  # it is not a valid channel
-			self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 
 	def purge(self):
 		if self.storage:
