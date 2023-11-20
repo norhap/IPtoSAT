@@ -86,6 +86,8 @@ config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
+config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
+config.plugins.IPToSAT.downloadcategories = ConfigYesNo(default=True)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -212,6 +214,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.list.append(getConfigListEntry(language.get(lang, "114"), config.plugins.IPToSAT.password))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
+			self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
+		if fileContains("/etc/enigma2/bouquets.tv", "norhap"):
+			self.list.append(getConfigListEntry(language.get(lang, "127"), config.plugins.IPToSAT.deletecategories))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
 		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
@@ -1062,12 +1067,13 @@ class AssignService(ChannelSelectionBase):
 							fw.write(createbouquet + "\n" + content)
 							if exists(SOURCE_BOUQUET_IPTV):
 								eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
-						if "IPTV_IPToSAT" in BouquetIPToSAT and not self.storage:
+						if "IPTV_IPToSAT" in BouquetIPToSAT and not self.storage and not config.plugins.IPToSAT.downloadcategories.value:
 							self.session.open(MessageBox, "Bouquet" + " " + BouquetIPToSAT + "\n\n" + language.get(lang, "38"), MessageBox.TYPE_INFO, simple=True, timeout=10)
 						elif "IPTV_IPToSAT" in BouquetIPToSAT and exists(str(self.m3ufile)):
 							self['managerlistchannels'].show()
-							self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
-							eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+							if config.plugins.IPToSAT.downloadcategories.value:
+								self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
+								eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1088,16 +1094,17 @@ class AssignService(ChannelSelectionBase):
 							makedirs(self.m3ufolder)
 						if exists(str(self.m3ufile)):
 							remove(self.m3ufile)
-						for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
-							with open("/etc/enigma2/bouquets.tv", "r") as fr:
-								bouquetread = fr.readlines()
-								with open("/etc/enigma2/bouquets.tv", "w") as bouquetswrite:
-									for line in bouquetread:
-										if "norhap" not in line:
-											bouquetswrite.write(line)
-							enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-							if enigma2files:
-								remove(enigma2files)
+						if config.plugins.IPToSAT.deletecategories.value:
+							for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
+								with open("/etc/enigma2/bouquets.tv", "r") as fr:
+									bouquetread = fr.readlines()
+									with open("/etc/enigma2/bouquets.tv", "w") as bouquetswrite:
+										for line in bouquetread:
+											if "norhap" not in line:
+												bouquetswrite.write(line)
+								enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
+								if enigma2files:
+									remove(enigma2files)
 						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
 						sleep(3)
 					else:
@@ -1120,8 +1127,11 @@ class AssignService(ChannelSelectionBase):
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
-											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+											if config.plugins.IPToSAT.downloadcategories.value:
+												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
+												eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+											else:
+												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 										else:
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
@@ -1135,8 +1145,11 @@ class AssignService(ChannelSelectionBase):
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
-										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-										eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+										if config.plugins.IPToSAT.downloadcategories.value:
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
+											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+										else:
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 									else:
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()

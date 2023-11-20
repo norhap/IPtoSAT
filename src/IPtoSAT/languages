@@ -126,6 +126,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 123 = Bouquets by categories have been created with EPG
 124 = Save changes and press EPG button.
 125 = The selected channel is not invalid.
+126 = Download bouquets by categories [YELLOW button]
+127 = Delete bouquets by categories before updating them [YELLOW button]
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
@@ -255,3 +257,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 123 = Se ha creado bouquets por categorías con EPG
 124 = Guarde los cambios y pulse botón EPG.
 125 = El canal seleccionado no es válido.
+126 = Descargar bouquets por categorías [botón AMARILLO]
+127 = Eliminar bouquets por categorías antes de actualizarlos [botón AMARILLO]
