@@ -214,7 +214,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.list.append(getConfigListEntry(language.get(lang, "114"), config.plugins.IPToSAT.password))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
-			self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
+			if not fileContains(CONFIG_PATH, "pass"):
+				self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
 		if fileContains("/etc/enigma2/bouquets.tv", "norhap"):
 			self.list.append(getConfigListEntry(language.get(lang, "127"), config.plugins.IPToSAT.deletecategories))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
