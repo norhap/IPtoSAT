@@ -1164,7 +1164,7 @@ class AssignService(ChannelSelectionBase):
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		else:
-			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False, timeout=5)
+			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def setEPGChannel(self):
 		self['managerlistchannels'].hide()
@@ -1196,6 +1196,8 @@ class AssignService(ChannelSelectionBase):
 		ref = self.getCurrentSelection()
 		if (ref.flags & 7) == 7:  # this is bouquet selection no channel!!
 			self.session.open(MessageBox, language.get(lang, "84"), MessageBox.TYPE_ERROR, simple=True, timeout=5)
+		elif not config.plugins.IPToSAT.downloadcategories.value and self.storage and not fileContains(CONFIG_PATH, "pass"):  # for download EPG to YES.
+			self.session.open(MessageBox, language.get(lang, "130"), MessageBox.TYPE_ERROR, simple=True)
 		else:
 			try:
 				epg_channel_name = channel_name.upper()
@@ -1338,10 +1340,14 @@ class AssignService(ChannelSelectionBase):
 						bouquetname = line.split("bouquet=")[1].split(";")[0]
 			except Exception as err:
 				print("ERROR: %s" % str(err))
-			if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-				self.session.open(MessageBox, language.get(lang, "128") + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
-			elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-				self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+			if exists(str(self.m3ufile)) and not fileContains(CONFIG_PATH, "pass"):
+				if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+					self.session.open(MessageBox, language.get(lang, "128") + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+				elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
+					self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+			else:
+				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):  # make manual EPG -> :CHANNEL NAME
+					self.session.open(MessageBox, language.get(lang, "131") + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name, MessageBox.TYPE_ERROR)
 			if epg_channel_name == ".":  # it is not a valid channel
 				self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 		except Exception as err:
