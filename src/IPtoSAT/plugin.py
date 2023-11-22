@@ -1315,6 +1315,7 @@ class AssignService(ChannelSelectionBase):
 			sref_update = sref.upper()
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
+			bouquetname = ""
 			if exists(REFERENCES_FILE):
 				try:
 					for character in characterascii:
@@ -1335,7 +1336,6 @@ class AssignService(ChannelSelectionBase):
 				self.addEPGChannel(channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
-			bouquetname = ""
 			try:
 				with open(SOURCE_BOUQUET_IPTV, "r") as fr:
 					riptvsh = fr.readlines()
