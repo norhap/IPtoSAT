@@ -1077,7 +1077,7 @@ class AssignService(ChannelSelectionBase):
 							self['managerlistchannels'].show()
 							if config.plugins.IPToSAT.downloadcategories.value:
 								self.assignWidgetScript("#e5e619", "Bouquet IPTV_IPToSAT " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "123"))
-								eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+								eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 		else:
 			self.channelSelected()
 			if exists(SOURCE_BOUQUET_IPTV):
@@ -1133,7 +1133,7 @@ class AssignService(ChannelSelectionBase):
 											self["key_menu"].setText("MENU")
 											if config.plugins.IPToSAT.downloadcategories.value:
 												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-												eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+												eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 											else:
 												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 										else:
@@ -1151,7 +1151,7 @@ class AssignService(ChannelSelectionBase):
 										self["key_menu"].setText("MENU")
 										if config.plugins.IPToSAT.downloadcategories.value:
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
-											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; rm -f /etc/enigma2/userbouquet.iptosat_norhap.tv.del ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
+											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH + "/ ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2' ; wget -qO - 'http://127.0.0.1/web/servicelistreload?mode=2'")
 										else:
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 									else:
@@ -1209,6 +1209,15 @@ class AssignService(ChannelSelectionBase):
 				bouquetnamemsgbox = ""
 				bouquetname = ""
 				stream_iptv = ""
+				bouquetiptosatepg = ""
+				if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
+					with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
+						bouquetiptosatepg = iptosat_epg_read.readlines()
+					with open(IPToSAT_EPG_PATH, "w") as iptosat_epg_write:
+						for channel in bouquetiptosatepg:
+							if epg_channel_name not in channel or epg_channel_name + " " + "HD" not in channel:
+								iptosat_epg_write.write(channel)
+					self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for character in characterascii:
 					if search(r'[ÁÉÍÓÚÑ]', character):
 						epg_channel_name = character.replace("Ñ", "N").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
@@ -1272,15 +1281,11 @@ class AssignService(ChannelSelectionBase):
 												newbouquetstvwrite.write(linesbouquet)
 								move(WILD_CARD_BOUQUETSTV, BOUQUETS_TV)
 							eConsoleAppContainer().execute('wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2" ; wget -qO - "http://127.0.0.1/web/servicelistreload?mode=2"')
-						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE"):
+						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE") and fileContains(IPToSAT_EPG_PATH, sref.upper()):
 							self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
 						if fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE"):
 							self.session.open(MessageBox, language.get(lang, "85") + "#DESCRIPTION " + epg_channel_name + "\n\n" + language.get(lang, "93") + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
-							break
-					if epg_channel_name != ".":  # it is not a valid channel
-						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(BOUQUETS_TV, FILE_IPToSAT_EPG):
-							self.session.open(MessageBox, epg_channel_name + ":" + "   " + language.get(lang, "76"), MessageBox.TYPE_INFO, simple=True)
 							break
 				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
 					bouquets_categories = join(filelist)
