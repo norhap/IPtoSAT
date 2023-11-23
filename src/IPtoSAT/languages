@@ -1,5 +1,5 @@
 [en]
-Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap
+Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap
 0 = To assign satellite channels, select the channel in both lists and press OK.\n\nIf the search has no effect, press EXIT select again and press NUMBER KEY "2" to display all the channels in the IPTV list.\ n\nTo show detailed help such as assigning EPG press HELP.\nTo show detailed help such as changing lists or alternating two subscriptions press PLAY.\n\nWe have detected that you do not have a storage device. For some functions of the program we need a device and that this device is not mounted on the Network.\nFor example: Without a device you will not be able to alternate your subscription lists or change your subscription with the interface, nor will you be able to make a copy of your channel list and install it.\nTo create bouquets by categories or update them, press the YELLOW button. You must have a storage device mounted and active IPTV subscription.
 1 = with EPG set.\nDo you want to restart enigma2 to apply the changes?\nSelect "No" to continue adding channels.
 2 = Press OK or GREEN to install list.\nPress YELLOW button to update the lists.\nPress BLUE button if you want to have the plugin updated.
@@ -13,7 +13,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 10 = It has been detected that you have assigned channels.\nIt is advisable to restart enigma2 to synchronize them.\n\nDo you want to restart?
 11 = Receiver Channel List
 12 = IPTV Subscription List
-13 = IPToSAT Author Ziko. Version 2.0 Author norhap
+13 = IPToSAT Author Ziko. Version 2.1 Author norhap
 14 = Enable IPToSAT
 15 = Assign satellite channels and manage satellite and IPTV lists
 16 = Reset or remove assigned channels
@@ -134,7 +134,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sync
 131 = You have to edit your IPTV channel list file, if you want to know which one it is, press key 0 through the Receiver Channel List folders.\n\nIf you have a subscription and a mounted storage device, this editing task manual could be avoided, just press EPG and follow instructions.\n\n
 
 [es]
-Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.0 por norhap
+Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
 0 = Para asignar canales satélites, seleccione el canal en ambas listas y pulse OK.\n\nSi la búsqueda no surte efecto, pulse EXIT seleccione de nuevo y pulse TECLA NUMÉRICA "2" para mostrar todos los canales de la lista IPTV.\n\nPara mostrar ayuda detallada como asignar EPG pulse HELP.\nPara mostrar ayuda detallada como cambiar de lista o alternar dos suscripciones pulse PLAY.\n\nHemos detectado que no dispone de dispositivo de almacenamiento. Para algunas funciones del programa necesitamos un dispositivo y que este dispositivo no esté montado en Red.\nPor ejemplo: Sin dispositivo no podrá alternar sus listas de suscripción ni cambiar su suscripción con la interfaz, así como no podrá hacer copia de su lista de canales e instalarla.\nPara crear bouquets por categorías o actualizarlos pulse botón AMARILLO. Debe tener montado un dispositivo de almacenamiento y suscripción IPTV activa.
 1 = con EPG establecida.\nQuieres reiniciar enigma2 para aplicar los cambios?\nSeleccione "No" para seguir añadiendo canales
 2 = Pulse OK o VERDE para instalar lista.\nPulse botón AMARILLO para actualizar las listas.\nPulse botón AZUL si desea tener el plugin actualizado.
@@ -148,7 +148,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.0 by norhap = Sinc
 10 = Se ha detectado que tiene canales asignados.\nEs recomendable reiniciar enigma2 para sincronizarlos.\n\n¿Desea reiniciar?
 11 = Lista de Canales del Receptor
 12 = Lista Suscripción IPTV
-13 = IPToSAT Autor Ziko. Versión 2.0 Autor norhap
+13 = IPToSAT Autor Ziko. Versión 2.1 Autor norhap
 14 = IPToSAT Habilitado
 15 = Asignar canales de satélite y gestionar listas de satélites e IPTV
 16 = Resetear o eliminar canales asignados
