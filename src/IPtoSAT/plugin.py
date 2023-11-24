@@ -1217,10 +1217,10 @@ class AssignService(ChannelSelectionBase):
 						bouquetiptosatepg = iptosat_epg_read.readlines()
 					with open(IPToSAT_EPG_PATH, "w") as iptosat_epg_write:
 						for channel in bouquetiptosatepg:
-							if epg_channel_name in channel and "http" in channel:  # replace reference old -> condition two points + channel_name
+							if epg_channel_name in channel and "http" in channel and "%3a " not in channel:  # replace reference old -> condition two points + channel_name
 								changereference = channel.split("http")[1]
 								channel = "#SERVICE " + sref + "http" + changereference
-							if epg_channel_name not in channel or epg_channel_name + " " + "HD" not in channel:
+							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel:
 								iptosat_epg_write.write(channel)
 					self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for character in characterascii:
