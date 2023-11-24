@@ -1220,7 +1220,7 @@ class AssignService(ChannelSelectionBase):
 							if epg_channel_name in channel and "http" in channel and "%3a " not in channel:  # replace reference old -> condition two points + channel_name
 								changereference = channel.split("http")[1]
 								channel = "#SERVICE " + sref + "http" + changereference
-							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel and "HD" not in channel:
+							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel and "HD" not in channel:  # NOTA. eliminar pronto el final de linea and "HD" not in channel cuando movistar estabilice los HD de lo contrario duplica DESCRIPTION en canales IPTV si se pulsa dos veces en EPG.
 								iptosat_epg_write.write(channel)
 					self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for character in characterascii:
