@@ -9,7 +9,8 @@ from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ConfigList import ConfigList, ConfigListScreen  # noqa: F401
 from Components.MenuList import MenuList
 from Components.Label import Label
-from Components.SystemInfo import BoxInfo, MODEL
+from Components.SystemInfo import BoxInfo  # ,MODEL import from getBoxType for all images OE
+from boxbranding import getBoxType
 from ServiceReference import ServiceReference
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
@@ -29,6 +30,7 @@ from shutil import move, copy
 from re import search
 from sys import stdout
 
+MODEL = getBoxType()
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
 SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
