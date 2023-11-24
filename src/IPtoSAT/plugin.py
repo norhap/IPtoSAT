@@ -1295,7 +1295,16 @@ class AssignService(ChannelSelectionBase):
 						lines = file.readlines()
 						for line in lines:
 							if sref in line and "http" in line and ":" + epg_channel_name not in line:
-								line = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name) # add condition -> two points + channel_name for change old reference
+								replacement = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name) # add condition -> two points + channel_name for change old reference
+								if ":" + epg_channel_name + ":" in replacement:  # remove one :channel_name (two channels name in bouquets_categories)
+									if ".ts" in replacement:
+										line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name + "\n"
+									elif ".m3u8" in replacement:
+										line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name + "\n"
+									else:
+										line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name + "\n"
+								else:
+									line = replacement
 							if sref in line and "http" in line:
 								stream_iptv = line
 				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name):  # add stream IPTV with EPG to IPToSAT_EPG
