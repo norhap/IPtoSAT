@@ -1220,7 +1220,7 @@ class AssignService(ChannelSelectionBase):
 							if epg_channel_name in channel and "http" in channel and "%3a " not in channel:  # replace reference old -> condition two points + channel_name
 								changereference = channel.split("http")[1]
 								channel = "#SERVICE " + sref + "http" + changereference
-							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel:
+							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel and "HD" not in channel:
 								iptosat_epg_write.write(channel)
 					self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for character in characterascii:
