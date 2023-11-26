@@ -1212,20 +1212,22 @@ class AssignService(ChannelSelectionBase):
 				bouquetname = ""
 				stream_iptv = ""
 				bouquetiptosatepg = ""
-				if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
-					with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
-						bouquetiptosatepg = iptosat_epg_read.readlines()
-					with open(IPToSAT_EPG_PATH, "w") as iptosat_epg_write:
-						for channel in bouquetiptosatepg:
-							if epg_channel_name in channel and "http" in channel and "%3a " not in channel:  # replace reference old -> condition two points + channel_name
-								changereference = channel.split("http")[1]
-								channel = "#SERVICE " + sref + "http" + changereference
-							if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel and "HD" not in channel:  # NOTA. eliminar pronto el final de linea and "HD" not in channel cuando movistar estabilice los HD de lo contrario duplica DESCRIPTION en canales IPTV si se pulsa dos veces en EPG.
-								iptosat_epg_write.write(channel)
-					self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for character in characterascii:
-					if search(r'[ÁÉÍÓÚÑ]', character):
-						epg_channel_name = character.replace("Ñ", "N").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
+					if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()) or search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
+						with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
+							bouquetiptosatepg = iptosat_epg_read.readlines()
+						with open(IPToSAT_EPG_PATH, "w") as iptosat_epg_write:
+							for channel in bouquetiptosatepg:
+								if epg_channel_name in channel and "http" in channel and "%3a " not in channel:  # replace reference old -> condition two points + channel_name
+									changereference = channel.split("http")[1]
+									channel = "#SERVICE " + sref + "http" + changereference
+								if " FHD" not in epg_channel_name:
+									if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel and "HD" not in channel:
+										iptosat_epg_write.write(channel)
+								else:
+									if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel:
+										iptosat_epg_write.write(channel)
+						self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") and not x.endswith("userbouquet.iptosat_norhap.tv") and exists(str(self.m3ufile)) or x.endswith(".tv") and not exists(str(self.m3ufile)) or x.endswith(".radio")]:
 					bouquetiptv = join(filelist)
 					if fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, ":" + epg_channel_name):
@@ -1294,26 +1296,80 @@ class AssignService(ChannelSelectionBase):
 					with open(ENIGMA2_PATH_LISTS + bouquets_categories, "r") as file:
 						lines = file.readlines()
 						for line in lines:
-							if sref in line and "http" in line and ":" + epg_channel_name not in line:
-								replacement = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name) # add condition -> two points + channel_name for change old reference
-								if ":" + epg_channel_name + ":" in replacement:  # remove one :channel_name (two channels name in bouquets_categories)
-									if ".ts" in replacement:
-										line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name + "\n"
-									elif ".m3u8" in replacement:
-										line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name + "\n"
+							for character in characterascii:
+								if sref in line and "http" in line and ":" + epg_channel_name not in line:
+									replacement = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name) # add condition -> two points + channel_name for change old reference
+									if ":" + epg_channel_name + ":" in replacement:  # remove one :channel_name (two channels name in bouquets_categories)
+										if ".ts" in replacement:
+											if search(r'[Á]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("A", "Á") + "\n"
+											if search(r'[É]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("E", "É") + "\n"
+											if search(r'[Í]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("I", "Í") + "\n"
+											if search(r'[Ó]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("O", "Ó") + "\n"
+											if search(r'[Ú]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("U", "Ú") + "\n"
+											if search(r'[Ñ]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name.replace("N", "Ñ") + "\n"
+											if not search(r'[ÁÉÍÓÚÑ]', character):
+												line = replacement.split(".ts:" + epg_channel_name)[0] + ".ts:" + epg_channel_name + "\n"
+										elif ".m3u8" in replacement:
+											if search(r'[Á]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("A", "Á") + "\n"
+											if search(r'[É]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("E", "É") + "\n"
+											if search(r'[Í]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("I", "Í") + "\n"
+											if search(r'[Ó]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("O", "Ó") + "\n"
+											if search(r'[Ú]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("U", "Ú") + "\n"
+											if search(r'[Ñ]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name.replace("N", "Ñ") + "\n"
+											if not search(r'[ÁÉÍÓÚÑ]', character):
+												line = replacement.split(".m3u8:" + epg_channel_name)[0] + ".m3u8:" + epg_channel_name + "\n"
+										else:
+											if search(r'[Á]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("A", "Á") + "\n"
+											if search(r'[É]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("E", "É") + "\n"
+											if search(r'[Í]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("I", "Í") + "\n"
+											if search(r'[Ó]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("O", "Ó") + "\n"
+											if search(r'[Ú]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("U", "Ú") + "\n"
+											if search(r'[Ñ]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name.replace("N", "Ñ") + "\n"
+											if not search(r'[ÁÉÍÓÚÑ]', character):
+												line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name + "\n"
 									else:
-										line = replacement.split(".m3u:" + epg_channel_name)[0] + ".m3u:" + epg_channel_name + "\n"
-								else:
-									line = replacement
-							if sref in line and "http" in line:
-								stream_iptv = line
-				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name):  # add stream IPTV with EPG to IPToSAT_EPG
+										line = replacement
+								if sref in line and "http" in line:
+									stream_iptv = line
+				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # add stream IPTV with EPG to IPToSAT_EPG
 					if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
 						with open(IPToSAT_EPG_PATH, "w") as fw:
 							fw.write('#NAME IPToSAT_EPG' + "\n")
 					else:
-						with open(IPToSAT_EPG_PATH, "a") as fw:
-							fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name + "\n")
+						for character in characterascii:
+							with open(IPToSAT_EPG_PATH, "a") as fw:
+								if search(r'[Á]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("A", "Á") + "\n")
+								if search(r'[É]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("E", "É") + "\n")
+								if search(r'[Í]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("I", "Í") + "\n")
+								if search(r'[Ó]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("O", "Ó") + "\n")
+								if search(r'[Ú]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("U", "Ú") + "\n")
+								if search(r'[Ñ]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name.replace("N", "Ñ") + "\n")
+								if not search(r'[ÁÉÍÓÚÑ]', character):
+									fw.write(stream_iptv + "#DESCRIPTION " + epg_channel_name + "\n")
 					if not fileContains(BOUQUETS_TV, "iptosat_epg"):
 						with open(WILD_CARD_BOUQUETSTV, "a") as newbouquetstvwrite:
 							newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
@@ -1352,7 +1408,7 @@ class AssignService(ChannelSelectionBase):
 					pass
 			if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
 				self.addEPGChannel(channel_name, sref)
-			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref):
+			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref) or fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
 			try:
 				with open(SOURCE_BOUQUET_IPTV, "r") as fr:
