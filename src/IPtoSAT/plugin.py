@@ -1420,9 +1420,9 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 			if exists(str(self.m3ufile)) and not fileContains(CONFIG_PATH, "pass"):
 				if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-					self.session.open(MessageBox, language.get(lang, "128") + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+					self.session.open(MessageBox, language.get(lang, "128") + " " + epg_channel_name + ":" + "\n" + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
 				elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-					self.session.open(MessageBox, language.get(lang, "83") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+					self.session.open(MessageBox, language.get(lang, "83") + " " + epg_channel_name + "\n\n" + language.get(lang, "132") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
 			else:
 				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name):  # make manual EPG -> :CHANNEL NAME
 					self.session.open(MessageBox, language.get(lang, "131") + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name, MessageBox.TYPE_ERROR)
