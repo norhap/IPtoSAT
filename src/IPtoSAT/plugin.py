@@ -1277,8 +1277,6 @@ class AssignService(ChannelSelectionBase):
 											fw.write(line.replace(epg_channel_name + "#DESCRIPTION ", "") + "#DESCRIPTION " + epg_channel_name + "\n")
 										if ":" + epg_channel_name not in line:
 											fw.write(line)  # End TODO refererence + description channel name
-							if exists(WILD_CARD_EPG_FILE):
-								self.Console.ePopen("rm -f " + WILD_CARD_EPG_FILE)
 							if not fileContains(BOUQUETS_TV, "iptosat_epg"):
 								with open(WILD_CARD_BOUQUETSTV, "a") as newbouquetstvwrite:
 									newbouquetstvwrite.write('#NAME User - Bouquets (TV)' + "\n" + '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET' + " " + '"' + FILE_IPToSAT_EPG + '"' + " " 'ORDER BY bouquet' + '\n')
@@ -1292,6 +1290,8 @@ class AssignService(ChannelSelectionBase):
 						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE") and fileContains(IPToSAT_EPG_PATH, sref.upper()):
 							self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
+				if exists(WILD_CARD_EPG_FILE):
+					self.Console.ePopen("rm -f " + WILD_CARD_EPG_FILE)
 				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") and not x.endswith("userbouquet.iptosat_norhap.tv") and exists(str(self.m3ufile)) or x.endswith(".tv") and not exists(str(self.m3ufile)) or x.endswith(".radio")]:
 					bouquets_categories = join(filelist)
 					with open(ENIGMA2_PATH_LISTS + bouquets_categories, "r") as file:
