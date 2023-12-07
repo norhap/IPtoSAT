@@ -1813,7 +1813,7 @@ class EditPlaylist(Screen):
 					if "sref" not in name or "channel" not in name or "url" not in name:
 						del playlist[index]
 						print(index)
-						with open(PLAYLIST_PATH, 'w')as f:
+						with open(PLAYLIST_PATH, 'w') as f:
 							dump(self.playlist, f, indent=4)
 					self.iniMenu()
 		except Exception:
@@ -1864,7 +1864,7 @@ class EditPlaylist(Screen):
 			try:
 				if self.playlist and range(len(self.channels)):
 					del playlist[index]
-					with open(PLAYLIST_PATH, 'w')as f:
+					with open(PLAYLIST_PATH, 'w') as f:
 						dump(self.playlist, f, indent=4)
 				self.iniMenu()
 			except Exception as err:
