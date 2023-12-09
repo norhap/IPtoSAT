@@ -639,7 +639,7 @@ class AssignService(ChannelSelectionBase):
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 		if not fileContains(CONFIG_PATH, "pass"):
-			if exists(str(self.m3ufile)):
+			if config.plugins.IPToSAT.downloadcategories.value and self.storage or exists(str(self.m3ufile)):
 				self["key_yellow"].setText(language.get(lang, "32"))
 			else:
 				self["key_yellow"].setText(language.get(lang, "74"))
