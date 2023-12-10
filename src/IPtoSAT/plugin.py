@@ -1391,22 +1391,22 @@ class AssignService(ChannelSelectionBase):
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
 			bouquetname = ""
-			if exists(REFERENCES_FILE):
-				try:
-					for character in characterascii:
-						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
-							channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "").replace("MOVISTAR", "").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "").replace("m+", "m").replace("movistar", "").replace(".", "").encode('ascii', 'ignore').decode()
-						if not fileContains(REFERENCES_FILE, channel_name.lower()):
-							with open(REFERENCES_FILE, "a") as updatefile:
-								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-					with open(REFERENCES_FILE, "r") as file:  # clear old services references
-						filereference = file.readlines()
-						with open(REFERENCES_FILE, "w") as finalfile:
-							for line in filereference:
+			try:
+				for character in characterascii:
+					if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
+						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "").replace("MOVISTAR", "").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "").replace("m+", "m").replace("movistar", "").replace(".", "").encode('ascii', 'ignore').decode()
+					if not fileContains(REFERENCES_FILE, channel_name.lower()):
+						with open(REFERENCES_FILE, "a") as updatefile:
+							updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
+				with open(REFERENCES_FILE, "r") as file:  # clear old services references
+					filereference = file.readlines()
+					with open(REFERENCES_FILE, "w") as finalfile:
+						for line in filereference:
+							if ":" in line:
 								if str(channel_name).lower() + "." in line and str(sref_update) in line or str(channel_name).lower() in line and str(sref_update) in line or str(channel_name).lower() not in line and str(sref_update) not in line:
 									finalfile.write(line)
-				except Exception:
-					pass
+			except Exception:
+				pass
 			if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
 				self.addEPGChannel(channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref) or fileContains(IPToSAT_EPG_PATH, sref):
