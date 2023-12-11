@@ -379,13 +379,13 @@ class AssignService(ChannelSelectionBase):
 			<widget name="list2" position="925,42" size="962,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="925,42" size="870,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
 			<widget name="status" position="33,357" size="870,400" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
-			<widget name="description" position="925,355" size="962,605" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
+			<widget name="description" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="assign" position="33,357" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="managerlistchannels" position="33,750" size="870,165" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
-			<widget name="help" position="925,355" size="962,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
-			<widget name="play" position="925,355" size="962,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
+			<widget name="help" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
+			<widget name="play" position="925,355" size="990,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,965" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,965" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,965" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
@@ -1394,7 +1394,7 @@ class AssignService(ChannelSelectionBase):
 			try:
 				for character in characterascii:
 					if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
-						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "").replace("MOVISTAR", "").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "").replace("m+", "m").replace("movistar", "").replace(".", "").encode('ascii', 'ignore').decode()
+						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
 					if not fileContains(REFERENCES_FILE, channel_name.lower()):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
@@ -1407,7 +1407,7 @@ class AssignService(ChannelSelectionBase):
 									finalfile.write(line)
 			except Exception:
 				pass
-			if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
+			if exists(IPToSAT_EPG_PATH) and not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
 				self.addEPGChannel(channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref) or fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
