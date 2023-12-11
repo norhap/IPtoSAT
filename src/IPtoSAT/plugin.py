@@ -1086,10 +1086,15 @@ class AssignService(ChannelSelectionBase):
 				eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 
 	def createBouquetIPTV(self):
+		sref = str(self.getSref())
+		channel_name = str(ServiceReference(sref).getServiceName())
 		if exists(str(BUILDBOUQUETS_FILE)):
 			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
+				if not fileContains(REFERENCES_FILE, ":"):
+					with open(REFERENCES_FILE, "a") as updatefile:
+						updatefile.write(str(channel_name).lower() + "-->" + str(sref) + "-->1")
 				with open(CONFIG_PATH, "r") as fr:
 					configfile = fr.read()
 					hostport = configfile.split()[1].split("Host=")[1]
@@ -1402,7 +1407,7 @@ class AssignService(ChannelSelectionBase):
 					filereference = file.readlines()
 					with open(REFERENCES_FILE, "w") as finalfile:
 						for line in filereference:
-							if ":" in line:
+							if ":" in line and "FROM BOUQUET" not in line:
 								if str(channel_name).lower() + "." in line and str(sref_update) in line or str(channel_name).lower() in line and str(sref_update) in line or str(channel_name).lower() not in line and str(sref_update) not in line:
 									finalfile.write(line)
 			except Exception:
