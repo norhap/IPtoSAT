@@ -1177,11 +1177,22 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def setEPGChannel(self):
+		bouquetname = ""
+		if not exists(SOURCE_BOUQUET_IPTV):
+			self.createBouquetIPTV()
+			return
+		try:
+			with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+				riptvsh = fr.readlines()
+				for line in riptvsh:
+					bouquetname = ENIGMA2_PATH + "/userbouquet." + line.split("bouquet=")[1].split(";")[0].replace('"', '') + "__"  + "tv_.tv"
+		except Exception:
+			pass
 		self['managerlistchannels'].hide()
 		sref = str(self.getSref())
 		channel_name = str(ServiceReference(sref).getServiceName())
 		if self.selectedList == self["list"]:
-			self.addEPGChannel(channel_name, sref)
+			self.addEPGChannel(channel_name, sref, bouquetname)
 
 	def searchBouquetIPTV(self):
 		iptv_channels = False
@@ -1202,7 +1213,7 @@ class AssignService(ChannelSelectionBase):
 			self.assignWidgetScript("#00ff2525", text)
 		self.showFavourites()
 
-	def addEPGChannel(self, channel_name, sref):
+	def addEPGChannel(self, channel_name, sref, bouquetname):
 		ref = self.getCurrentSelection()
 		if (ref.flags & 7) == 7:  # this is bouquet selection no channel!!
 			self.session.open(MessageBox, language.get(lang, "84"), MessageBox.TYPE_ERROR, simple=True, timeout=5)
@@ -1214,10 +1225,17 @@ class AssignService(ChannelSelectionBase):
 				characterascii = [epg_channel_name]
 				satreferencename = ""
 				bouquetnamemsgbox = ""
-				bouquetname = ""
 				stream_iptv = ""
 				bouquetiptosatepg = ""
 				for character in characterascii:
+					if not fileContains(bouquetname, ".ts") and not fileContains(bouquetname, ".m3u"):
+						if search(r'[ÁÉÍÓÚÑ]', character):
+							epg_channel_name = epg_channel_name.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("Ñ", "N").encode('ascii', 'ignore').decode()
+							break
+					else:
+						if search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, "#NAME"):
+							self.session.open(MessageBox, language.get(lang, "133"), MessageBox.TYPE_ERROR, simple=True)
+							break
 					if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()) or search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
 						with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
 							bouquetiptosatepg = iptosat_epg_read.readlines()
@@ -1249,7 +1267,7 @@ class AssignService(ChannelSelectionBase):
 									ref = line.split('http')[0].replace("#SERVICE ", "")
 									if "#NAME" in line:
 										bouquetnamemsgbox = line.replace("#NAME ", "")
-										bouquetname = line
+										namebouquet = line
 									if ":" + epg_channel_name in line and "http" in line:
 										sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + epg_channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
 										satreferencename = sat_reference_name
@@ -1261,14 +1279,12 @@ class AssignService(ChannelSelectionBase):
 										fw.write(line)
 							if not fileContains(IPToSAT_EPG_PATH, sref.upper()):
 								with open(ENIGMA2_PATH_LISTS + bouquetiptv, "w") as fw:
-									fw.write(bouquetname + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+									fw.write(namebouquet + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 								with open(IPToSAT_EPG_PATH, "a") as fw:
 									if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
 										fw.write('#NAME IPToSAT_EPG' + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 									else:
 										fw.write(satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
-							else:
-								break
 							with open(WILD_CARD_EPG_FILE, "r") as fr:
 								with open(ENIGMA2_PATH_LISTS + bouquetiptv, "w") as fw:
 									read_bouquetiptv = fr.readlines()
@@ -1383,18 +1399,17 @@ class AssignService(ChannelSelectionBase):
 					eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
 			except Exception as err:
 				print("ERROR: %s" % str(err))
-			self.resultEditionBouquets(epg_channel_name, sref)
+			self.resultEditionBouquets(epg_channel_name, sref, bouquetname)
 
-	def resultEditionBouquets(self, channel_name, sref):
+	def resultEditionBouquets(self, channel_name, sref, bouquetname):
 		try:
 			sref_update = sref.upper()
 			characterascii = [channel_name]
 			epg_channel_name = channel_name.upper()
-			bouquetname = ""
 			try:
 				for character in characterascii:
 					if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
-						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "o").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
+						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
 					if not fileContains(REFERENCES_FILE, channel_name.lower()):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
@@ -1408,26 +1423,27 @@ class AssignService(ChannelSelectionBase):
 			except Exception:
 				pass
 			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
-				self.addEPGChannel(channel_name, sref)
+				if fileContains(bouquetname, ".ts") or fileContains(bouquetname, ".m3u"):
+					self.addEPGChannel(channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref) or fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
-			try:
-				with open(SOURCE_BOUQUET_IPTV, "r") as fr:
-					riptvsh = fr.readlines()
-					for line in riptvsh:
-						bouquetname = line.split("bouquet=")[1].split(";")[0]
-			except Exception as err:
-				print("ERROR: %s" % str(err))
 			if exists(str(self.m3ufile)) and not fileContains(CONFIG_PATH, "pass") and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
 				if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
-					self.session.open(MessageBox, language.get(lang, "128") + " " + epg_channel_name + ":" + "\n" + ENIGMA2_PATH + "/userbouquet." + bouquetname.replace('"', '') + "__"  + "tv_.tv" + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
+					self.session.open(MessageBox, language.get(lang, "128") + " " + epg_channel_name + ":" + "\n" + bouquetname + "\n\n" + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
 				elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # Warning for channel without bouquet suscription IPTV -> then make manual EPG -> :CHANNEL NAME
 					self.session.open(MessageBox, language.get(lang, "83") + " " + epg_channel_name + "\n\n" + language.get(lang, "93") + "\n\n" + ":" + epg_channel_name + "\n\n" + language.get(lang, "124"), MessageBox.TYPE_ERROR)
 			else:
-				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name) and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):  # make manual EPG -> :CHANNEL NAME
-					self.session.open(MessageBox, language.get(lang, "85") + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name, MessageBox.TYPE_ERROR)
+				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name) and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
+					if fileContains(bouquetname, ".ts") or fileContains(bouquetname, ".m3u"):
+						self.session.open(MessageBox, language.get(lang, "85") + language.get(lang, "129") + "\n\n" + ":" + epg_channel_name, MessageBox.TYPE_ERROR)
 				else:
-					self.session.open(MessageBox, language.get(lang, "131"), MessageBox.TYPE_ERROR, simple=True)
+					if not fileContains(bouquetname, ".ts") and not fileContains(bouquetname, ".m3u"):
+						if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
+							with open(IPToSAT_EPG_PATH, "w") as fw:
+								fw.write('#NAME IPToSAT_EPG' + "\n")
+						self.session.open(MessageBox, language.get(lang, "132"), MessageBox.TYPE_ERROR, simple=True)
+					else:
+						self.session.open(MessageBox, language.get(lang, "131"), MessageBox.TYPE_ERROR, simple=True)
 			if epg_channel_name == ".":  # it is not a valid channel
 				self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 		except Exception as err:

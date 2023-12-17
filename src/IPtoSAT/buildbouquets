@@ -185,12 +185,10 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						else:
 							print(f"Error: Could not extract channel name from line: {line.strip()}")
 							continue
-				original_channel_name = channel_name
 				group_title = search('group-title\s*=\s*["\'](.*?)["\']', line)
 				if group_title:
 					group_title = group_title.group(1)
-				if not is_video_channel and "SD" not in channel_name and "ES" in channel_name:
-					original_channel_name = channel_name
+				if not is_video_channel and "SD" not in channel_name and "ES" in channel_name and "US:" not in channel_name and "WEST" not in channel_name and "GR" not in channel_name:
 					matching_channel_name = find_channel_with_keyword(channel_name, satellite_reference)
 					if matching_channel_name:
 						channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower())
