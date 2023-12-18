@@ -133,7 +133,6 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 130 = For EPG you must enable "Download bouquets by categories [YELLOW button]"
 131 = Press EPG button again on this channel.
 132 = Press EPG button on other channels until you assign EPG.\n\nAfter getting EPG on some channel you will get the instructions of the others.
-133 = First assign a channel that does not contain an accent or Ñ.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -270,4 +269,3 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 130 = Para EPG debes habilitar "Descargar bouquets por categorías [botón AMARILLO]"
 131 = Pulse nuevamente botón EPG en este canal.
 132 = Pulse botón EPG en otros canales hasta que asigne EPG.\n\nDespués de obtener EPG en algún canal, obtendrá las instrucciones de los demás.
-133 = Asigne en primer lugar un canal que no contenga acento o Ñ.

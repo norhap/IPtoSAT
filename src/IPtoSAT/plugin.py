@@ -1232,10 +1232,7 @@ class AssignService(ChannelSelectionBase):
 						if search(r'[ÁÉÍÓÚÑ]', character):
 							epg_channel_name = epg_channel_name.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("Ñ", "N").encode('ascii', 'ignore').decode()
 							break
-					else:
-						if search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, "#NAME"):
-							self.session.open(MessageBox, language.get(lang, "133"), MessageBox.TYPE_ERROR, simple=True)
-							break
+					break
 					if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()) or search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
 						with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
 							bouquetiptosatepg = iptosat_epg_read.readlines()
