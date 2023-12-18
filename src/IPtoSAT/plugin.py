@@ -1056,12 +1056,12 @@ class AssignService(ChannelSelectionBase):
 				for line in riptvsh:
 					bouquetname = line.split("bouquet=")[1].split(";")[0]
 					with open(SOURCE_BOUQUET_IPTV, "w") as fw:
-						createbouquet = line.replace(bouquetname, '"iptv_iptosat"')
+						createbouquet = line.replace(bouquetname, '"iptv_iptosat__"')
 						fw.write(createbouquet)
 			createbouquet = ""
 			eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 			sleep(2)
-			for filelist in [x for x in listdir(ENIGMA2_PATH) if "iptv_iptosat" in x and x.endswith(".tv")]:
+			for filelist in [x for x in listdir(ENIGMA2_PATH) if "iptv_iptosat__" in x and x.endswith(".tv")]:
 				bouquetiptv = join(filelist)
 				with open(ENIGMA2_PATH_LISTS + bouquetiptv, "r") as fr:
 					lines = fr.readlines()
