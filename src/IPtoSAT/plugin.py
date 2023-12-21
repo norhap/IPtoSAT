@@ -93,6 +93,7 @@ config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.downloadcategories = ConfigYesNo(default=True)
+config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -221,6 +222,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 			if not fileContains(CONFIG_PATH, "pass"):
 				self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
+				if fileContains(BOUQUETS_TV, "norhap"):
+					self.list.append(getConfigListEntry(language.get(lang, "133"), config.plugins.IPToSAT.usercategories))
+				else:
+					config.plugins.IPToSAT.usercategories.value = False
+					config.plugins.IPToSAT.usercategories.save()
 		if fileContains(BOUQUETS_TV, "norhap"):
 			self.list.append(getConfigListEntry(language.get(lang, "127"), config.plugins.IPToSAT.deletecategories))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
@@ -1658,7 +1664,24 @@ class AssignService(ChannelSelectionBase):
 		with open(CONFIG_PATH_CATEGORIES, "r") as m3ujsonread:
 			iptosatcategoriesjson = m3ujsonread.read()
 		with open(CONFIG_PATH_CATEGORIES, "w") as m3ujsonwrite:
-			m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + iptosatcategoriesjson.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
+			if not config.plugins.IPToSAT.usercategories.value:
+				m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + iptosatcategoriesjson.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
+			else:
+				try:
+					m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n")
+					with open(BOUQUETS_TV, "r") as bouquetstvread:
+						for bouquetstvuser in bouquetstvread.readlines():
+							if "userbouquet.iptosat_norhap.tv" not in bouquetstvuser and "norhap" in bouquetstvuser:
+								bouquetstvuser = join(bouquetstvuser.split(".tv")[0].split("userbouquet.iptosat_norhap_")[1])
+								m3ujsonwrite.write('		"' + bouquetstvuser + '": ["' + bouquetstvuser + '"],' + "\n")
+				except Exception as err:
+					print("ERROR: %s" % str(err))
+		if config.plugins.IPToSAT.usercategories.value:
+			with open(CONFIG_PATH_CATEGORIES, "r+") as lastline:
+				deletelastcharacter = lastline.readlines()[-1]
+				lastline.write(deletelastcharacter.replace(",", ""))
+			with open(CONFIG_PATH_CATEGORIES, "a") as m3ujsonwrite:
+				m3ujsonwrite.write("	}" + "\n" + "}")
 
 	def getSuscriptionData(self, data):
 		try:
