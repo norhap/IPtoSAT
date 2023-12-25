@@ -47,6 +47,7 @@ FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 BOUQUETS_TV = "/etc/enigma2/bouquets.tv"
 SOURCE_BOUQUET_IPTV = "/etc/enigma2/iptv.sh"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
+WILD_CARD_CATEGORIES_FILE = "/etc/enigma2/wildcardcategories"
 WILD_CARD_BOUQUETSTV = "/etc/enigma2/wildcardbouquetstv"
 ENIGMA2_PATH = "/etc/enigma2"
 ENIGMA2_PATH_LISTS = "/etc/enigma2/"
@@ -97,6 +98,7 @@ config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.categories = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.domain = ConfigText(default="http://hostname", fixed_size=False)
 config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
@@ -142,6 +144,17 @@ def parseColor(s):
 def getPlaylist():
 	if fileExists(PLAYLIST_PATH):
 		with open(PLAYLIST_PATH, 'r') as f:
+			try:
+				return loads(f.read())
+			except ValueError:
+				trace_error()
+	else:
+		return None
+
+
+def getCategories():
+	if fileExists(CONFIG_PATH_CATEGORIES):
+		with open(CONFIG_PATH_CATEGORIES, 'r') as f:
 			try:
 				return loads(f.read())
 			except ValueError:
@@ -218,17 +231,17 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.list.append(getConfigListEntry(language.get(lang, "112"), config.plugins.IPToSAT.serverport))
 			self.list.append(getConfigListEntry(language.get(lang, "113"), config.plugins.IPToSAT.username))
 			self.list.append(getConfigListEntry(language.get(lang, "114"), config.plugins.IPToSAT.password))
-		if self.storage:
-			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
-			if not fileContains(CONFIG_PATH, "pass"):
-				self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
-				if fileContains(BOUQUETS_TV, "norhap"):
-					self.list.append(getConfigListEntry(language.get(lang, "133"), config.plugins.IPToSAT.usercategories))
-				else:
-					config.plugins.IPToSAT.usercategories.value = False
-					config.plugins.IPToSAT.usercategories.save()
 		if fileContains(BOUQUETS_TV, "norhap"):
 			self.list.append(getConfigListEntry(language.get(lang, "127"), config.plugins.IPToSAT.deletecategories))
+		if self.storage:
+			if not fileContains(CONFIG_PATH, "pass"):
+				self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
+				self.list.append(getConfigListEntry(language.get(lang, "141"), config.plugins.IPToSAT.usercategories))
+				self.list.append(getConfigListEntry(language.get(lang, "133"), config.plugins.IPToSAT.categories))
+				self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
+				# else:
+				# 	config.plugins.IPToSAT.usercategories.value = False
+				# 	config.plugins.IPToSAT.usercategories.save()
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
 		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
@@ -281,6 +294,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(AssignService)
 		elif current[1] == config.plugins.IPToSAT.playlist:
 			self.session.open(EditPlaylist)
+		elif current[1] == config.plugins.IPToSAT.categories:
+			self.session.open(EditCategories)
 		elif current[1] == config.plugins.IPToSAT.installchannelslist:
 			self.session.open(InstallChannelsLists)
 
@@ -311,6 +326,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		else:
 			with open(CONFIG_PATH, 'w') as iptosatconf:
 				iptosatconf.write("[IPToSat]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+
+
 class IPToSAT(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -957,10 +974,10 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatchlist.json") or x.startswith("iptosatreferences") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or ".radio" in x or ".tv" in x or "blacklist" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
@@ -972,7 +989,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			try:
 				backupfiles = ""
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
 						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, language.get(lang, "71"), MessageBox.TYPE_YESNO)
@@ -987,7 +1004,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
@@ -1018,10 +1035,10 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			bouquetiptosatepg = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatchlist.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
@@ -1046,7 +1063,7 @@ class AssignService(ChannelSelectionBase):
 				enigma2files = ""
 				if not exists(str(self.backupdirectory)):
 					makedirs(self.backupdirectory)
-				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatchlist.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
 				if backupfiles:
 					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, language.get(lang, "63") + " " + self.backupdirectory + "/" + "\n\n" + language.get(lang, "64"), MessageBox.TYPE_YESNO)
@@ -1644,44 +1661,45 @@ class AssignService(ChannelSelectionBase):
 
 	def getData(self, data):
 		list = []
-		bouquets_categories = []
+		self['list2'].show()
+		self["please"].hide()
+		self['list2'].l.setList(list)
+		self.in_channels = False
 		js = loads(data)
+		bouquets_categories = []
+		self.categories = list
+		self.bouquets = bouquets_categories
 		if js != []:
 			for cat in js:
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
 				if not search(r'[/]', str(cat['category_name'])):
 					bouquets_categories.append((str(cat['category_name']), str(cat['category_name'])))
-		self['list2'].show()
-		self["please"].hide()
-		self['list2'].l.setList(list)
-		self.categories = list
-		self.bouquets = bouquets_categories
-		self.in_channels = False
-		iptosatcategoriesjson = ""
-		with open(CONFIG_PATH_CATEGORIES, "w") as categories:
-			dump(self.bouquets, categories)
-		with open(CONFIG_PATH_CATEGORIES, "r") as m3ujsonread:
-			iptosatcategoriesjson = m3ujsonread.read()
-		with open(CONFIG_PATH_CATEGORIES, "w") as m3ujsonwrite:
-			if not config.plugins.IPToSAT.usercategories.value:
-				m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n" + '		' + iptosatcategoriesjson.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "	}" + "\n" + "}")
-			else:
-				try:
-					m3ujsonwrite.write("{" + "\n" + '	"CATEGORIES": {' + "\n")
-					with open(BOUQUETS_TV, "r") as bouquetstvread:
-						for bouquetstvuser in bouquetstvread.readlines():
-							if "userbouquet.iptosat_norhap.tv" not in bouquetstvuser and "norhap" in bouquetstvuser:
-								bouquetstvuser = join(bouquetstvuser.split(".tv")[0].split("userbouquet.iptosat_norhap_")[1])
-								m3ujsonwrite.write('		"' + bouquetstvuser + '": ["' + bouquetstvuser + '"],' + "\n")
-				except Exception as err:
-					print("ERROR: %s" % str(err))
-		if config.plugins.IPToSAT.usercategories.value:
-			with open(CONFIG_PATH_CATEGORIES, "r+") as lastline:
-				deletelastcharacter = lastline.readlines()[-1]
-				lastline.write(deletelastcharacter.replace(",", ""))
-			with open(CONFIG_PATH_CATEGORIES, "a") as m3ujsonwrite:
-				m3ujsonwrite.write("	}" + "\n" + "}")
+		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or not fileContains(CONFIG_PATH_CATEGORIES, ":"):
+			iptosatcategoriesjson = ""
+			with open(CONFIG_PATH_CATEGORIES, "w") as categories:
+				dump(self.bouquets, categories)
+			with open(CONFIG_PATH_CATEGORIES, "r") as m3ujsonread:
+				iptosatcategoriesjson = m3ujsonread.read()
+				with open(CONFIG_PATH_CATEGORIES, "w") as m3ujsonwrite:
+					m3ujsonwrite.write("{" + "\n" + '		' + iptosatcategoriesjson.replace('[[', '').replace('["', '"').replace('", "', '":').replace('":', '": ["').replace('"]]', '"]').replace('], "', '],' + "\n" + '        "') + "\n" + "}")
+		# else:
+		# 	try:
+		# 		with open(CONFIG_PATH_CATEGORIES, "w") as m3ujsonwrite:
+		# 			m3ujsonwrite.write("{" + "\n")
+		# 			with open(BOUQUETS_TV, "r") as bouquetstvread:
+		# 				for bouquetstvuser in bouquetstvread.readlines():
+		# 					if "userbouquet.iptosat_norhap.tv" not in bouquetstvuser and "norhap" in bouquetstvuser:
+		# 						bouquetstvuser = join(bouquetstvuser.split(".tv")[0].split("userbouquet.iptosat_norhap_")[1])
+		# 						m3ujsonwrite.write('		"' + bouquetstvuser + '": ["' + bouquetstvuser + '"],' + "\n")
+		# 	except Exception as err:
+		# 		print("ERROR: %s" % str(err))
+		# if config.plugins.IPToSAT.usercategories.value:
+		# 	with open(CONFIG_PATH_CATEGORIES, "r+") as lastline:
+		# 		deletelastcharacter = lastline.readlines()[-1]
+		# 		lastline.write(deletelastcharacter.replace(",", ""))
+		# 	with open(CONFIG_PATH_CATEGORIES, "a") as m3ujsonwrite:
+		# 		m3ujsonwrite.write("}")
 
 	def getSuscriptionData(self, data):
 		try:
@@ -1893,7 +1911,8 @@ class EditPlaylist(Screen):
 	def keyGreen(self):
 		index = self['list'].getCurrent()
 		message = language.get(lang, "104")
-		self.session.openWithCallback(self.deleteChannel, MessageBox, message + str(index), MessageBox.TYPE_YESNO, default=False)
+		if index:
+			self.session.openWithCallback(self.deleteChannel, MessageBox, message + str(index), MessageBox.TYPE_YESNO, default=False)
 
 	def deleteChannel(self, answer):
 		if answer:
@@ -1921,6 +1940,136 @@ class EditPlaylist(Screen):
 		message = language.get(lang, "7")
 		if self.playlist and len(self.channels) > 0:
 			self.session.openWithCallback(self.deletelistJSON, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+
+	def exit(self, ret=None):
+		self.close(True)
+
+	def goRight(self):
+		self["list"].pageDown()
+
+	def goLeft(self):
+		self["list"].pageUp()
+
+	def moveUp(self):
+		self["list"].up()
+
+	def moveDown(self):
+		self["list"].down()
+
+	def pageUp(self):
+		self["list"].self["list"].instance.pageUp
+
+	def pageDown(self):
+		self["list"].self["list"].instance.pageDown
+
+
+class EditCategories(Screen):
+	skin = """
+	<screen name="PlaylistEditPlaylistIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="360,562" size="860,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+	</screen>"""
+
+	def __init__(self, session, *args):
+		self.session = session
+		Screen.__init__(self, session)
+		self.skinName = ["EditPlaylistIPToSAT"]
+		self.setTitle(language.get(lang, "136"))
+		self['list'] = MenuList([])
+		self["key_red"] = StaticText("")
+		self["key_green"] = StaticText("")
+		self["status"] = Label()
+		self["iptosatactions"] = ActionMap(["IPToSATActions"],
+		{
+			"back": self.close,
+			"cancel": self.exit,
+			"red": self.keyRed,
+			"green": self.keyGreen,
+			"ok": self.keyGreen,
+			"left": self.goLeft,
+			"right": self.goRight,
+			"down": self.moveDown,
+			"up": self.moveUp,
+			"pageUp": self.pageUp,
+			"pageDown": self.pageDown,
+		}, -2)
+		self.bouquets = []
+		self.categories = getCategories()
+		self.iniMenu()
+
+	def iniMenu(self):
+		if self.categories:
+			list = []
+			for bouquets in self.categories:
+				try:
+					list.append(str(bouquets))
+				except:
+					pass
+			if len(list) > 0:
+				self['list'].l.setList(list)
+				self.bouquets = sorted(list)
+				self["status"].hide()
+				self["key_red"].setText(language.get(lang, "137"))
+				self["key_green"].setText(language.get(lang, "138"))
+				self["status"].show()
+				self["status"].setText(language.get(lang, "139"))
+			else:
+				self["status"].setText(language.get(lang, "140"))
+				self["status"].show()
+				self['list'].hide()
+		else:
+			try:
+				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+					index = self['list'].getCurrent()
+					with open(CONFIG_PATH_CATEGORIES, "r") as categoriesjsonread:
+						with open(WILD_CARD_CATEGORIES_FILE, "w") as fwildcardwrite:
+							for bouquet in categoriesjsonread.readlines():
+								if str(index) not in bouquet and "}" not in bouquet:
+									fwildcardwrite.write(bouquet)
+					with open(WILD_CARD_CATEGORIES_FILE, "r") as fwildcardread:
+						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
+							for last in fwildcardread.readlines()[-2]:
+								last = last.replace("}", "").replace(",","")
+								fwildcardwrite.write(last)
+						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
+							fwildcardwrite.write("}")
+					move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
+			except Exception as err:
+				print("ERROR: %s" % str(err))
+			else:
+				self["status"].setText(language.get(lang, "134"))
+				self["status"].show()
+				self['list'].hide()
+
+	def keyGreen(self):
+		index = self['list'].getCurrent()
+		message = language.get(lang, "135")
+		if index:
+			self.session.openWithCallback(self.deleteBouquet, MessageBox, message + "iptosat_norhap_" + str(index), MessageBox.TYPE_YESNO, default=False)
+
+	def deleteBouquet(self, answer):
+		if answer:
+			try:
+				index = self['list'].getCurrent()
+				with open(CONFIG_PATH_CATEGORIES, "r") as categoriesjsonread:
+					with open(WILD_CARD_CATEGORIES_FILE, "w") as fwildcardwrite:
+						for bouquet in categoriesjsonread.readlines():
+							if str(index) not in bouquet:
+								fwildcardwrite.write(bouquet)
+				move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
+			except Exception as err:
+				print("ERROR: %s" % str(err))
+			self.close(True)
+
+	def keyRed(self, ret=None):
+		self.close(True)
 
 	def exit(self, ret=None):
 		self.close(True)

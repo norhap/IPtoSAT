@@ -17,7 +17,7 @@ def load_json_file(file_path):
 
 config = load_json_file("/etc/enigma2/iptosatcategories.json")
 
-CATEGORIES = config["CATEGORIES"]
+CATEGORIES = config
 bouquets_categories = {categorie: [] for categorie in CATEGORIES.keys()}
 
 
