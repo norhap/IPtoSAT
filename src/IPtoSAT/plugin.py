@@ -1838,7 +1838,7 @@ class EditPlaylist(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self.skinName = ["EditPlaylistIPToSAT"]
-		self.setTitle(language.get(lang, "26"))
+		self.setTitle(language.get(lang, "16"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
@@ -1889,12 +1889,12 @@ class EditPlaylist(Screen):
 	def iniMenu(self):
 		if self.playlist:
 			list = []
-			for channel in self.playlist['playlist']:
-				try:
+			try:
+				for channel in self.playlist['playlist']:
 					reference = channel['sref'][7:11] if ":" not in channel['sref'][7:11] else channel['sref'][6:10]
 					list.append(str(channel['channel'] + "   " + reference))
-				except KeyError:
-					pass
+			except Exception:
+				pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self.channels = sorted(list)
@@ -1908,6 +1908,8 @@ class EditPlaylist(Screen):
 				self["status"].setText(language.get(lang, "29"))
 				self["status"].show()
 				self['list'].hide()
+				self["key_green"].setText("")
+				self["key_yellow"].setText("")
 		else:
 			self["status"].setText(language.get(lang, "30"))
 			self["status"].show()
@@ -1992,7 +1994,7 @@ class EditCategories(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self.skinName = ["EditPlaylistIPToSAT"]
-		self.setTitle(language.get(lang, "136"))
+		self.setTitle(language.get(lang, "133"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
@@ -2018,13 +2020,13 @@ class EditCategories(Screen):
 		self.iniMenu()
 
 	def iniMenu(self):
+		list = []
 		if self.categories:
-			list = []
-			for bouquets in self.categories:
-				try:
+			try:
+				for bouquets in self.categories:
 					list.append(str(bouquets))
-				except:
-					pass
+			except:
+				pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self.bouquets = sorted(list)
@@ -2055,12 +2057,25 @@ class EditCategories(Screen):
 						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
 							fwildcardwrite.write("}")
 					move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			except Exception as err:
-				print("ERROR: %s" % str(err))
+			except Exception:
+				pass
+			try:
+				for bouquets in getCategories():
+					list.append(str(bouquets))
+			except Exception:
+				pass
+			if len(list) > 0:
+				self['list'].l.setList(list)
+				self["key_red"].setText(language.get(lang, "137"))
+				self["key_green"].setText(language.get(lang, "138"))
+				self["status"].show()
+				self["status"].setText(language.get(lang, "136"))
 			else:
 				self["status"].setText(language.get(lang, "134"))
 				self["status"].show()
 				self['list'].hide()
+				self["key_green"].setText("")
+				self["key_yellow"].setText("")
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
@@ -2094,7 +2109,7 @@ class EditCategories(Screen):
 			self.iniMenu()
 
 	def keyYellow(self):
-		message = language.get(lang, "142")
+		message = language.get(lang, "26")
 		if self.categories and len(self.bouquets) > 0 and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 			self.session.openWithCallback(self.deleteBouquetsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
