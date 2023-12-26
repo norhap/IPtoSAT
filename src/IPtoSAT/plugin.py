@@ -1674,7 +1674,7 @@ class AssignService(ChannelSelectionBase):
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
 				bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N')), str(cat['category_name'])))
-		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or not fileContains(CONFIG_PATH_CATEGORIES, ":"):
+		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or not fileContains(CONFIG_PATH_CATEGORIES, "null") and not config.plugins.IPToSAT.usercategories.value:
 			iptosatcategoriesjson = ""
 			with open(CONFIG_PATH_CATEGORIES, "w") as categories:
 				dump(self.bouquets, categories)
@@ -1827,7 +1827,10 @@ class EditPlaylist(Screen):
 		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="360,562" size="860,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_yellow" render="Label" objectTypes="key_red,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="534,562" size="830,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -1839,6 +1842,7 @@ class EditPlaylist(Screen):
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
+		self["key_yellow"] = StaticText("")
 		self["status"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
@@ -1846,6 +1850,7 @@ class EditPlaylist(Screen):
 			"cancel": self.exit,
 			"red": self.keyRed,
 			"green": self.keyGreen,
+			"yellow": self.keyYellow,
 			"ok": self.keyGreen,
 			"left": self.goLeft,
 			"right": self.goRight,
@@ -1894,8 +1899,9 @@ class EditPlaylist(Screen):
 				self['list'].l.setList(list)
 				self.channels = sorted(list)
 				self["status"].hide()
-				self["key_red"].setText(language.get(lang, "27"))
+				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "28"))
+				self["key_yellow"].setText(language.get(lang, "27"))
 				self["status"].show()
 				self["status"].setText(language.get(lang, "95"))
 			else:
@@ -1910,7 +1916,7 @@ class EditPlaylist(Screen):
 	def keyGreen(self):
 		index = self['list'].getCurrent()
 		message = language.get(lang, "104")
-		if index:
+		if index and not fileContains(PLAYLIST_PATH, '": []'):
 			self.session.openWithCallback(self.deleteChannel, MessageBox, message + str(index), MessageBox.TYPE_YESNO, default=False)
 
 	def deleteChannel(self, answer):
@@ -1926,7 +1932,7 @@ class EditPlaylist(Screen):
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 
-	def deletelistJSON(self, answer):
+	def deleteChannelsList(self, answer):
 		if answer:
 			self.playlist['playlist'] = []
 			with open(PLAYLIST_PATH, 'w') as f:
@@ -1935,10 +1941,13 @@ class EditPlaylist(Screen):
 		else:
 			self.iniMenu()
 
-	def keyRed(self):
+	def keyYellow(self):
 		message = language.get(lang, "7")
-		if self.playlist and len(self.channels) > 0:
-			self.session.openWithCallback(self.deletelistJSON, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+		if self.playlist and len(self.channels) > 0 and not fileContains(PLAYLIST_PATH, '": []'):
+			self.session.openWithCallback(self.deleteChannelsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+
+	def keyRed(self, ret=None):
+		self.close(True)
 
 	def exit(self, ret=None):
 		self.close(True)
@@ -1972,7 +1981,10 @@ class EditCategories(Screen):
 		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="360,562" size="860,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_yellow" render="Label" objectTypes="key_red,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="534,562" size="830,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -1984,6 +1996,7 @@ class EditCategories(Screen):
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
+		self["key_yellow"] = StaticText("")
 		self["status"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
@@ -1991,6 +2004,7 @@ class EditCategories(Screen):
 			"cancel": self.exit,
 			"red": self.keyRed,
 			"green": self.keyGreen,
+			"yellow": self.keyYellow,
 			"ok": self.keyGreen,
 			"left": self.goLeft,
 			"right": self.goRight,
@@ -2017,6 +2031,7 @@ class EditCategories(Screen):
 				self["status"].hide()
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
+				self["key_yellow"].setText(language.get(lang, "27"))
 				self["status"].show()
 				self["status"].setText(language.get(lang, "139"))
 			else:
@@ -2050,7 +2065,7 @@ class EditCategories(Screen):
 	def keyGreen(self):
 		index = self['list'].getCurrent()
 		message = language.get(lang, "135")
-		if index:
+		if index and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 			self.session.openWithCallback(self.deleteBouquet, MessageBox, message + "iptosat_norhap_" + str(index), MessageBox.TYPE_YESNO, default=False)
 
 	def deleteBouquet(self, answer):
@@ -2066,6 +2081,22 @@ class EditCategories(Screen):
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 			self.close(True)
+
+	def deleteBouquetsList(self, answer):
+		if answer:
+			self.categories = None
+			with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+				dump(self.categories, f)
+			config.plugins.IPToSAT.usercategories.value = False
+			config.plugins.IPToSAT.usercategories.save()
+			self.iniMenu()
+		else:
+			self.iniMenu()
+
+	def keyYellow(self):
+		message = language.get(lang, "142")
+		if self.categories and len(self.bouquets) > 0 and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
+			self.session.openWithCallback(self.deleteBouquetsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def keyRed(self, ret=None):
 		self.close(True)
