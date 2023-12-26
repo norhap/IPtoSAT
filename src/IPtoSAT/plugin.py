@@ -1673,8 +1673,7 @@ class AssignService(ChannelSelectionBase):
 			for cat in js:
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
-				if not search(r'[/]', str(cat['category_name'])):
-					bouquets_categories.append((str(cat['category_name']), str(cat['category_name'])))
+				bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N')), str(cat['category_name'])))
 		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or not fileContains(CONFIG_PATH_CATEGORIES, ":"):
 			iptosatcategoriesjson = ""
 			with open(CONFIG_PATH_CATEGORIES, "w") as categories:
