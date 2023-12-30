@@ -2092,10 +2092,10 @@ class EditCategories(Screen):
 						for bouquet in categoriesjsonread.readlines():
 							if str(index) not in bouquet:
 								fwildcardwrite.write(bouquet)
-				move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			except Exception as err:
-				print("ERROR: %s" % str(err))
-			self.close(True)
+			except Exception:
+				pass
+			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
+			self.session.openWithCallback(self.exit, EditCategories)
 
 	def deleteBouquetsList(self, answer):
 		if answer:
