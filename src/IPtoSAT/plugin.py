@@ -59,21 +59,21 @@ try:
 		from Components.Language import language
 		lang = language.getLanguage()
 		lang = lang[:2]
-except:
+except Exception:
 	try:
 		lang = config.osd.language.value[:-3]
-	except:
+	except Exception:
 		lang = "en"
 
 try:
 	language = ConfigParser()
 	language.read(LANGUAGE_PATH, encoding="utf8")
-except:
+except Exception:
 	try:
 		lang = "en"
 		language = ConfigParser()
 		language.read(LANGUAGE_PATH, encoding="utf8")
-	except:
+	except Exception:
 		pass
 
 
@@ -111,7 +111,7 @@ def trace_error():
 	try:
 		traceback.print_exc(file=stdout)
 		traceback.print_exc(file=open('/tmp/IPToSAT.log', 'a'))
-	except:
+	except Exception:
 		pass
 
 
@@ -129,7 +129,7 @@ def getversioninfo():
 				for line in version:
 					if 'version' in line:
 						currversion = line.split('=')[1].strip()
-		except:
+		except Exception:
 			pass
 	return (currversion)
 
@@ -239,9 +239,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.list.append(getConfigListEntry(language.get(lang, "141"), config.plugins.IPToSAT.usercategories))
 				self.list.append(getConfigListEntry(language.get(lang, "133"), config.plugins.IPToSAT.categories))
 				self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
-				# else:
-				# 	config.plugins.IPToSAT.usercategories.value = False
-				# 	config.plugins.IPToSAT.usercategories.save()
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
 		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
@@ -264,7 +261,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.usage.remote_fallback_enabled.value = False
 					config.usage.remote_fallback_enabled.save()
 					self.session.open(TryQuitMainloop, 3)
-			except:
+			except Exception:
 				pass
 
 	def saveConfig(self):
@@ -341,7 +338,7 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		try:
 			self.Timer.callback.append(self.get_channel)
-		except:
+		except Exception:
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
@@ -594,7 +591,7 @@ class AssignService(ChannelSelectionBase):
 			self["description"] = Label(language.get(lang, "0"))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
-		except:
+		except Exception:
 			self.errortimer_conn = self.errortimer.timeout.connect(self.errorMessage)
 		self.in_bouquets = False
 		self.in_channels = False
@@ -704,7 +701,7 @@ class AssignService(ChannelSelectionBase):
 		self.onShown.remove(self.onWindowShow)
 		try:
 			self.disablelist2()
-		except:
+		except Exception:
 			pass
 
 	def setModeTv(self):
@@ -827,7 +824,7 @@ class AssignService(ChannelSelectionBase):
 					self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
 					self.getCategories(self.url)
 					self.getUserSuscription(self.url)
-			except:
+			except Exception:
 				trace_error()
 				self.errortimer.start(200, True)
 		else:
@@ -2025,7 +2022,7 @@ class EditCategories(Screen):
 			try:
 				for bouquets in self.categories:
 					list.append(str(bouquets))
-			except:
+			except Exception:
 				pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
