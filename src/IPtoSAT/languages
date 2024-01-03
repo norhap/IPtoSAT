@@ -142,6 +142,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 139 = Press OK or GREEN to delete bouquet.\nPress YELLOW to delete all bouquets.
 140 = No category list - bouquets
 141 = Install only bouquets from the Category List
+142 = it's a bouquet. In Receiver Channel List you must select a channel not a bouquet.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -287,3 +288,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 139 = Pulse OK o VERDE para eliminar bouquet.\nPulse AMARILLO para eliminar todos los bouquets.
 140 = No hay lista de categorías - bouquets
 141 = Instalar solo los bouquets de la Lista de categorías
+142 = es un bouquet. En Lista de Canales del Receptor debe seleccionar un canal no un bouquet.

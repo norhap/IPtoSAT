@@ -896,7 +896,7 @@ class AssignService(ChannelSelectionBase):
 		if playlist:
 			if sref.startswith('1') and 'http' not in sref:
 				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
-				if not fileContains(PLAYLIST_PATH, sref):
+				if not fileContains(PLAYLIST_PATH, sref) and "FROM BOUQUET" not in sref:
 					from unicodedata import normalize
 					playlist['playlist'].append({'sref': sref, 'channel': normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url': url})
 					with open(PLAYLIST_PATH, 'w') as f:
@@ -905,9 +905,13 @@ class AssignService(ChannelSelectionBase):
 						text = (channel_name + " " + language.get(lang, "21") + " " + xtream_channel)
 						self.assignWidget("#86dc3d", text)
 				else:
-					reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
-					text = (channel_name + " " + language.get(lang, "20") + "  " + reference)
-					self.assignWidget("#00ff2525", text)
+					if "FROM BOUQUET" in sref:
+						text = (channel_name + " " + language.get(lang, "142"))
+						self.assignWidget("#00ff2525", text)
+					else:
+						reference = sref[7:11] if ":" not in sref[7:11] else sref[6:10]
+						text = (channel_name + " " + language.get(lang, "20") + "  " + reference)
+						self.assignWidget("#00ff2525", text)
 			else:
 				text = (language.get(lang, "23"))
 				self.assignWidget("#00ff2525", text)
