@@ -319,10 +319,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def saveiptosatconf(self):
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as iptosatconf:
-				iptosatconf.write("[IPToSat]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
+				iptosatconf.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
 		else:
 			with open(CONFIG_PATH, 'w') as iptosatconf:
-				iptosatconf.write("[IPToSat]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+				iptosatconf.write("[IPToSAT]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 
 
 class IPToSAT(Screen):
@@ -608,7 +608,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			if not exists(CONFIG_PATH):
 				with open(CONFIG_PATH, 'w') as fw:
-					fw.write("[IPToSat]" + "\n" + 'Host=http://hostname:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+					fw.write("[IPToSAT]" + "\n" + 'Host=http://hostname:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
