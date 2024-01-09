@@ -633,31 +633,6 @@ class AssignService(ChannelSelectionBase):
 								self["key_red"].setText(language.get(lang, "18"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-		try:  # user help move old directory REMOVE LINE 552 to 576 coming soon
-			for partition in harddiskmanager.getMountedPartitions():
-				self.path = normpath(partition.mountpoint)
-				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
-					if exists(str(self.path)) and listdir(self.path):
-						oldbackupdirectory = join(self.path, "IPToSAT/BackupChannelsList")
-						oldealternatefolder = join(self.path, "IPToSAT/AlternateList")
-						oldchangefolder = join(self.path, "IPToSAT/ChangeSuscriptionList")
-						oldm3ufolder = join(self.path, "IPToSAT/M3U")
-						oldchannelslists = join(self.path, "IPToSAT/ChannelsLists")
-						newdirectorywork = join(self.path, "IPToSAT/" + MODEL)
-						if not exists(str(newdirectorywork)):
-							makedirs(newdirectorywork)
-						if exists(str(oldbackupdirectory)):
-							move(oldbackupdirectory, newdirectorywork)
-						if exists(str(oldealternatefolder)):
-							move(oldealternatefolder, newdirectorywork)
-						if exists(str(oldchangefolder)):
-							move(oldchangefolder, newdirectorywork)
-						if exists(str(oldm3ufolder)):
-							move(oldm3ufolder, newdirectorywork)
-						if exists(str(oldchannelslists)):
-							eConsoleAppContainer().execute("rm -rf " + oldchannelslists)
-		except Exception as err:
-			print("ERROR: %s" % str(err))
 		if not fileContains(CONFIG_PATH, "pass"):
 			if config.plugins.IPToSAT.downloadcategories.value and self.storage or exists(str(self.m3ufile)):
 				self["key_yellow"].setText(language.get(lang, "32"))
@@ -2053,7 +2028,7 @@ class EditCategories(Screen):
 					with open(WILD_CARD_CATEGORIES_FILE, "r") as fwildcardread:
 						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
 							for last in fwildcardread.readlines()[-2]:
-								last = last.replace("}", "").replace(",","")
+								last = last.replace("}", "").replace(",", "")
 								fwildcardwrite.write(last)
 						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
 							fwildcardwrite.write("}")
