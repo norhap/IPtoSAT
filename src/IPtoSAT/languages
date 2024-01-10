@@ -143,6 +143,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 140 = No category list - bouquets
 141 = Install only bouquets from the Category List
 142 = it's a bouquet. In Receiver Channel List you must select a channel not a bouquet.
+143 = 1. Enter "Assign satellite channels and manage satellite and IPTV lists" and exit that screen again, the categories will be available again.\n2. If your preference is "Install only bouquets from the Category List", enable that setting again.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -289,3 +290,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 140 = No hay lista de categorías - bouquets
 141 = Instalar solo los bouquets de la Lista de categorías
 142 = es un bouquet. En Lista de Canales del Receptor debe seleccionar un canal no un bouquet.
+143 = 1. Ingrese en "Asignar canales de satélite y gestionar listas de satélites e IPTV" y vuelve a salir de esa pantalla, las categorías volverán a estar disponibles.\n2. Si su preferencia es "Instalar solo los bouquets de la Lista de categorías", habilite esa configuración nuevamente.

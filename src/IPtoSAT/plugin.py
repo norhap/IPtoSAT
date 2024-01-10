@@ -1796,7 +1796,7 @@ class AssignService(ChannelSelectionBase):
 class EditPlaylist(Screen):
 	skin = """
 	<screen name="PlaylistEditPlaylistIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -1951,31 +1951,33 @@ class EditPlaylist(Screen):
 
 class EditCategories(Screen):
 	skin = """
-	<screen name="PlaylistEditPlaylistIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+	<screen name="EditCategories" position="center,center" size="1425,700" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="40" position="18,14" size="1384,510" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,633" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,583" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,633" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_red,StaticText" position="359,583" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_red,StaticText" position="359,633" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="534,562" size="830,89" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="status" position="534,630" size="830,66" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+		<widget name="footnote" conditional="footnote" position="18,525" size="1384,174" foregroundColor="#e5e619" font="Regular;24" zPosition="0" />
 	</screen>"""
 
 	def __init__(self, session, *args):
 		self.session = session
 		Screen.__init__(self, session)
-		self.skinName = ["EditPlaylistIPToSAT"]
+		self.skinName = ["EditCategories"]
 		self.setTitle(language.get(lang, "133"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
 		self["status"] = Label()
+		self["footnote"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -2048,6 +2050,9 @@ class EditCategories(Screen):
 				self["status"].setText(language.get(lang, "136"))
 			else:
 				self["status"].setText(language.get(lang, "134"))
+				self["footnote"] = Label(language.get(lang, "143"))
+				config.plugins.IPToSAT.usercategories.value = False
+				config.plugins.IPToSAT.usercategories.save()
 				self["status"].show()
 				self['list'].hide()
 				self["key_green"].setText("")
