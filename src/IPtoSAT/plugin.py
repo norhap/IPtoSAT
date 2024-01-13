@@ -1,22 +1,5 @@
 from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB, eConsoleAppContainer, getDesktop
-from Screens.ChannelSelection import ChannelSelectionBase
-from Components.ServiceList import ServiceList  # noqa: F401
-from Screens.Screen import Screen
-from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection
-from Plugins.Plugin import PluginDescriptor
-from Components.ActionMap import ActionMap
-from Components.ServiceEventTracker import ServiceEventTracker
-from Components.ConfigList import ConfigList, ConfigListScreen  # noqa: F401
-from Components.MenuList import MenuList
-from Components.Label import Label
-from Components.SystemInfo import BoxInfo  # ,MODEL import from getBoxType for all images OE
-from boxbranding import getBoxType
-from ServiceReference import ServiceReference
-from Screens.MessageBox import MessageBox
-from Screens.Standby import TryQuitMainloop
-from Components.Sources.StaticText import StaticText
-from Components.Console import Console
-from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
+from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
 from twisted.web.client import getPage
 from datetime import datetime
 from json import dump, loads
@@ -25,10 +8,26 @@ from os import listdir, makedirs, remove
 from os.path import join, exists, normpath
 from configparser import ConfigParser
 from time import sleep, time
-from Components.Harddisk import harddiskmanager
 from shutil import move, copy
 from re import search
 from sys import stdout
+from ServiceReference import ServiceReference
+from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
+from Plugins.Plugin import PluginDescriptor
+from Components.config import config, getConfigListEntry, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection
+from Components.ActionMap import ActionMap
+from Components.ServiceEventTracker import ServiceEventTracker
+from Components.ConfigList import ConfigListScreen
+from Components.MenuList import MenuList
+from Components.Label import Label
+from Components.SystemInfo import BoxInfo
+from Components.Sources.StaticText import StaticText
+from Components.Console import Console
+from Components.Harddisk import harddiskmanager
+from Screens.Screen import Screen
+from Screens.ChannelSelection import ChannelSelectionBase
+from Screens.MessageBox import MessageBox
+from Screens.Standby import TryQuitMainloop
 
 MODEL = getBoxType()
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
