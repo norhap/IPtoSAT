@@ -12,6 +12,7 @@ from shutil import move, copy
 from re import search
 from sys import stdout
 import PowerTimer
+import RecordTimer
 from ServiceReference import ServiceReference
 from timer import TimerEntry
 from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
@@ -31,6 +32,7 @@ from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 
+screenWidth = getDesktop(0).size().width()
 MODEL = getBoxType()
 PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
 CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
@@ -179,26 +181,28 @@ def getChannelsLists():
 
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
-	<screen name="IPToSATSetup" position="center,center" size="1150,700" title="IPToSATSetup settings">
-		<widget name="config" itemHeight="50" position="15,10" size="1120,550" scrollbarMode="showOnDemand" />
-		<widget name="footnote" position="35,575" size="1110,80" font="Regular;24" zPosition="3" />
-		<widget name="key_red" position="25,660" size="150,30" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget name="key_green" position="210,660" size="150,30" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="VKeyIcon" text="TEXT" render="Label" position="e-200,e-50" size="90,40" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;20" foregroundColor="key_text" halign="center" valign="center">
+	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
+		<widget name="config" itemHeight="50" position="0,10" font="Regular;27" valueFont="Regular;22" size="980,860" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget name="key_red" position="12,872" size="165,52" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget name="key_green" position="189,872" size="165,52" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+		<widget source="VKeyIcon" text="TEXT" render="Label" position="365,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" halign="center" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+		<widget name="footnote" conditional="footnote" position="0,0" size="0,0" font="Regular;24" zPosition="3" />
+		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
+		<widget name="HelpWindow" position="1010,820" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+		<widget name="description" font="Regular;26" position="985,520" size="860,300" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
 	</screen>"""
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.skinName = ["Setup"]
+		self.timerinstance = TimerUpdateCategories(self.session)
+		self.skinName = ["IPToSATSetup"] if screenWidth == 1920 else ["Setup"]
 		self.setup_title = language.get(lang, "13")
 		self.storage = False
 		self.path = None
 		self.onChangedEntry = []
 		self.list = []
-		self.timerinstance = TimerUpdateCategories(self.session)
 		ConfigListScreen.__init__(self, self.list, session=session, on_change=self.changedEntry)
 		self["actions"] = ActionMap(["IPToSATActions"],
 		{
@@ -217,42 +221,58 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				if exists(str(self.path)) and listdir(self.path):
 					self.storage = True
+		self["description"] = Label("")
 		self["key_red"] = Label(_("Cancel"))  # noqa: F821
 		self["key_green"] = Label(_("Save"))  # noqa: F821
-		self["footnote"] = Label(language.get(lang, "99"))
+		self["footnote"] = Label("")  # noqa: F821
 		self.createSetup()
+		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
 		self.onLayoutFinish.append(self.layoutFinished)
-		if TimerEntry.StateEnded:
+		if TimerEntry.StateEnded < int(time()):
 			self.session.nav.PowerTimer.cleanup()
-		if TimerEntry.StateWaiting or TimerEntry.StatePrepared or TimerEntry.StateRunning or TimerEntry.StateEnded or not PowerTimer.isProcessing():
-			TimerUpdateCategories(self.session)
+		if RecordTimer.RecordTimerEntry.StateEnded < int(time()):
+			self.session.nav.RecordTimer.cleanup()
 
 	def layoutFinished(self):
 		self.setTitle(language.get(lang, "13"))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(language.get(lang, "14"), config.plugins.IPToSAT.enable)]
-		self.list.append(getConfigListEntry(language.get(lang, "15"), config.plugins.IPToSAT.assign))
-		self.list.append(getConfigListEntry(language.get(lang, "16"), config.plugins.IPToSAT.playlist))
+		self.list = [getConfigListEntry(language.get(lang, "14"),
+			config.plugins.IPToSAT.enable, language.get(lang, "155"))]
+		self.list.append(getConfigListEntry(language.get(lang, "15"),
+			config.plugins.IPToSAT.assign, language.get(lang, "154")))
+		self.list.append(getConfigListEntry(language.get(lang, "16"),
+			config.plugins.IPToSAT.playlist, language.get(lang, "151")))
 		if config.plugins.IPToSAT.showuserdata.value:
-			self.list.append(getConfigListEntry(language.get(lang, "111"), config.plugins.IPToSAT.domain))
-			self.list.append(getConfigListEntry(language.get(lang, "112"), config.plugins.IPToSAT.serverport))
-			self.list.append(getConfigListEntry(language.get(lang, "113"), config.plugins.IPToSAT.username))
-			self.list.append(getConfigListEntry(language.get(lang, "114"), config.plugins.IPToSAT.password))
+			self.list.append(getConfigListEntry(language.get(lang, "111"),
+				config.plugins.IPToSAT.domain, language.get(lang, "99")))
+			self.list.append(getConfigListEntry(language.get(lang, "112"),
+				config.plugins.IPToSAT.serverport, language.get(lang, "99")))
+			self.list.append(getConfigListEntry(language.get(lang, "113"),
+				config.plugins.IPToSAT.username, language.get(lang, "99")))
+			self.list.append(getConfigListEntry(language.get(lang, "114"),
+				config.plugins.IPToSAT.password, language.get(lang, "99")))
 		if self.storage:
 			if not fileContains(CONFIG_PATH, "pass"):
-				self.list.append(getConfigListEntry(language.get(lang, "126"), config.plugins.IPToSAT.downloadcategories))
-				self.list.append(getConfigListEntry(language.get(lang, "144"), config.plugins.IPToSAT.autocategories))
+				self.list.append(getConfigListEntry(language.get(lang, "126"),
+					config.plugins.IPToSAT.downloadcategories, language.get(lang, "146")))
+				self.list.append(getConfigListEntry(language.get(lang, "144"),
+					config.plugins.IPToSAT.autocategories, language.get(lang, "147")))
 				if config.plugins.IPToSAT.autocategories.value:
-					self.list.append(getConfigListEntry(language.get(lang, "145"), config.plugins.IPToSAT.scheduletime))
-				self.list.append(getConfigListEntry(language.get(lang, "141"), config.plugins.IPToSAT.usercategories))
-				self.list.append(getConfigListEntry(language.get(lang, "133"), config.plugins.IPToSAT.categories))
+					self.list.append(getConfigListEntry(language.get(lang, "145"),
+						config.plugins.IPToSAT.scheduletime, language.get(lang, "148")))
+				self.list.append(getConfigListEntry(language.get(lang, "141"),
+					config.plugins.IPToSAT.usercategories, language.get(lang, "149")))
+				self.list.append(getConfigListEntry(language.get(lang, "133"),
+					config.plugins.IPToSAT.categories, language.get(lang, "152")))
 		if fileContains(BOUQUETS_TV, "norhap"):
-			self.list.append(getConfigListEntry(language.get(lang, "127"), config.plugins.IPToSAT.deletecategories))
+			self.list.append(getConfigListEntry(language.get(lang, "127"),
+				config.plugins.IPToSAT.deletecategories, language.get(lang, "150")))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
-		self.list.append(getConfigListEntry(language.get(lang, "98"), config.plugins.IPToSAT.mainmenu))
+		self.list.append(getConfigListEntry(language.get(lang, "98"),
+			config.plugins.IPToSAT.mainmenu, language.get(lang, "153")))
 		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
 		self["config"].list = self.list
 		self["config"].setList(self.list)
@@ -314,8 +334,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keySave(self):
 		if config.plugins.IPToSAT.autocategories.value:
-			if self.timerinstance or TimerEntry.StateWaiting or TimerEntry.StatePrepared or TimerEntry.StateRunning or TimerEntry.StateEnded:
-				self.timerinstance.refreshScheduler()
+			self.timerinstance.refreshScheduler()
+		if self.timeriptosat != config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]:
+			self.session.open(TryQuitMainloop, 3)
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
 
@@ -327,9 +348,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
+		self.createSetup()
 
 	def keyRight(self):
 		ConfigListScreen.keyRight(self)
+		self.createSetup()
 
 	def saveiptosatconf(self):
 		if exists(CONFIG_PATH):
@@ -396,7 +419,6 @@ class TimerUpdateCategories:
 				eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE)
 			except Exception as err:
 				print(str(err))
-		self.scheduledtime = self.prepareTimer()
 
 	def refreshScheduler(self):
 		now = int(time())
@@ -471,7 +493,6 @@ class IPToSAT(Screen):
 
 
 class AssignService(ChannelSelectionBase):
-	screenWidth = getDesktop(0).size().width()
 	if screenWidth == 1920:
 		skin = """
 		<screen name="IPToSAT Service Assign" position="0,60" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
@@ -1038,7 +1059,7 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or ".radio" in x or ".tv" in x or "blacklist" in x or "iptv.sh" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
