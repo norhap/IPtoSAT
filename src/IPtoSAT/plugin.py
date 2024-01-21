@@ -400,6 +400,11 @@ class TimerUpdateCategories:
 		self.categoriestimer.stop()
 		now = int(time())
 		wake = self.getTimeDownaloadCategories()
+		with open(CONFIG_PATH, "r") as fr:
+			configfile = fr.read()
+			hostport = configfile.split()[1].split("Host=")[1]
+			user = configfile.split()[2].split('User=')[1]
+			password = configfile.split()[3].split('Pass=')[1]
 		if wake - now < 60:
 			try:
 				AssignService.checkStorageDevice(self)
@@ -416,7 +421,8 @@ class TimerUpdateCategories:
 						enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
 						if enigma2files:
 							remove(enigma2files)
-				eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE)
+				if self.storage:
+					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + str(self.m3ufile) + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts" ; ln -s ' + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE)
 			except Exception as err:
 				print(str(err))
 
@@ -1191,6 +1197,7 @@ class AssignService(ChannelSelectionBase):
 				eConsoleAppContainer().execute('rm -f ' + SOURCE_BOUQUET_IPTV)
 
 	def createBouquetIPTV(self):
+		iptvbouquetfile = ""
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
@@ -1233,6 +1240,7 @@ class AssignService(ChannelSelectionBase):
 							riptvsh = fr.readlines()
 							for line in riptvsh:
 								bouquetname = line.split("bouquet=")[1].split(";")[0]
+								iptvbouquetfile = ENIGMA2_PATH + "/userbouquet." + str(bouquetname) + "__"  + "tv_.tv"
 								if " " in str(bouquetname) or "  " in str(bouquetname):
 									with open(SOURCE_BOUQUET_IPTV, "w") as fw:
 										bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
@@ -1248,13 +1256,21 @@ class AssignService(ChannelSelectionBase):
 												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
 												eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 											else:
-												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+												if fileContains(iptvbouquetfile, "SERVICE"):
+													self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+												else:
+													if exists(SOURCE_BOUQUET_IPTV):
+														self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 										else:
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
 											self['codestatus'].show()
 											self["key_menu"].setText("MENU")
-											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+											if fileContains(iptvbouquetfile, "SERVICE"):
+												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+											else:
+												if exists(SOURCE_BOUQUET_IPTV):
+													self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								elif 'bouquet=""' not in line:
 									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(str(self.m3ufile)):
@@ -1266,15 +1282,25 @@ class AssignService(ChannelSelectionBase):
 											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5") + "\n" + language.get(lang, "100") + " " + self.m3ufile + "\n" + language.get(lang, "122"))
 											eConsoleAppContainer().execute("ln -s " + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 										else:
-											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+											if fileContains(iptvbouquetfile, "SERVICE"):
+												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+											else:
+												if exists(SOURCE_BOUQUET_IPTV):
+													self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 									else:
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
 										self['codestatus'].show()
 										self["key_menu"].setText("MENU")
-										self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+										if fileContains(iptvbouquetfile, "SERVICE"):
+											self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
+										else:
+											if exists(SOURCE_BOUQUET_IPTV):
+												self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								else:
 									self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
+					if not fileContains(SOURCE_BOUQUET_IPTV, "http"):
+						self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 					if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
 						eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
@@ -2123,7 +2149,6 @@ class EditCategories(Screen):
 				self["status"].setText(language.get(lang, "139"))
 			else:
 				self["status"].setText(language.get(lang, "140"))
-				self["status"].show()
 				self['list'].hide()
 		else:
 			try:

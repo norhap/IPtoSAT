@@ -156,6 +156,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 153 = (*) Requires restarting enigma2 to apply the changes.
 154 = In this menu you can synchronize satellite channels.\nYou can assign EPG to your IPTV channels.\nCreate bouquets of your subscription by pressing YELLOW button.\nCreate a copy of your channel list.\nManage two IPTV subscriptions.
 155 = If enabled, it will use the player to sync channels.\nThe first time you sync your satellite channels, restart enigma2 to view them.
+156 = Your IPTV bouquet has not been downloaded by mistake on your server domain.\nContact your provider.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -315,3 +316,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 153 = (*) Requiere reiniciar enigma2 para aplicar los cambios.
 154 = En este menú puede sincronizar los canales satélite.\nPuede asignar EPG a sus canales IPTV.\nCrear bouquets de su suscripción pulsando botón AMARILLO.\nCrear una copia de su lista de canales.\nAdministrar dos suscripciones IPTV.
 155 = Si está habilitado, usará el reproductor para sincronizar canales.\nLa primera vez que sincronice sus canales satélite, reinicie enigma2 para visionarlos.
+156 = Su bouquet IPTV no ha sido descargado por error en el dominio de su servidor.\nContacte con su proveedor.
