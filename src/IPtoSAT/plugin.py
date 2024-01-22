@@ -98,7 +98,7 @@ config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.downloadcategories = ConfigYesNo(default=True)
 config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
-config.plugins.IPToSAT.autocategories = ConfigYesNo(default=False)
+config.plugins.IPToSAT.autotimerbouquets = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -196,7 +196,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.timerinstance = TimerUpdateCategories(self.session)
 		self.skinName = ["IPToSATSetup"] if screenWidth == 1920 else ["Setup"]
 		self.setup_title = language.get(lang, "13")
 		self.storage = False
@@ -256,18 +255,28 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if not fileContains(CONFIG_PATH, "pass"):
 				self.list.append(getConfigListEntry(language.get(lang, "126"),
 					config.plugins.IPToSAT.downloadcategories, language.get(lang, "146")))
+				if config.plugins.IPToSAT.downloadcategories.value:
+					self.list.append(getConfigListEntry(language.get(lang, "141"),
+						config.plugins.IPToSAT.usercategories, language.get(lang, "149")))
+					self.list.append(getConfigListEntry(language.get(lang, "133"),
+						config.plugins.IPToSAT.categories, language.get(lang, "152")))
 				self.list.append(getConfigListEntry(language.get(lang, "144"),
-					config.plugins.IPToSAT.autocategories, language.get(lang, "147")))
-				if config.plugins.IPToSAT.autocategories.value:
+					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "147")))
+				if config.plugins.IPToSAT.autotimerbouquets.value:
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
 						config.plugins.IPToSAT.scheduletime, language.get(lang, "148")))
-				self.list.append(getConfigListEntry(language.get(lang, "141"),
-					config.plugins.IPToSAT.usercategories, language.get(lang, "149")))
-				self.list.append(getConfigListEntry(language.get(lang, "133"),
-					config.plugins.IPToSAT.categories, language.get(lang, "152")))
-		if fileContains(BOUQUETS_TV, "norhap"):
-			self.list.append(getConfigListEntry(language.get(lang, "127"),
-				config.plugins.IPToSAT.deletecategories, language.get(lang, "150")))
+				if fileContains(BOUQUETS_TV, "norhap"):
+					self.list.append(getConfigListEntry(language.get(lang, "127"),
+						config.plugins.IPToSAT.deletecategories, language.get(lang, "150")))
+		else:
+			self.list.append(getConfigListEntry(language.get(lang, "144"),
+				config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "147")))
+			if config.plugins.IPToSAT.autotimerbouquets.value:
+				self.list.append(getConfigListEntry(language.get(lang, "145"),
+					config.plugins.IPToSAT.scheduletime, language.get(lang, "148")))
+			if fileContains(BOUQUETS_TV, "norhap"):
+				self.list.append(getConfigListEntry(language.get(lang, "127"),
+					config.plugins.IPToSAT.deletecategories, language.get(lang, "150")))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
@@ -333,12 +342,18 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x()
 
 	def keySave(self):
-		if config.plugins.IPToSAT.autocategories.value:
+		if config.plugins.IPToSAT.autotimerbouquets.value:
+			self.timerinstance = TimerUpdateCategories(self.session)
 			self.timerinstance.refreshScheduler()
 		if self.timeriptosat != config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]:
 			self.session.open(TryQuitMainloop, 3)
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
+		AssignService(self.session)
+
+	def keyCancel(self):
+		ConfigListScreen.keyCancel(self)
+		AssignService(self.session)
 
 	def moveUp(self):
 		self["config"].moveUp()
@@ -405,11 +420,61 @@ class TimerUpdateCategories:
 			hostport = configfile.split()[1].split("Host=")[1]
 			user = configfile.split()[2].split('User=')[1]
 			password = configfile.split()[3].split('Pass=')[1]
-		if wake - now < 60:
+		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
 			try:
 				AssignService.checkStorageDevice(self)
-				if exists(str(BUILDBOUQUETS_FILE)):
-					move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+				if self.storage and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
+					if exists(str(BUILDBOUQUETS_FILE)):
+						move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+					if config.plugins.IPToSAT.deletecategories.value:
+						for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
+							with open(BOUQUETS_TV, "r") as fr:
+								bouquetread = fr.readlines()
+								with open(BOUQUETS_TV, "w") as bouquetswrite:
+									for line in bouquetread:
+										if "norhap" not in line:
+											bouquetswrite.write(line)
+							enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
+							if enigma2files:
+								remove(enigma2files)
+					if not exists(SOURCE_BOUQUET_IPTV):
+						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
+						sleep(1)
+						if fileContains(SOURCE_BOUQUET_IPTV, "http"):
+							with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+								changebouquetname = ""
+								riptvsh = fr.readlines()
+								for line in riptvsh:
+									bouquetname = line.split("bouquet=")[1].split(";")[0]
+									if " " in str(bouquetname) or "  " in str(bouquetname):
+										with open(SOURCE_BOUQUET_IPTV, "w") as fw:
+											changebouquetname = str(bouquetname).replace('  ', '_').replace(' ', '_')
+											fw.write(line.replace(bouquetname, changebouquetname))
+							if config.plugins.IPToSAT.downloadcategories.value:
+								eConsoleAppContainer().execute('wget -O ' + str(self.m3ufile) + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts" ; ln -s ' + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE + " ; " + SOURCE_BOUQUET_IPTV + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+							else:
+								eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
+								sleep(1)
+								with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+									changebouquetname = ""
+									riptvsh = fr.readlines()
+									for line in riptvsh:
+										bouquetname = line.split("bouquet=")[1].split(";")[0]
+										if " " in str(bouquetname) or "  " in str(bouquetname):
+											with open(SOURCE_BOUQUET_IPTV, "w") as fw:
+												changebouquetname = str(bouquetname).replace('  ', '_').replace(' ', '_')
+												fw.write(line.replace(bouquetname, changebouquetname))
+									sleep(1)
+									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
+						else:
+							eConsoleAppContainer().execute("wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
+					else:
+						if config.plugins.IPToSAT.downloadcategories.value and fileContains(SOURCE_BOUQUET_IPTV, "http"):
+							eConsoleAppContainer().execute('wget -O ' + str(self.m3ufile) + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts" ; ln -s ' + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE)
+						else:
+							eConsoleAppContainer().execute("wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
+			except Exception as err:
+				print(str(err))
 				if config.plugins.IPToSAT.deletecategories.value:
 					for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
 						with open(BOUQUETS_TV, "r") as fr:
@@ -421,14 +486,25 @@ class TimerUpdateCategories:
 						enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
 						if enigma2files:
 							remove(enigma2files)
-				if self.storage:
-					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + str(self.m3ufile) + " " + '"' + str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts" ; ln -s ' + str(self.m3ufile) + " " + ENIGMA2_PATH_LISTS + " ; python " + BUILDBOUQUETS_SOURCE + " ; mv /etc/enigma2/userbouquet.iptosat_norhap.tv.del /etc/enigma2/userbouquet.iptosat_norhap.tv ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + ENIGMA2_PATH_LISTS + "iptosat_norhap.m3u ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches ; mv " + BUILDBOUQUETS_SOURCE + " " + BUILDBOUQUETS_FILE)
-			except Exception as err:
-				print(str(err))
+				if not exists(SOURCE_BOUQUET_IPTV):
+					eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV)
+					sleep(1)
+					if fileContains(SOURCE_BOUQUET_IPTV, "http"):
+						with open(SOURCE_BOUQUET_IPTV, "r") as fr:
+							changebouquetname = ""
+							riptvsh = fr.readlines()
+							for line in riptvsh:
+								bouquetname = line.split("bouquet=")[1].split(";")[0]
+								if " " in str(bouquetname) or "  " in str(bouquetname):
+									with open(SOURCE_BOUQUET_IPTV, "w") as fw:
+										changebouquetname = str(bouquetname).replace('  ', '_').replace(' ', '_')
+										fw.write(line.replace(bouquetname, changebouquetname))
+							sleep(1)
+							eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 
 	def refreshScheduler(self):
 		now = int(time())
-		if config.plugins.IPToSAT.scheduletime.value:
+		if config.plugins.IPToSAT.autotimerbouquets.value:
 			if now > 1262304000:
 				self.scheduledtime = self.prepareTimer()
 			else:
@@ -751,6 +827,7 @@ class AssignService(ChannelSelectionBase):
 					self["key_yellow"].setText(language.get(lang, "74"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+
 	def showHelpChangeList(self):
 		if self.storage:
 			self["play"].setText(language.get(lang, "58"))
@@ -1213,22 +1290,22 @@ class AssignService(ChannelSelectionBase):
 					hostport = configfile.split()[1].split("Host=")[1]
 					user = configfile.split()[2].split('User=')[1]
 					password = configfile.split()[3].split('Pass=')[1]
+					if config.plugins.IPToSAT.deletecategories.value:
+						for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
+							with open(BOUQUETS_TV, "r") as fr:
+								bouquetread = fr.readlines()
+								with open(BOUQUETS_TV, "w") as bouquetswrite:
+									for line in bouquetread:
+										if "norhap" not in line:
+											bouquetswrite.write(line)
+							enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
+							if enigma2files:
+								remove(enigma2files)
 					if self.storage:
 						if not exists(str(self.m3ufolder)):
 							makedirs(self.m3ufolder)
 						if exists(str(self.m3ufile)):
 							remove(self.m3ufile)
-						if config.plugins.IPToSAT.deletecategories.value:
-							for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "norhap" in x]:
-								with open(BOUQUETS_TV, "r") as fr:
-									bouquetread = fr.readlines()
-									with open(BOUQUETS_TV, "w") as bouquetswrite:
-										for line in bouquetread:
-											if "norhap" not in line:
-												bouquetswrite.write(line)
-								enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-								if enigma2files:
-									remove(enigma2files)
 						eConsoleAppContainer().execute('wget -O ' + SOURCE_BOUQUET_IPTV + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=enigma22_script&output=mpegts"' + " " + '&& chmod 755 ' + SOURCE_BOUQUET_IPTV + ' ; wget -O ' + self.m3ufile + " " + '"' + hostport + '/get.php?username=' + user + '&password=' + password + '&type=m3u_plus&output=mpegts"')
 						sleep(3)
 					else:
@@ -1236,17 +1313,15 @@ class AssignService(ChannelSelectionBase):
 						sleep(3)
 					if exists(SOURCE_BOUQUET_IPTV):
 						with open(SOURCE_BOUQUET_IPTV, "r") as fr:
-							createbouquet = ""
+							changebouquetname = ""
 							riptvsh = fr.readlines()
 							for line in riptvsh:
 								bouquetname = line.split("bouquet=")[1].split(";")[0]
 								iptvbouquetfile = ENIGMA2_PATH + "/userbouquet." + str(bouquetname) + "__"  + "tv_.tv"
 								if " " in str(bouquetname) or "  " in str(bouquetname):
 									with open(SOURCE_BOUQUET_IPTV, "w") as fw:
-										bouquetrename = str(bouquetname).replace(' ', '_').replace(' ', '_')
-										createbouquet = line.replace(bouquetname, bouquetrename)
-										fw.write(createbouquet)
-										eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
+										changebouquetname = str(bouquetname).replace('  ', '_').replace(' ', '_')
+										fw.write(line.replace(bouquetname, changebouquetname))
 										if exists(str(self.m3ufile)):
 											self["helpbouquetepg"].hide()
 											self['managerlistchannels'].show()
@@ -1272,7 +1347,6 @@ class AssignService(ChannelSelectionBase):
 												if exists(SOURCE_BOUQUET_IPTV):
 													self.assignWidgetScript("#e5e619", "Bouquet IPTV" + " " + str(bouquetname) + " " + language.get(lang, "5"))
 								elif 'bouquet=""' not in line:
-									eConsoleAppContainer().execute(SOURCE_BOUQUET_IPTV)
 									if exists(str(self.m3ufile)):
 										self["helpbouquetepg"].hide()
 										self['managerlistchannels'].show()
@@ -1300,7 +1374,10 @@ class AssignService(ChannelSelectionBase):
 								else:
 									self.session.openWithCallback(self.tryToUpdateIPTVChannels, MessageBox, language.get(lang, "8"), MessageBox.TYPE_YESNO, default=False)
 					if not fileContains(SOURCE_BOUQUET_IPTV, "http"):
+						eConsoleAppContainer().execute("wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
 						self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
+					else:
+						eConsoleAppContainer().execute("sleep 30 && " + SOURCE_BOUQUET_IPTV)
 					if exists(str(self.m3ufile)) and not isPluginInstalled("MediaPlayer"):
 						eConsoleAppContainer().execute('opkg update && opkg install enigma2-plugin-extensions-mediaplayer')
 			except Exception as err:
@@ -1609,6 +1686,14 @@ class AssignService(ChannelSelectionBase):
 				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+				if exists(str(iptosatlist1conf)) or exists(str(iptosatlist2conf)):
+					if exists(SOURCE_BOUQUET_IPTV):
+						eConsoleAppContainer().execute("rm -f " + SOURCE_BOUQUET_IPTV)
+					config.plugins.IPToSAT.usercategories.value = False
+					config.plugins.IPToSAT.usercategories.save()
+					self.categories = None
+					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+						dump(self.categories, f)
 				if exists(str(iptosat2conf)):
 					if exists(str(iptosatlist2conf)) or exists(str(iptosatlist1conf)):
 						remove(iptosat2conf)
@@ -1643,6 +1728,13 @@ class AssignService(ChannelSelectionBase):
 			if answer:
 				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
+					if exists(SOURCE_BOUQUET_IPTV):
+						eConsoleAppContainer().execute("rm -f " + SOURCE_BOUQUET_IPTV)
+					config.plugins.IPToSAT.usercategories.value = False
+					config.plugins.IPToSAT.usercategories.save()
+					self.categories = None
+					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+						dump(self.categories, f)
 					IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
@@ -1657,6 +1749,13 @@ class AssignService(ChannelSelectionBase):
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			if answer:
 				move(iptosat2change, iptosatlist2conf)
+				if exists(SOURCE_BOUQUET_IPTV):
+					eConsoleAppContainer().execute("rm -f " + SOURCE_BOUQUET_IPTV)
+				config.plugins.IPToSAT.usercategories.value = False
+				config.plugins.IPToSAT.usercategories.save()
+				self.categories = None
+				with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+					dump(self.categories, f)
 				IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
@@ -1678,6 +1777,13 @@ class AssignService(ChannelSelectionBase):
 				if exists(str(iptosat2change)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)) and not exists(str(iptosatconf)):
 					move(fileconf, iptosatlist1conf)
 					move(iptosat2change, fileconf)
+					if exists(SOURCE_BOUQUET_IPTV):
+						eConsoleAppContainer().execute("rm -f " + SOURCE_BOUQUET_IPTV)
+					config.plugins.IPToSAT.usercategories.value = False
+					config.plugins.IPToSAT.usercategories.save()
+					self.categories = None
+					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+						dump(self.categories, f)
 					self.getUserData()
 					with open(fileconf, "r") as f:
 						host = f.read()
@@ -1699,14 +1805,14 @@ class AssignService(ChannelSelectionBase):
 						host = f.read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist1conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
-				if exists(str(iptosatlist1conf)) and not exists(str(iptosat2change)):
+				if not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist2conf)) and exists(str(iptosat2change)):
 					with open(iptosatlist2conf, "r") as f:
 						host = f.read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist2conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
-				if exists(str(iptosatlist2conf)) and not exists(str(iptosat2change)):
+				if not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
 				IPToSATSetup.saveConfig(self)
@@ -1783,7 +1889,7 @@ class AssignService(ChannelSelectionBase):
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
 				bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N')), str(cat['category_name'])))
-		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or not fileContains(CONFIG_PATH_CATEGORIES, "null") and not config.plugins.IPToSAT.usercategories.value:
+		if not config.plugins.IPToSAT.usercategories.value or config.plugins.IPToSAT.usercategories.value and not fileContains(BOUQUETS_TV, "norhap_") and not config.plugins.IPToSAT.deletecategories.value or not exists(str(CONFIG_PATH_CATEGORIES)) or fileContains(CONFIG_PATH_CATEGORIES, "null") and config.plugins.IPToSAT.usercategories.value:
 			iptosatcategoriesjson = ""
 			with open(CONFIG_PATH_CATEGORIES, "w") as categories:
 				dump(self.bouquets, categories)
@@ -2181,10 +2287,11 @@ class EditCategories(Screen):
 				self["status"].show()
 				self["status"].setText(language.get(lang, "136"))
 			else:
-				self["status"].setText(language.get(lang, "134"))
-				self["footnote"] = Label(language.get(lang, "143"))
-				config.plugins.IPToSAT.usercategories.value = False
-				config.plugins.IPToSAT.usercategories.save()
+				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
+					self["status"].setText(language.get(lang, "134"))
+				else:
+					self["status"].setText(language.get(lang, "143"))
+				AssignService(self.session)
 				self["status"].show()
 				self['list'].hide()
 				self["key_green"].setText("")
@@ -2215,8 +2322,6 @@ class EditCategories(Screen):
 			self.categories = None
 			with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 				dump(self.categories, f)
-			config.plugins.IPToSAT.usercategories.value = False
-			config.plugins.IPToSAT.usercategories.save()
 			self.iniMenu()
 		else:
 			self.iniMenu()
