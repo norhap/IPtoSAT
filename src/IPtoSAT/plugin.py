@@ -2265,15 +2265,22 @@ class InstallChannelsLists(Screen):
 		from zipfile import ZipFile
 		if answer:
 			try:
+				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
+				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
+				junglerepository = requests.get(urljungle, allow_redirects=True)
+				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-				# JUNGLE TEAM
-				eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
+				with open(str(self.zip_jungle), "wb") as jungle:
+					jungle.write(junglerepository.content)
+				with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
+					norhap.write(norhaprepository.content)
 				sleep(10)
+				# JUNGLE TEAM
 				if exists(str(self.zip_jungle)):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
-				junglerepository = self.folderlistchannels + '/*/*Jungle-*'
+				junglerepo = self.folderlistchannels + '/*/*Jungle-*'
 				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
 				junglelists = ""
 				index = ""
@@ -2282,13 +2289,13 @@ class InstallChannelsLists(Screen):
 						update = fr.readlines()
 						for index in update:
 							index = index.replace("[", "")
-				for folders in glob(junglerepository, recursive=True):
+				for folders in glob(junglerepo, recursive=True):
 					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources = getChannelsLists()
 					indexlistssources['channelslists'].append({'listtype': junglelists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
-				# SORYS VUPLUSMANIA
+				# SORYS VUPLUSMANIA REPOSITORY CHANNELSLISTS NORHAP
 				if exists(str(self.zip_sorys_vuplusmania)):
 					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
@@ -2342,26 +2349,43 @@ class InstallChannelsLists(Screen):
 
 	def dogetSourceUpdated(self, answer):
 		try:
+			urlnorhap = 'https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip'
+			norhaprepository = requests.get(urlnorhap, allow_redirects=True)
 			if answer:
-				if exists(str(BUILDBOUQUETS_SOURCE)):
+				if exists(str(BUILDBOUQUETS_SOURCE)) and exists(str(BUILDBOUQUETS_FILE)):
 					remove(str(BUILDBOUQUETS_SOURCE))
+				if exists(str(BUILDBOUQUETS_SOURCE)) and not exists(str(BUILDBOUQUETS_FILE)):
+					move(str(BUILDBOUQUETS_SOURCE), str(BUILDBOUQUETS_FILE))
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
-				eConsoleAppContainer().execute('wget -O ' + self.folderlistchannels + "/" + "IPtoSAT-main.zip"' https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
+				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
+					source.write(norhaprepository.content)
+				sleep(0.8)
+				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def doInstallChannelsList(self, answer):
 		channelslists = self["list"].getCurrent()
 		if answer:
-			self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
+			self.session.open(MessageBox, language.get(lang, "77") + str(channelslists), MessageBox.TYPE_INFO, simple=True)
 			dirpath = ""
 			try:
+				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
+				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
+				junglerepository = requests.get(urljungle, allow_redirects=True)
+				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
+				with open(CHANNELS_LISTS_PATH, 'w') as fw:
+					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				if "Jungle-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0] + '/etc/enigma2'
-					eConsoleAppContainer().execute('wget -O ' + self.zip_jungle + ' https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip ' + self.zip_jungle)
+					with open(str(self.zip_jungle), "wb") as jungle:
+						jungle.write(junglerepository.content)
+					eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip ' + self.zip_jungle)
 				if "Sorys-" in channelslists or "Vuplusmania-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0]
-					eConsoleAppContainer().execute('wget -O ' + self.zip_sorys_vuplusmania + ' https://github.com/norhap/channelslists/archive/refs/heads/main.zip && cd ' + self.folderlistchannels + ' && unzip ' + self.zip_sorys_vuplusmania)
+					with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
+						norhap.write(norhaprepository.content)
+					eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip ' + self.zip_sorys_vuplusmania)
 				sleep(8)
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
