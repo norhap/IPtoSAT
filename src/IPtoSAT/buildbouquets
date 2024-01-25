@@ -201,16 +201,11 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						unique_id += 1
 						order = None
 				else:
-					channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
+					channel_reference = "4097:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
 					unique_id += 1
 					order = None
 			if line.startswith("http"):
-				is_video_channel = line.strip().endswith(".mkv") or line.strip().endswith(".avi") or line.strip().endswith(".mp4") or line.strip().endswith(".flv")
-				if is_video_channel:
-					skip_channel = True
-					channel_reference = None
-					continue
-				if channel_reference is not None and not skip_channel:
+				if channel_reference is not None:
 					channel_url = line.strip()
 					parsed_url = urlsplit(channel_url)
 					if parsed_url.scheme == "https":
@@ -218,7 +213,7 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 					else:
 						enigma2_url = urlunsplit(("http", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
 						enigma2_url = enigma2_url.replace(":", "%3a")
-						stream_iptv = enigma2_url + ":" + channel_name if "1:0:1:0:0:0:0:0:0:0:" not in channel_reference else enigma2_url
+						stream_iptv = enigma2_url + ":" + channel_name if "4097:0:1:0:0:0:0:0:0:0:" not in channel_reference else enigma2_url
 					readprefix = group_title
 					added_to_favorites = False
 					for categorie, prefixes in CATEGORIES.items():
