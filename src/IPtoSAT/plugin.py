@@ -1676,16 +1676,17 @@ class AssignService(ChannelSelectionBase):
 				log(error)
 				self['list2'].hide()
 				self["status"].show()
-				if fileContains(CONFIG_PATH, "pass") and self.storage:
-					self["status"].setText(language.get(lang, "3"))
-					self["please"].hide()
-					self["codestatus"].hide()
-				if fileContains(CONFIG_PATH, "pass") and not self.storage:
-					self["description"].hide()
-					self["status"].setText(language.get(lang, "72"))
-					self["codestatus"].hide()
-				if not fileContains(CONFIG_PATH, "pass"):
-					self.session.openWithCallback(self.exit, MessageBox, language.get(lang, "4"), MessageBox.TYPE_ERROR)
+				if fileContains(CONFIG_PATH, "pass"):
+					if self.storage:
+						self["status"].setText(language.get(lang, "3"))
+						self["please"].hide()
+						self["codestatus"].hide()
+					else:
+						self["description"].hide()
+						self["status"].setText(language.get(lang, "72"))
+						self["codestatus"].hide()
+				else:
+					self.assignWidgetScript("#00ff2525", language.get(lang, "4"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
