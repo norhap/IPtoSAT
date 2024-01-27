@@ -43,6 +43,7 @@ BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildb
 REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
 CATEGORIES_TIMER_ERROR = "/tmp/categories_error.log"
+TIMER_ERROR = ""
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -261,17 +262,19 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
 					self.list.append(getConfigListEntry(language.get(lang, "127"),
 						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
-				self.list.append(getConfigListEntry(language.get(lang, "144"),
-					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
-				if config.plugins.IPToSAT.autotimerbouquets.value:
-					if exists(str(CATEGORIES_TIMER_ERROR)):
-						with open(CATEGORIES_TIMER_ERROR, "r") as fr:
-							CAT_TIMER_ERROR = fr.read()
-						self.list.append(getConfigListEntry(language.get(lang, "145"),
-							config.plugins.IPToSAT.scheduletime, language.get(lang, "130") + "\n\n" + language.get(lang, "147") + "\n\n" + str(CAT_TIMER_ERROR)))
-					else:
+				if not exists(str(CATEGORIES_TIMER_ERROR)):
+					self.list.append(getConfigListEntry(language.get(lang, "144"),
+						config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
+					if config.plugins.IPToSAT.autotimerbouquets.value:
 						self.list.append(getConfigListEntry(language.get(lang, "145"),
 							config.plugins.IPToSAT.scheduletime, language.get(lang, "130")))
+				else:
+					with open(CATEGORIES_TIMER_ERROR, "r") as fr:
+						TIMER_ERROR = fr.read()
+					self.list.append(getConfigListEntry(language.get(lang, "144"),
+						config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
+					self.list.append(getConfigListEntry(language.get(lang, "145"),
+						config.plugins.IPToSAT.scheduletime, language.get(lang, "130") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"),
