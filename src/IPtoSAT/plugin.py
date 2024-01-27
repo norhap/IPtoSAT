@@ -356,9 +356,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def moveUp(self):
 		self["config"].moveUp()
+		if BoxInfo.getItem("distro") != "norhap":
+			self["description"].text = self.getCurrentDescription()
 
 	def moveDown(self):
 		self["config"].moveDown()
+		if BoxInfo.getItem("distro") != "norhap":
+			self["description"].text = self.getCurrentDescription()
 
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
