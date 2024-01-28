@@ -580,7 +580,7 @@ class AssignService(ChannelSelectionBase):
 			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,945" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_epg" render="Label" conditional="key_epg" position="717,945" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_epg" render="Label" conditional="key_epg" position="717,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget source="key_help" render="Label" conditional="key_help" position="893,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
