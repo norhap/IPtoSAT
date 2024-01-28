@@ -559,6 +559,7 @@ class AssignService(ChannelSelectionBase):
 			<eLabel backgroundColor="#0044a2ff" position="0,3" size="3,1020"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,3"/>
 			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="3,1020"/>
+			<widget source="session.VideoPicture" render="Pig" position="0,0" size="0,0" zPosition="1" backgroundColor="#df0b1300"/>
 			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="list" position="33,42" size="875,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
@@ -580,25 +581,25 @@ class AssignService(ChannelSelectionBase):
 			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,945" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_epg" render="Label" conditional="key_epg" position="717,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_epg" render="Label" conditional="key_epg" position="717,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_help" render="Label" conditional="key_help" position="893,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_help" render="Label" conditional="key_help" position="893,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_play" render="Label" conditional="key_play" position="1069,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_play" render="Label" conditional="key_play" position="1069,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1245,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1245,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_stop" render="Label" conditional="key_stop" position="1597,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_stop" render="Label" conditional="key_stop" position="1597,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_0" render="Label" conditional="key_0" position="1772,965" zPosition="12" size="60,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_0" render="Label" conditional="key_0" position="1772,962" zPosition="12" size="60,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget source="key_tv" conditional="key_tv" render="Label" position="12,908" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
