@@ -2380,15 +2380,13 @@ class InstallChannelsLists(Screen):
 			urlnorhap = 'https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip'
 			norhaprepository = requests.get(urlnorhap, allow_redirects=True)
 			if answer:
-				if exists(str(BUILDBOUQUETS_SOURCE)) and exists(str(BUILDBOUQUETS_FILE)):
-					remove(str(BUILDBOUQUETS_SOURCE))
-				if exists(str(BUILDBOUQUETS_SOURCE)) and not exists(str(BUILDBOUQUETS_FILE)):
+				if exists(str(BUILDBOUQUETS_SOURCE)):
 					move(str(BUILDBOUQUETS_SOURCE), str(BUILDBOUQUETS_FILE))
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
 					source.write(norhaprepository.content)
-				sleep(0.8)
-				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
+				sleep(2)
+				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + SOURCE_PATH + "buildbouquets" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
