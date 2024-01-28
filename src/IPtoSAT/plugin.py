@@ -52,6 +52,7 @@ IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 BOUQUETS_TV = "/etc/enigma2/bouquets.tv"
 BOUQUET_IPTV_NORHAP = "/etc/enigma2/userbouquet.iptosat_norhap.tv"
+WILD_CARD_BOUQUET_IPTV_NORHAP = "/etc/enigma2/wildcardbouquetnorhap"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
 WILD_CARD_CATEGORIES_FILE = "/etc/enigma2/wildcardcategories"
 WILD_CARD_BOUQUETSTV = "/etc/enigma2/wildcardbouquetstv"
@@ -81,6 +82,24 @@ except Exception:
 		language.read(LANGUAGE_PATH, encoding="utf8")
 	except Exception:
 		pass
+try:
+	if fileContains(str(BOUQUET_IPTV_NORHAP), "#NAME iptosat_norhap") and fileContains(str(BOUQUETS_TV), "userbouquet.iptosat_norhap.tv"):
+		ALL = "#NAME iptosat_norhap"
+		LIVE_VOD_SERIES = '#NAME iptosat *** LIVETV  VOD  SERIES ***'
+		with open(BOUQUET_IPTV_NORHAP, "r") as fr:
+			with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "w") as fw:
+				for lines in fr.readlines():
+					if ALL not in lines:
+						fw.write(lines)
+		with open(BOUQUET_IPTV_NORHAP, "w") as fw:
+			fw.write(LIVE_VOD_SERIES + "\n")
+		with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "r") as f:
+			for lines in f.readlines():
+				with open(BOUQUET_IPTV_NORHAP, "a") as fw:
+					fw.write(lines)
+		eConsoleAppContainer().execute("rm -f " + WILD_CARD_BOUQUET_IPTV_NORHAP + " && sleep 10 && wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
+except Exception:
+	pass
 
 
 def choices_list():
@@ -352,7 +371,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
-		AssignService(self.session)
 
 	def moveUp(self):
 		self["config"].moveUp()
@@ -485,6 +503,8 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		try:
 			self.Timer.callback.append(self.get_channel)
+			if config.plugins.IPToSAT.autotimerbouquets.value:
+				self.timerinstance = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
 		except Exception:
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		self.container = eConsoleAppContainer()
@@ -534,10 +554,10 @@ class IPToSAT(Screen):
 class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
-		<screen name="IPToSAT Service Assign" position="0,60" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
+		<screen name="IPToSAT Service Assign" position="0,80" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
 			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,3"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,3" size="3,1020"/>
-			<eLabel backgroundColor="#0044a2ff" position="0,1017" size="1917,3"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,3"/>
 			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="3,1020"/>
 			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
@@ -552,42 +572,42 @@ class AssignService(ChannelSelectionBase):
 			<widget name="managerlistchannels" position="33,750" size="870,165" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="help" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget name="play" position="925,355" size="990,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
-			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,965" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,965" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,965" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,945" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,945" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,945" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,965" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,945" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_epg" render="Label" conditional="key_epg" position="717,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_epg" render="Label" conditional="key_epg" position="717,945" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_help" render="Label" conditional="key_help" position="893,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_help" render="Label" conditional="key_help" position="893,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_play" render="Label" conditional="key_play" position="1069,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_play" render="Label" conditional="key_play" position="1069,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1245,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="1245,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="1421,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_stop" render="Label" conditional="key_stop" position="1597,965" zPosition="4" size="165,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_stop" render="Label" conditional="key_stop" position="1597,965" zPosition="4" size="165,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_0" render="Label" conditional="key_0" position="1772,965" zPosition="12" size="60,52" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_0" render="Label" conditional="key_0" position="1772,965" zPosition="12" size="60,32" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_tv" conditional="key_tv" render="Label" position="12,928" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+			<widget source="key_tv" conditional="key_tv" render="Label" position="12,908" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_audio" render="Label" conditional="key_audio" position="189,928" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_audio" render="Label" conditional="key_audio" position="189,908" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_rec" render="Label" conditional="key_rec" position="365,928" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_rec" render="Label" conditional="key_rec" position="365,908" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
