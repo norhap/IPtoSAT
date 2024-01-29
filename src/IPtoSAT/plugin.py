@@ -1602,6 +1602,7 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		self.toggleSecondList()
 
 	def doChangeList2(self, answer):
 		try:
@@ -1621,6 +1622,7 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		self.toggleSecondList()
 
 	def setChangeList(self):
 		if self.storage:
