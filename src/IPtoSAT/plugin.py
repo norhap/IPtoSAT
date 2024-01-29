@@ -43,6 +43,8 @@ BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildb
 REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
 CATEGORIES_TIMER_ERROR = "/tmp/categories_error.log"
+USER_LIST_CATEGORIE_CHOSEN = ""
+USER_EDIT_CATEGORIE = ""
 TIMER_ERROR = ""
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
@@ -131,6 +133,26 @@ config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
 config.plugins.IPToSAT.username = ConfigText(default=language.get(lang, "113"), fixed_size=False)
 config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), fixed_size=False)
 config.plugins.IPToSAT.scheduletime = ConfigClock(default=0)
+
+
+def typeselectcategorie():
+	if config.plugins.IPToSAT.typecategories.value == "live":
+		USER_LIST_CATEGORIE_CHOSEN = language.get(lang, "133") + " " + '"' + language.get(lang, "148") + '"'
+	elif config.plugins.IPToSAT.typecategories.value == "vod":
+		USER_LIST_CATEGORIE_CHOSEN = language.get(lang, "133") + " " + '"' + language.get(lang, "149") + '"'
+	else:
+		USER_LIST_CATEGORIE_CHOSEN = language.get(lang, "133") + " " + '"' + language.get(lang, "150") + '"'
+	return USER_LIST_CATEGORIE_CHOSEN
+
+
+def categoriedit():
+	if config.plugins.IPToSAT.typecategories.value == "live":
+		USER_EDIT_CATEGORIE = language.get(lang, "141") + " " + typeselectcategorie()
+	elif config.plugins.IPToSAT.typecategories.value == "vod":
+		USER_EDIT_CATEGORIE = language.get(lang, "141") + " " + typeselectcategorie()
+	else:
+		USER_EDIT_CATEGORIE = language.get(lang, "141") + " " + typeselectcategorie()
+	return USER_EDIT_CATEGORIE
 
 
 def trace_error():
@@ -277,10 +299,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if not fileContains(CONFIG_PATH, "pass"):
 			self.list.append(getConfigListEntry(language.get(lang, "151"),
 				config.plugins.IPToSAT.typecategories, language.get(lang, "152")))
-			self.list.append(getConfigListEntry(language.get(lang, "133"),
+			self.list.append(getConfigListEntry(typeselectcategorie(),
 				config.plugins.IPToSAT.categories, language.get(lang, "74")))
-			self.list.append(getConfigListEntry(language.get(lang, "141"),
-				config.plugins.IPToSAT.usercategories, language.get(lang, "123")))
+			self.list.append(getConfigListEntry(categoriedit(),
+				config.plugins.IPToSAT.usercategories, language.get(lang, "123") + " " + typeselectcategorie() + " " + language.get(lang, "157") + "\n\n" + language.get(lang, "155") + " " + typeselectcategorie() + " " + language.get(lang, "156")))
 			if fileContains(BOUQUETS_TV, "iptosat_norhap"):
 				self.list.append(getConfigListEntry(language.get(lang, "127"),
 					config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
@@ -2054,7 +2076,7 @@ class EditCategories(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self.skinName = ["EditCategories"]
-		self.setTitle(language.get(lang, "133"))
+		self.setTitle(typeselectcategorie())
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
