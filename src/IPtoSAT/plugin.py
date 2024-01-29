@@ -82,24 +82,24 @@ except Exception:
 		language.read(LANGUAGE_PATH, encoding="utf8")
 	except Exception:
 		pass
-try:
-	if fileContains(str(BOUQUET_IPTV_NORHAP), "#NAME iptosat_norhap") and fileContains(str(BOUQUETS_TV), "userbouquet.iptosat_norhap.tv"):
-		ALL = "#NAME iptosat_norhap"
-		LIVE_VOD_SERIES = '#NAME iptosat *** LIVETV  VOD  SERIES ***'
-		with open(BOUQUET_IPTV_NORHAP, "r") as fr:
-			with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "w") as fw:
-				for lines in fr.readlines():
-					if ALL not in lines:
-						fw.write(lines)
-		with open(BOUQUET_IPTV_NORHAP, "w") as fw:
-			fw.write(LIVE_VOD_SERIES + "\n")
-		with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "r") as f:
-			for lines in f.readlines():
-				with open(BOUQUET_IPTV_NORHAP, "a") as fw:
-					fw.write(lines)
-		eConsoleAppContainer().execute("rm -f " + WILD_CARD_BOUQUET_IPTV_NORHAP + " && sleep 10 && wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
-except Exception:
-	pass
+# try:
+# 	if fileContains(str(BOUQUET_IPTV_NORHAP), "#NAME iptosat_norhap") and fileContains(str(BOUQUETS_TV), "userbouquet.iptosat_norhap.tv"):
+# 		ALL = "#NAME iptosat_norhap"
+# 		LIVE_VOD_SERIES = language.get(lang, "153")
+# 		with open(BOUQUET_IPTV_NORHAP, "r") as fr:
+# 			with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "w") as fw:
+# 				for lines in fr.readlines():
+# 					if ALL not in lines:
+# 						fw.write(lines)
+# 		with open(BOUQUET_IPTV_NORHAP, "w") as fw:
+# 			fw.write(LIVE_VOD_SERIES + "\n")
+# 		with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "r") as f:
+# 			for lines in f.readlines():
+# 				with open(BOUQUET_IPTV_NORHAP, "a") as fw:
+# 					fw.write(lines)
+# 		eConsoleAppContainer().execute("rm -f " + WILD_CARD_BOUQUET_IPTV_NORHAP + " && sleep 10 && wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
+# except Exception:
+# 	pass
 
 
 def choices_list():
@@ -122,6 +122,7 @@ config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.autotimerbouquets = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.typecategories = ConfigSelection(choices=[("live", language.get(lang, "148")), ("vod", language.get(lang, "149")), ("series", language.get(lang, "150"))], default="live")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.categories = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -247,6 +248,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["footnote"] = Label("")  # noqa: F821
 		self.createSetup()
 		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
+		self.typecategories = config.plugins.IPToSAT.typecategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
 		if TimerEntry.StateEnded < int(time()):
 			self.session.nav.PowerTimer.cleanup()
@@ -272,28 +274,30 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				config.plugins.IPToSAT.username, language.get(lang, "99")))
 			self.list.append(getConfigListEntry(language.get(lang, "114"),
 				config.plugins.IPToSAT.password, language.get(lang, "99")))
-		if self.storage:
-			if not fileContains(CONFIG_PATH, "pass"):
-				self.list.append(getConfigListEntry(language.get(lang, "133"),
-					config.plugins.IPToSAT.categories, language.get(lang, "74")))
-				self.list.append(getConfigListEntry(language.get(lang, "141"),
-					config.plugins.IPToSAT.usercategories, language.get(lang, "123")))
-				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
-					self.list.append(getConfigListEntry(language.get(lang, "127"),
-						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
-				if not exists(str(CATEGORIES_TIMER_ERROR)):
-					self.list.append(getConfigListEntry(language.get(lang, "144"),
-						config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
-					if config.plugins.IPToSAT.autotimerbouquets.value:
-						self.list.append(getConfigListEntry(language.get(lang, "145"),
-							config.plugins.IPToSAT.scheduletime, language.get(lang, "130")))
-				else:
-					with open(CATEGORIES_TIMER_ERROR, "r") as fr:
-						TIMER_ERROR = fr.read()
-					self.list.append(getConfigListEntry(language.get(lang, "144"),
-						config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
+		if not fileContains(CONFIG_PATH, "pass"):
+			self.list.append(getConfigListEntry(language.get(lang, "151"),
+				config.plugins.IPToSAT.typecategories, language.get(lang, "152")))
+			self.list.append(getConfigListEntry(language.get(lang, "133"),
+				config.plugins.IPToSAT.categories, language.get(lang, "74")))
+			self.list.append(getConfigListEntry(language.get(lang, "141"),
+				config.plugins.IPToSAT.usercategories, language.get(lang, "123")))
+			if fileContains(BOUQUETS_TV, "iptosat_norhap"):
+				self.list.append(getConfigListEntry(language.get(lang, "127"),
+					config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
+			if not exists(str(CATEGORIES_TIMER_ERROR)):
+				self.list.append(getConfigListEntry(language.get(lang, "144"),
+					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
+				if config.plugins.IPToSAT.autotimerbouquets.value:
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
-						config.plugins.IPToSAT.scheduletime, language.get(lang, "130") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
+						config.plugins.IPToSAT.scheduletime, language.get(lang, "130")))
+			else:
+				with open(CATEGORIES_TIMER_ERROR, "r") as fr:
+					TIMER_ERROR = fr.read()
+				self.list.append(getConfigListEntry(language.get(lang, "144"),
+					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
+				self.list.append(getConfigListEntry(language.get(lang, "145"),
+					config.plugins.IPToSAT.scheduletime, language.get(lang, "130") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
+		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
 		self.list.append(getConfigListEntry(language.get(lang, "98"),
@@ -365,6 +369,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(str(CATEGORIES_TIMER_ERROR))
 			self.session.open(TryQuitMainloop, 3)
+		if self.typecategories != config.plugins.IPToSAT.typecategories.value:
+			config.plugins.IPToSAT.deletecategories.value = False
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
 		AssignService(self.session)
@@ -436,6 +442,7 @@ class TimerUpdateCategories:
 		self.categoriestimer.stop()
 		now = int(time())
 		wake = self.getTimeDownaloadCategories()
+		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		enigma2files = ""
 		m3u = ""
 		with open(CONFIG_PATH, "r") as fr:
@@ -462,7 +469,6 @@ class TimerUpdateCategories:
 						enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
 						if enigma2files:
 							remove(enigma2files)
-				AssignService.checkStorageDevice(self)
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 					with open(str(self.m3ufile), "wb") as m3ufile:
 						m3ufile.write(m3u.content)
@@ -682,7 +688,7 @@ class AssignService(ChannelSelectionBase):
 		self.alternatefolder = None
 		self.changefolder = None
 		self.m3ufolder = None
-		self.m3ufile = None
+		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		self.m3ustoragefile = None
 		self.path = None
 		self["titleChannelsList"] = Label(language.get(lang, "11"))
@@ -779,7 +785,6 @@ class AssignService(ChannelSelectionBase):
 						self.changefolder = join(self.path, "IPToSAT/%s/ChangeSuscriptionList" % MODEL)
 						self.m3ufolder = join(self.path, "IPToSAT/%s/M3U" % MODEL)
 						self.m3ustoragefile = join(self.m3ufolder, "iptosat_norhap.m3u")
-						self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 						backupfiles = ""
 						bouquetiptosatepg = ""
 						if exists(str(BUILDBOUQUETS_SOURCE)):
@@ -964,55 +969,63 @@ class AssignService(ChannelSelectionBase):
 		self.session.openWithCallback(self.exit, MessageBox, language.get(lang, "19"), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getCategories(self, url):
-		url += '&action=get_live_categories'
+		url += f'&action=get_{config.plugins.IPToSAT.typecategories.value}_categories'
 		self.callAPI(url, self.getData)
 
 	def getUserSuscription(self, url):
 		self.suscription(url, self.getSuscriptionData)
 
 	def channelSelected(self):
-		self["codestatus"].hide()
-		if self.selectedList == self["list"]:
-			ref = self.getCurrentSelection()
-			if (ref.flags & 7) == 7:
-				self.enterPath(ref)
-				self.in_bouquets = True
-		elif self.selectedList == self["list2"]:
-			if self.url and not self.in_channels and len(self.categories) > 0:
-				index = self['list2'].getSelectionIndex()
-				cat_id = self.categories[index][1]
-				url = self.url
-				url += '&action=get_live_streams&category_id=' + cat_id
-				self.callAPI(url, self.getChannels)
-			elif self.in_channels and len(self.channels) > 0:
-				index = self['list2'].getSelectionIndex()
-				xtream_channel = self.channels[index][0]
-				stream_id = self.channels[index][1]
-				sref = self.getSref()
-				channel_name = ServiceReference(sref).getServiceName()
-				self.addChannel(channel_name, stream_id, sref, xtream_channel)
+		if config.plugins.IPToSAT.typecategories.value in ("vod", "series"):
+			self['managerlistchannels'].show()
+			self.assignWidgetScript("#00ff2525", config.plugins.IPToSAT.typecategories.value.upper() + "  " + language.get(lang, "154"))
+		else:
+			self["codestatus"].hide()
+			if self.selectedList == self["list"]:
+				ref = self.getCurrentSelection()
+				if (ref.flags & 7) == 7:
+					self.enterPath(ref)
+					self.in_bouquets = True
+			elif self.selectedList == self["list2"]:
+				if self.url and not self.in_channels and len(self.categories) > 0:
+					index = self['list2'].getSelectionIndex()
+					cat_id = self.categories[index][1]
+					url = self.url
+					url += '&action=get_live_streams&category_id=' + cat_id
+					self.callAPI(url, self.getChannels)
+				elif self.in_channels and len(self.channels) > 0:
+					index = self['list2'].getSelectionIndex()
+					xtream_channel = self.channels[index][0]
+					stream_id = self.channels[index][1]
+					sref = self.getSref()
+					channel_name = ServiceReference(sref).getServiceName()
+					self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def channelSelectedForce(self):
-		self["codestatus"].hide()
-		if self.selectedList == self["list"]:
-			ref = self.getCurrentSelection()
-			if (ref.flags & 7) == 7:
-				self.enterPath(ref)
-				self.in_bouquets = True
-		elif self.selectedList == self["list2"]:
-			if self.url and not self.in_channels and len(self.categories) > 0:
-				index = self['list2'].getSelectionIndex()
-				cat_id = self.categories[index][1]
-				url = self.url
-				url += '&action=get_live_streams&category_id=' + cat_id
-				self.callAPI(url, self.getChannelsForce)
-			elif self.in_channels and len(self.channels) > 0:
-				index = self['list2'].getSelectionIndex()
-				xtream_channel = self.channels[index][0]
-				stream_id = self.channels[index][1]
-				sref = self.getSref()
-				channel_name = ServiceReference(sref).getServiceName()
-				self.addChannel(channel_name, stream_id, sref, xtream_channel)
+		if config.plugins.IPToSAT.typecategories.value in ("vod", "series"):
+			self['managerlistchannels'].show()
+			self.assignWidgetScript("#00ff2525", config.plugins.IPToSAT.typecategories.value.upper() + "  " + language.get(lang, "154"))
+		else:
+			self["codestatus"].hide()
+			if self.selectedList == self["list"]:
+				ref = self.getCurrentSelection()
+				if (ref.flags & 7) == 7:
+					self.enterPath(ref)
+					self.in_bouquets = True
+			elif self.selectedList == self["list2"]:
+				if self.url and not self.in_channels and len(self.categories) > 0:
+					index = self['list2'].getSelectionIndex()
+					cat_id = self.categories[index][1]
+					url = self.url
+					url += '&action=get_live_streams&category_id=' + cat_id
+					self.callAPI(url, self.getChannelsForce)
+				elif self.in_channels and len(self.channels) > 0:
+					index = self['list2'].getSelectionIndex()
+					xtream_channel = self.channels[index][0]
+					stream_id = self.channels[index][1]
+					sref = self.getSref()
+					channel_name = ServiceReference(sref).getServiceName()
+					self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
 		playlist = getPlaylist()
@@ -1646,14 +1659,14 @@ class AssignService(ChannelSelectionBase):
 				if exists(str(iptosatconf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/", MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist1conf)) and exists(str(iptosat2change)):
-					with open(iptosatlist1conf, "r") as f:
+					with open(fileconf, "r") as f:
 						host = f.read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist1conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist2conf)) and exists(str(iptosat2change)):
-					with open(iptosatlist2conf, "r") as f:
+					with open(fileconf, "r") as f:
 						host = f.read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist2conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
@@ -1864,7 +1877,7 @@ class AssignService(ChannelSelectionBase):
 class EditPlaylist(Screen):
 	skin = """
 	<screen name="PlaylistEditPlaylistIPToSAT" position="center,center" size="1400,650" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" font="Regular;24" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -2020,7 +2033,7 @@ class EditPlaylist(Screen):
 class EditCategories(Screen):
 	skin = """
 	<screen name="EditCategories" position="center,center" size="1425,700" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,14" size="1384,510" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget name="list" itemHeight="40" position="18,14" size="1384,600" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,633" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -2032,7 +2045,7 @@ class EditCategories(Screen):
 		</widget>
 		<widget name="status" position="534,630" size="830,66" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-		<widget name="footnote" conditional="footnote" position="18,525" size="1384,174" foregroundColor="#e5e619" font="Regular;24" zPosition="0" />
+		<widget name="footnote" conditional="footnote" position="18,632" size="0,0" foregroundColor="#e5e619" font="Regular;24" zPosition="0" />
 	</screen>"""
 
 	def __init__(self, session, *args):
@@ -2192,7 +2205,7 @@ class EditCategories(Screen):
 class InstallChannelsLists(Screen):
 	skin = """
 	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,655" title="IPToSAT - Install Channels Lists">
-		<widget name="list" itemHeight="40" position="18,22" size="1364,520" scrollbarMode="showOnDemand"/>
+		<widget name="list" itemHeight="40" position="18,22" size="1364,520" font="Regular;25" scrollbarMode="showOnDemand"/>
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,583" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
