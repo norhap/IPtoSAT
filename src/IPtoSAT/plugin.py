@@ -393,6 +393,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(TryQuitMainloop, 3)
 		if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 			config.plugins.IPToSAT.deletecategories.value = False
+			config.plugins.IPToSAT.usercategories.value = False
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
 		AssignService(self.session)
