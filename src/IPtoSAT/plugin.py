@@ -492,6 +492,7 @@ class TimerUpdateCategories:
 						enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
 						if enigma2files:
 							remove(enigma2files)
+				AssignService.checkStorageDevice(self)
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 					with open(str(self.m3ufile), "wb") as m3ufile:
 						m3ufile.write(m3u.content)
