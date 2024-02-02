@@ -2235,7 +2235,10 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
 				self["status"].show()
-				self["status"].setText(language.get(lang, "139"))
+				if config.plugins.IPToSAT.typecategories.value != "all":
+					self["status"].setText(language.get(lang, "139"))
+				else:
+					self["status"].setText(language.get(lang, "169"))
 			else:
 				self["status"].setText(language.get(lang, "140"))
 				self['list'].hide()

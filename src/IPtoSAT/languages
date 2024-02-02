@@ -168,6 +168,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 166 = If it is disabled, it will use the bouquets of
 167 = Bouquets updated with timer at
 168 = Press GREEN button to remove all bouquets from your channel list.
+169 = Press OK or GREEN to delete bouquet.\nPress YELLOW to clear all bouquets.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -339,3 +340,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 166 = Si está deshabilitado, usará para su instalación, los bouquets de
 167 = Bouquets actualizados con temporizador a las
 168 = Pulse botón VERDE para eliminar todos los bouquets de su lista de canales.
+169 = Pulse OK o VERDE para eliminar bouquet.\nPulse AMARILLO para limpiar todos los bouquets.
