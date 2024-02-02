@@ -44,10 +44,12 @@ REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
 WILD_CARD_ALL_CATEGORIES = "/etc/enigma2/categoriesall"
 ALL_CATEGORIES = "/etc/enigma2/iptosatcategoriesall.json"
-CATEGORIES_TIMER_ERROR = "/tmp/categories_error.log"
+CATEGORIES_TIMER_OK = "/tmp/timercatiptosat.log"
+TIMER_OK = ""
+CATEGORIES_TIMER_ERROR = "/tmp/timercatiptosat_error.log"
+TIMER_ERROR = ""
 USER_LIST_CATEGORIE_CHOSEN = ""
 USER_EDIT_CATEGORIE = ""
-TIMER_ERROR = ""
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -240,10 +242,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget source="VKeyIcon" text="TEXT" render="Label" position="365,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" halign="center" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget name="footnote" conditional="footnote" position="0,0" size="0,0" font="Regular;24" zPosition="3" />
 		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
 		<widget name="HelpWindow" position="1010,820" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-		<widget name="description" font="Regular;26" position="985,520" size="860,490" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
+		<widget name="description" font="Regular;26" position="985,520" size="860,320" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
+		<widget name="footnote" conditional="footnote" position="985,842" size="860,80" foregroundColor="#0086dc3d" font="Regular;25" transparent="1" zPosition="3" />
 	</screen>"""
 
 	def __init__(self, session):
@@ -280,10 +282,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
-		if TimerEntry.StateEnded < int(time()):
-			self.session.nav.PowerTimer.cleanup()
-		if RecordTimer.RecordTimerEntry.StateEnded < int(time()):
-			self.session.nav.RecordTimer.cleanup()
 
 	def layoutFinished(self):
 		self.setTitle(language.get(lang, "13"))
@@ -313,7 +311,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.IPToSAT.typecategories, language.get(lang, "159")))
 			if config.plugins.IPToSAT.typecategories.value == "none":
 				self.list.append(getConfigListEntry(language.get(lang, "160"),
-					config.plugins.IPToSAT.typecategories, language.get(lang, "152")))
+					config.plugins.IPToSAT.typecategories, language.get(lang, "168")))
 			if config.plugins.IPToSAT.typecategories.value != "none":
 				self.list.append(getConfigListEntry(typeselectcategorie(),
 					config.plugins.IPToSAT.categories, language.get(lang, "74")))
@@ -330,23 +328,15 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					else:
 						self.list.append(getConfigListEntry(categoriedit(),
 							config.plugins.IPToSAT.usercategories, language.get(lang, "166") + " " + typeselectcategorie() + "."))
-			if fileContains(BOUQUETS_TV, "iptosat_norhap") and config.plugins.IPToSAT.typecategories.value != "none":
-				self.list.append(getConfigListEntry(language.get(lang, "127"),
-					config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
-			if not exists(str(CATEGORIES_TIMER_ERROR)) and config.plugins.IPToSAT.typecategories.value != "none":
+			if config.plugins.IPToSAT.typecategories.value != "none":
+				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
+					self.list.append(getConfigListEntry(language.get(lang, "127"),
+						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
 				self.list.append(getConfigListEntry(language.get(lang, "144"),
 					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
 				if config.plugins.IPToSAT.autotimerbouquets.value:
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
 						config.plugins.IPToSAT.scheduletime, language.get(lang, "130")))
-			else:
-				if config.plugins.IPToSAT.typecategories.value != "none":
-					with open(CATEGORIES_TIMER_ERROR, "r") as fr:
-						TIMER_ERROR = fr.read()
-					self.list.append(getConfigListEntry(language.get(lang, "144"),
-						config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
-					self.list.append(getConfigListEntry(language.get(lang, "145"),
-						config.plugins.IPToSAT.scheduletime, language.get(lang, "130") + "\n\n" + language.get(lang, "147") + "\n\n" + str(TIMER_ERROR)))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
@@ -356,6 +346,19 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		self.saveConfig()
+		if TimerEntry.StateEnded < int(time()):
+			self.session.nav.PowerTimer.cleanup()
+		if RecordTimer.RecordTimerEntry.StateEnded < int(time()):
+			self.session.nav.RecordTimer.cleanup()
+		if config.plugins.IPToSAT.autotimerbouquets.value:
+			if exists(str(CATEGORIES_TIMER_OK)):
+				with open(CATEGORIES_TIMER_OK, "r") as fr:
+					TIMER_OK = fr.read()
+					self["footnote"] = Label(language.get(lang, "167") + " " + TIMER_OK)
+			elif exists(str(CATEGORIES_TIMER_ERROR)):
+				with open(CATEGORIES_TIMER_ERROR, "r") as fr:
+					TIMER_ERROR = fr.read()
+					self["footnote"] = Label(language.get(lang, "147") + " " + TIMER_ERROR)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
 			try:
 				if config.usage.remote_fallback_enabled.value or not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
@@ -537,6 +540,10 @@ class TimerUpdateCategories:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
 		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
+			if exists(str(CATEGORIES_TIMER_ERROR)):
+				remove(str(CATEGORIES_TIMER_ERROR))
+			if exists(str(CATEGORIES_TIMER_OK)):
+				remove(str(CATEGORIES_TIMER_OK))
 			try:
 				if config.plugins.IPToSAT.deletecategories.value and m3u:
 					for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
@@ -550,13 +557,22 @@ class TimerUpdateCategories:
 						if enigma2files:
 							remove(enigma2files)
 				AssignService.checkStorageDevice(self)
-				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
+				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					with open(str(self.m3ufile), "wb") as m3ufile:
 						m3ufile.write(m3u.content)
 					if exists(str(BUILDBOUQUETS_FILE)):
 						move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
 					sleep(3)
 					if fileContains(str(self.m3ufile), "http"):
+						with open(CATEGORIES_TIMER_OK, "w") as fw:
+							if config.plugins.IPToSAT.scheduletime.value[0] < 10 and config.plugins.IPToSAT.scheduletime.value[1] < 10:
+								fw.write("0" + str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":0"))
+							elif config.plugins.IPToSAT.scheduletime.value[0] < 10:
+								fw.write("0" + str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":"))
+							elif config.plugins.IPToSAT.scheduletime.value[1] < 10:
+								fw.write(str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":0"))
+							else:
+								fw.write(str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":"))
 						eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 						if self.storage:
 							eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
@@ -1292,7 +1308,7 @@ class AssignService(ChannelSelectionBase):
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
 				m3u = ""
-				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
+				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					with open(REFERENCES_FILE, "a") as updatefile:
 						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 							channel_name = channel_name.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
