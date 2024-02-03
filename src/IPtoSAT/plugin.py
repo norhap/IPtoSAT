@@ -291,8 +291,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.setTitle(language.get(lang, "13"))
 
 	def createSetup(self):
-		self.list = [getConfigListEntry(language.get(lang, "14"),
-			config.plugins.IPToSAT.enable, language.get(lang, "8"))]
+		if not fileContains(CONFIG_PATH, "pass"):
+			self.list = [getConfigListEntry(language.get(lang, "14"),
+				config.plugins.IPToSAT.enable, language.get(lang, "8"))]
+		else:
+			self.list = [getConfigListEntry(language.get(lang, "14"),
+				config.plugins.IPToSAT.enable, language.get(lang, "171"))]
 		self.list.append(getConfigListEntry(language.get(lang, "15"),
 			config.plugins.IPToSAT.assign, language.get(lang, "35")))
 		self.list.append(getConfigListEntry(language.get(lang, "16"),
