@@ -236,6 +236,10 @@ def getChannelsLists():
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
+		<eLabel backgroundColor="#0044a2ff" position="982,8" size="873,2"/>
+		<eLabel backgroundColor="#0044a2ff" position="982,8" size="2,920"/>
+		<eLabel backgroundColor="#0044a2ff" position="982,926" size="873,2"/>
+		<eLabel backgroundColor="#0044a2ff" position="1855,8" size="2,920"/>
 		<widget name="config" itemHeight="50" position="0,10" font="Regular;27" valueFont="Regular;22" size="980,860" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget name="key_red" position="12,872" size="165,52" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="189,872" size="165,52" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -655,11 +659,11 @@ class IPToSAT(Screen):
 class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
-		<screen name="IPToSAT Service Assign" position="0,80" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
-			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,3"/>
-			<eLabel backgroundColor="#0044a2ff" position="0,3" size="3,1020"/>
-			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,3"/>
-			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="3,1020"/>
+		<screen name="IPToSAT Service Assign" position="1,80" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
+			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,2"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,997"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,2"/>
+			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="2,999"/>
 			<widget source="session.VideoPicture" render="Pig" position="0,0" size="0,0" zPosition="1" backgroundColor="#df0b1300"/>
 			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
