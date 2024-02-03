@@ -354,7 +354,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if exists(str(CATEGORIES_TIMER_OK)):
 				with open(CATEGORIES_TIMER_OK, "r") as fr:
 					TIMER_OK = fr.read()
-					self["footnote"] = Label(language.get(lang, "167") + " " + TIMER_OK)
+					self["footnote"] = Label(language.get(lang, "167") + "\n" + TIMER_OK)
 			elif exists(str(CATEGORIES_TIMER_ERROR)):
 				with open(CATEGORIES_TIMER_ERROR, "r") as fr:
 					TIMER_ERROR = fr.read()
@@ -534,11 +534,15 @@ class TimerUpdateCategories:
 			user = configfile.split()[2].split('User=')[1]
 			password = configfile.split()[3].split('Pass=')[1]
 			try:
-				urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts'
+				urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
 				m3u = requests.get(urlm3u, allow_redirects=True)
-			except Exception as err:
-				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
-					fw.write(str(err))
+			except Exception:
+				try:
+					urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=m3u8'
+					m3u = requests.get(urlm3u, allow_redirects=True)
+				except Exception as err:
+					with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+						fw.write(str(err))
 		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(str(CATEGORIES_TIMER_ERROR))
@@ -565,14 +569,8 @@ class TimerUpdateCategories:
 					sleep(3)
 					if fileContains(str(self.m3ufile), "http"):
 						with open(CATEGORIES_TIMER_OK, "w") as fw:
-							if config.plugins.IPToSAT.scheduletime.value[0] < 10 and config.plugins.IPToSAT.scheduletime.value[1] < 10:
-								fw.write("0" + str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":0"))
-							elif config.plugins.IPToSAT.scheduletime.value[0] < 10:
-								fw.write("0" + str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":"))
-							elif config.plugins.IPToSAT.scheduletime.value[1] < 10:
-								fw.write(str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":0"))
-							else:
-								fw.write(str(config.plugins.IPToSAT.scheduletime.value).replace("[", "").replace("]", "").replace(", ", ":"))
+							now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
+							fw.write(now)
 						eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 						if self.storage:
 							eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
@@ -1309,6 +1307,10 @@ class AssignService(ChannelSelectionBase):
 			try:
 				m3u = ""
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
+					if exists(str(CATEGORIES_TIMER_ERROR)):
+						remove(str(CATEGORIES_TIMER_ERROR))
+					if exists(str(CATEGORIES_TIMER_OK)):
+						remove(str(CATEGORIES_TIMER_OK))
 					with open(REFERENCES_FILE, "a") as updatefile:
 						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 							channel_name = channel_name.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
@@ -1323,10 +1325,14 @@ class AssignService(ChannelSelectionBase):
 						user = configfile.split()[2].split('User=')[1]
 						password = configfile.split()[3].split('Pass=')[1]
 						try:
-							urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=mpegts'
+							urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
 							m3u = requests.get(urlm3u, allow_redirects=True)
-						except Exception as err:
-							self.session.open(MessageBox, language.get(lang, "6") + "\n\n" + "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
+						except Exception:
+							try:
+								urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=m3u8'
+								m3u = requests.get(urlm3u, allow_redirects=True)
+							except Exception as err:
+								self.session.open(MessageBox, language.get(lang, "6") + "\n\n" + "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 						if config.plugins.IPToSAT.deletecategories.value and m3u:
 							for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
 								with open(BOUQUETS_TV, "r") as fr:
@@ -1350,6 +1356,9 @@ class AssignService(ChannelSelectionBase):
 							self["helpbouquetepg"].hide()
 							self['managerlistchannels'].show()
 							self.assignWidgetScript("#e5e619", language.get(lang, "5"))
+							with open(CATEGORIES_TIMER_OK, "w") as fw:
+								now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
+								fw.write(now)
 						else:
 							self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
