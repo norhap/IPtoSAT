@@ -51,6 +51,7 @@ CATEGORIES_TIMER_ERROR = "/tmp/timercatiptosat_error.log"
 TIMER_ERROR = ""
 USER_LIST_CATEGORIE_CHOSEN = ""
 USER_EDIT_CATEGORIE = ""
+READ_M3U = "/etc/enigma2/readm3u.txt"
 CONFIG_PATH = "/etc/enigma2/iptosat.conf"
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
@@ -241,6 +242,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<eLabel backgroundColor="#0044a2ff" position="982,8" size="2,920"/>
 		<eLabel backgroundColor="#0044a2ff" position="982,926" size="873,2"/>
 		<eLabel backgroundColor="#0044a2ff" position="1855,8" size="2,920"/>
+		<eLabel backgroundColor="#0044a2ff" position="11,872" size="1,52"/>
+		<eLabel backgroundColor="#0044a2ff" position="11,924" size="169,1"/>
+		<eLabel backgroundColor="#0044a2ff" position="11,871" size="169,1"/>
+		<eLabel backgroundColor="#0044a2ff" position="179,872" size="1,52"/>
+		<eLabel backgroundColor="#0044a2ff" position="188,872" size="1,52"/>
+		<eLabel backgroundColor="#0044a2ff" position="188,924" size="168,1"/>
+		<eLabel backgroundColor="#0044a2ff" position="188,871" size="168,1"/>
+		<eLabel backgroundColor="#0044a2ff" position="355,872" size="1,52"/>
 		<widget name="config" itemHeight="50" position="0,10" font="Regular;27" valueFont="Regular;22" size="980,860" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget name="key_red" position="12,872" size="165,52" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="189,872" size="165,52" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -452,24 +461,24 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def moveUp(self):
 		self["config"].moveUp()
-		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
+		if BoxInfo.getItem("distro") not in ("norhap"):
 			self["description"].text = self.getCurrentDescription()
 
 	def moveDown(self):
 		self["config"].moveDown()
-		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
+		if BoxInfo.getItem("distro") not in ("norhap"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
 		self.createSetup()
-		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
+		if BoxInfo.getItem("distro") not in ("norhap"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyRight(self):
 		ConfigListScreen.keyRight(self)
 		self.createSetup()
-		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
+		if BoxInfo.getItem("distro") not in ("norhap"):
 			self["description"].text = self.getCurrentDescription()
 
 	def saveiptosatconf(self):
@@ -557,7 +566,7 @@ class TimerUpdateCategories:
 				response = urlopen(request, timeout=5)
 			except Exception:
 				try:
-					response = urlopen(request, timeout=60)
+					response = urlopen(request, timeout=70)
 				except Exception as err:
 					with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 						fw.write(str(err))
@@ -582,8 +591,19 @@ class TimerUpdateCategories:
 							remove(enigma2files)
 				AssignService.checkStorageDevice(self)
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
-					with open(str(self.m3ufile), "wb") as m3ufile:
+					with open(READ_M3U, "wb") as m3ufile:
 						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with requests.get
+					with open(READ_M3U, "r") as m3uread:
+						charactertoreplace= m3uread.readlines()
+						sleep(3)
+						with open(READ_M3U, "w") as m3uw:
+							for line in charactertoreplace:
+								if '[' in line and ']' in line and '|' in line:
+									line = line.replace('[', '').replace(']', '|')
+								if '|  ' in line:
+									line = line.replace('|  ', '| ')
+								m3uw.write(line)
+					move(READ_M3U, str(self.m3ufile))
 					if exists(str(BUILDBOUQUETS_FILE)):
 						move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
 					sleep(3)
@@ -593,6 +613,10 @@ class TimerUpdateCategories:
 					eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
+				else:
+					if m3u:
+						with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+							fw.write(language.get(lang, "172"))
 			except Exception as err:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
@@ -1351,7 +1375,7 @@ class AssignService(ChannelSelectionBase):
 							response = urlopen(request, timeout=5)
 						except Exception:
 							try:
-								response = urlopen(request, timeout=60)
+								response = urlopen(request, timeout=70)
 							except Exception:
 								pass
 						if response:
@@ -1368,8 +1392,19 @@ class AssignService(ChannelSelectionBase):
 									if enigma2files:
 										remove(enigma2files)
 							if m3u:
-								with open(str(self.m3ufile), "wb") as m3ufile:
+								with open(READ_M3U, "wb") as m3ufile:
 									m3ufile.write(m3u)
+								with open(READ_M3U, "r") as m3uread:
+									charactertoreplace= m3uread.readlines()
+									sleep(3)
+									with open(READ_M3U, "w") as m3uw:
+										for line in charactertoreplace:
+											if '[' in line and ']' in line and '|' in line:
+												line = line.replace('[', '').replace(']', '|')
+											if '|  ' in line:
+												line = line.replace('|  ', '| ')
+											m3uw.write(line)
+								move(READ_M3U, str(self.m3ufile))
 								if exists(str(BUILDBOUQUETS_FILE)):
 									move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
 								sleep(3)
@@ -1385,7 +1420,7 @@ class AssignService(ChannelSelectionBase):
 						else:
 							self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
-					self.session.open(MessageBox, language.get(lang, "134"), MessageBox.TYPE_ERROR, default=False)
+					self.assignWidgetScript("#00ff2525", language.get(lang, "172"))
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 		else:
@@ -1876,9 +1911,10 @@ class AssignService(ChannelSelectionBase):
 		self.bouquets = bouquets_categories
 		if js != []:
 			for cat in js:
-				list.append((str(cat['category_name']),
-					str(cat['category_id'])))
-				bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N').replace('\u00cb', 'E')), str(cat['category_name'])))
+				if "GR" not in str(cat['category_name']):
+					list.append((str(cat['category_name']),
+						str(cat['category_id'])))
+					bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N').replace('\u00cb', 'E')), str(cat['category_name'])))
 		if config.plugins.IPToSAT.typecategories.value != "all":
 			if not config.plugins.IPToSAT.usercategories.value or fileContains(CONFIG_PATH_CATEGORIES, "null") or not fileContains(CONFIG_PATH_CATEGORIES, ":"):
 				iptosatcategoriesjson = ""
@@ -2138,6 +2174,7 @@ class EditPlaylist(Screen):
 				self["status"].setText(language.get(lang, "29"))
 				self["status"].show()
 				self['list'].hide()
+				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
 		else:
@@ -2300,13 +2337,13 @@ class EditCategories(Screen):
 				pass
 			if len(list) > 0:
 				self['list'].l.setList(list)
-				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["status"].show()
 				self["status"].setText(language.get(lang, "136"))
 			else:
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 					self["status"].setText(language.get(lang, "134"))
+					self["key_red"].setText(language.get(lang, "137"))
 					with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
 						catclean.write("null")
 				else:
@@ -2325,6 +2362,7 @@ class EditCategories(Screen):
 				AssignService(self.session)
 				self["status"].show()
 				self['list'].hide()
+				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
 
