@@ -43,7 +43,8 @@ BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbou
 BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
 REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
-WILD_CARD_ALL_CATEGORIES = "/etc/enigma2/categoriesall"
+WILD_CARD_ALL_CATEGORIES = "/etc/enigma2/iptosatcatall"
+WILD_CARD_CATYOURLIST = "/etc/enigma2/iptosatyourcatall"
 ALL_CATEGORIES = "/etc/enigma2/iptosatcategoriesall.json"
 CATEGORIES_TIMER_OK = "/tmp/timercatiptosat.log"
 TIMER_OK = ""
@@ -295,6 +296,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.createSetup()
 		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
+		self.usercategories = config.plugins.IPToSAT.usercategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
@@ -456,6 +458,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if config.plugins.IPToSAT.usercategories.value:
 				config.plugins.IPToSAT.usercategories.value = False
 				config.plugins.IPToSAT.usercategories.save()
+			if self.typecategories == "all" and self.usercategories:
+				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+					with open(WILD_CARD_CATYOURLIST, "w") as fw:
+						for lines in fr.readlines():
+							if not fileContains(WILD_CARD_CATYOURLIST, lines):
+								if "{" not in lines and "}" not in lines and "null" not in lines:
+									fw.write(lines)
 			self.session.open(AssignService)
 		if config.plugins.IPToSAT.typecategories.value == "all" and exists(str(ALL_CATEGORIES)) and exists(str(CONFIG_PATH_CATEGORIES)):
 			if not config.plugins.IPToSAT.usercategories.value:
@@ -463,6 +472,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			else:
 				copy(str(CONFIG_PATH_CATEGORIES), str(ALL_CATEGORIES))
 		if config.plugins.IPToSAT.typecategories.value == "none":
+			if exists(str(WILD_CARD_CATYOURLIST)):
+				remove(WILD_CARD_CATYOURLIST)
 			self.deleteBouquetsNorhap()
 		AssignService(self)
 		self.saveiptosatconf()
@@ -2273,18 +2284,21 @@ class EditPlaylist(Screen):
 
 class EditCategories(Screen):
 	skin = """
-	<screen name="EditCategories" position="center,center" size="1425,700" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,14" size="1384,600" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+	<screen name="EditCategories" position="center,center" size="1500,700" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="40" position="18,14" size="1476,600" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,633" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_red,StaticText" position="183,633" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,633" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_red,StaticText" position="359,633" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,633" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="534,630" size="830,66" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,633" zPosition="2" size="215,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="status" position="755,617" size="830,82" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 		<widget name="footnote" conditional="footnote" position="18,632" size="0,0" foregroundColor="#e5e619" font="Regular;24" zPosition="0" />
 	</screen>"""
@@ -2298,6 +2312,7 @@ class EditCategories(Screen):
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
+		self["key_blue"] = StaticText("")
 		self["status"] = Label()
 		self["footnote"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
@@ -2307,6 +2322,7 @@ class EditCategories(Screen):
 			"red": self.keyRed,
 			"green": self.keyGreen,
 			"yellow": self.keyYellow,
+			"blue": self.keyBlue,
 			"ok": self.keyGreen,
 			"left": self.goLeft,
 			"right": self.goRight,
@@ -2330,15 +2346,16 @@ class EditCategories(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self.bouquets = sorted(list)
-				self["status"].hide()
+				self["status"].show()
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
-				self["status"].show()
-				if config.plugins.IPToSAT.typecategories.value != "all":
-					self["status"].setText(language.get(lang, "139"))
-				else:
-					self["status"].setText(language.get(lang, "169"))
+				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+					self["key_blue"].setText(language.get(lang, "176"))
+					if config.plugins.IPToSAT.typecategories.value != "all":
+						self["status"].setText(language.get(lang, "139"))
+					else:
+						self["status"].setText(language.get(lang, "169"))
 			else:
 				self["status"].setText(language.get(lang, "140"))
 				self['list'].hide()
@@ -2369,6 +2386,8 @@ class EditCategories(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self["key_green"].setText(language.get(lang, "138"))
+				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+					self["key_blue"].setText(language.get(lang, "176"))
 				self["status"].show()
 				self["status"].setText(language.get(lang, "136"))
 			else:
@@ -2390,6 +2409,11 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
+				if fileContains(WILD_CARD_CATYOURLIST, ":"):
+					self["key_blue"].setText(language.get(lang, "176"))
+					self["status"].setText(language.get(lang, "177"))
+				else:
+					self["key_blue"].setText("")
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
@@ -2432,6 +2456,58 @@ class EditCategories(Screen):
 		message = language.get(lang, "26") if config.plugins.IPToSAT.typecategories.value != "all" else language.get(lang, "162")
 		if self.categories and len(self.bouquets) > 0 and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 			self.session.openWithCallback(self.deleteBouquetsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+
+	def restoreYourList(self, answer):
+		if answer:
+			try:
+				if not exists(str(WILD_CARD_CATYOURLIST)):
+					with open(WILD_CARD_CATYOURLIST, "w") as fr:
+						fr.write("")
+				if config.plugins.IPToSAT.usercategories.value:
+					if config.plugins.IPToSAT.typecategories.value != "all":
+						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+							with open(WILD_CARD_CATYOURLIST, "a") as fw:
+								for lines in fr.readlines():
+									if not fileContains(WILD_CARD_CATYOURLIST, lines):
+										if "{" not in lines and "}" not in lines and "null" not in lines:
+											fw.write(lines)
+					else:
+						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+							with open(WILD_CARD_CATYOURLIST, "a") as fw:
+								for lines in fr.readlines():
+									if not fileContains(WILD_CARD_CATYOURLIST, lines):
+										if "{" not in lines and "}" not in lines and "null" not in lines:
+											fw.write(lines)
+				with open(WILD_CARD_CATYOURLIST, "r") as fr:
+					with open(CONFIG_PATH_CATEGORIES, "w") as fw:
+						fw.write("{" +'\n')
+					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
+						for lines in fr.readlines():
+							lines = lines.replace("]", "],").replace("],,", "],")
+							fw.write(lines)
+					with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
+						with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
+							readcategoriesjson = fwildcardread.readlines()
+							if len(readcategoriesjson) > 1:
+								for last in readcategoriesjson[-2]:
+									last = last.replace(",", "")
+									fwildcardwrite.write(last)
+					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
+						fw.write("}")
+				if not config.plugins.IPToSAT.usercategories.value:
+					config.plugins.IPToSAT.usercategories.value = True
+					config.plugins.IPToSAT.usercategories.save()
+				if config.plugins.IPToSAT.typecategories.value != "all":
+					config.plugins.IPToSAT.typecategories.value = "all"
+					config.plugins.IPToSAT.typecategories.save()
+			except Exception:
+				self.exit()
+			self.exit()
+
+	def keyBlue(self):
+		if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+			message = language.get(lang, "175")
+			self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def keyRed(self, ret=None):
 		self.close(True)
