@@ -737,15 +737,15 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,357" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
-			<widget name="managerlistchannels" position="33,750" size="870,165" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
+			<widget name="managerlistchannels" position="33,750" size="870,152" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="help" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget name="play" position="925,355" size="990,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
-			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,945" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,945" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,945" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,940" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,940" zPosition="2" size="165,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
+			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,940" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,945" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="541,940" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget source="key_epg" render="Label" conditional="key_epg" position="717,962" zPosition="4" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
@@ -769,13 +769,13 @@ class AssignService(ChannelSelectionBase):
 			<widget source="key_0" render="Label" conditional="key_0" position="1772,962" zPosition="12" size="60,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_tv" conditional="key_tv" render="Label" position="12,908" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
+			<widget source="key_tv" conditional="key_tv" render="Label" position="12,903" size="165,35" zPosition="12" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_audio" render="Label" conditional="key_audio" position="189,908" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_audio" render="Label" conditional="key_audio" position="189,903" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_rec" render="Label" conditional="key_rec" position="365,908" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_rec" render="Label" conditional="key_rec" position="365,903" zPosition="12" size="165,35" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
@@ -2286,16 +2286,16 @@ class EditCategories(Screen):
 	skin = """
 	<screen name="EditCategories" position="center,center" size="1500,700" title="IPToSAT - Edit">
 		<widget name="list" itemHeight="40" position="18,14" size="1476,600" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,633" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,628" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,633" zPosition="2" size="165,52" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,628" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,633" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,628" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,633" zPosition="2" size="215,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,628" zPosition="2" size="215,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
 		<widget name="status" position="755,617" size="830,82" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
