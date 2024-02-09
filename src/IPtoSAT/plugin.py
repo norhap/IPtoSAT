@@ -726,20 +726,20 @@ class AssignService(ChannelSelectionBase):
 			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,997"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,2"/>
 			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="2,999"/>
-			<widget source="session.VideoPicture" render="Pig" position="0,0" size="0,0" zPosition="1" backgroundColor="#df0b1300"/>
-			<widget name="titleChannelsList" position="100,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
-			<widget name="titleSuscriptionList" position="1000,05" size="705,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
-			<widget name="list" position="33,42" size="875,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-			<widget name="list2" position="925,42" size="962,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-			<widget name="please" position="925,42" size="870,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
-			<widget name="status" position="33,357" size="870,400" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
-			<widget name="description" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
-			<widget name="assign" position="33,357" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
+			<widget source="session.VideoPicture" render="Pig" position="1275,5" size="635,400" zPosition="1" backgroundColor="#df0b1300"/>
+			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
+			<widget name="titleSuscriptionList" position="780,05" size="369,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
+			<widget name="list" position="23,42" size="630,338" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="list2" position="680,42" size="590,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="please" position="680,42" size="590,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
+			<widget name="status" position="33,385" size="870,400" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
+			<widget name="description" position="925,385" size="990,576" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
+			<widget name="assign" position="33,385" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,300" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="managerlistchannels" position="33,750" size="870,152" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
-			<widget name="help" position="925,355" size="990,605" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
-			<widget name="play" position="925,355" size="990,530" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
+			<widget name="help" position="925,385" size="990,576" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
+			<widget name="play" position="925,385" size="990,576" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,940" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="189,940" zPosition="2" size="165,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 			<widget source="key_red" conditional="key_red" render="Label" objectTypes="key_red,StaticText" position="365,940" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
