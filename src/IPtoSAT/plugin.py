@@ -726,6 +726,8 @@ class AssignService(ChannelSelectionBase):
 			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,997"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,2"/>
 			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="2,999"/>
+			<eLabel backgroundColor="#0044a2ff" position="1274,2" size="1,400"/>
+			<eLabel backgroundColor="#0044a2ff" position="1274,384" size="642,1" zPosition="10" />
 			<widget source="session.VideoPicture" render="Pig" position="1275,5" size="635,400" zPosition="1" backgroundColor="#df0b1300"/>
 			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="780,05" size="369,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
@@ -2350,7 +2352,7 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+				if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
 					if config.plugins.IPToSAT.typecategories.value != "all":
 						self["status"].setText(language.get(lang, "139"))
@@ -2386,7 +2388,7 @@ class EditCategories(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self["key_green"].setText(language.get(lang, "138"))
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+				if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
 				self["status"].show()
 				self["status"].setText(language.get(lang, "136"))
@@ -2505,9 +2507,11 @@ class EditCategories(Screen):
 			self.exit()
 
 	def keyBlue(self):
-		if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+		if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
 			message = language.get(lang, "175")
 			self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+		else:
+			self.session.open(MessageBox, language.get(lang, "178"), MessageBox.TYPE_ERROR, simple=True)
 
 	def keyRed(self, ret=None):
 		self.close(True)
