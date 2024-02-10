@@ -723,9 +723,9 @@ class AssignService(ChannelSelectionBase):
 			<eLabel backgroundColor="#0044a2ff" position="1274,393" size="642,1" zPosition="10"/>
 			<widget source="session.VideoPicture" render="Pig" position="1275,5" size="635,400" zPosition="1" backgroundColor="#df0b1300"/>
 			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
-			<widget name="titleSuscriptionList" position="770,05" size="369,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
-			<widget name="list" position="23,42" size="630,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-			<widget name="list2" position="675,42" size="595,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="titleSuscriptionList" position="670,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
+			<widget name="list" position="23,42" size="613,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="list2" position="658,42" size="612,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="680,42" size="590,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
 			<widget name="status" position="33,394" size="870,355" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="description" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
@@ -953,11 +953,10 @@ class AssignService(ChannelSelectionBase):
 								self.backupChannelsListStorage = True
 							if exists(str(bouquetiptosatepg)):
 								self["key_red"].setText(language.get(lang, "18"))
-			if not fileContains(CONFIG_PATH, "pass"):
-				self["key_yellow"].setText(language.get(lang, "32"))
-
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		if not fileContains(CONFIG_PATH, "pass"):
+			self["key_yellow"].setText(language.get(lang, "32"))
 
 	def showHelpChangeList(self):
 		if self.storage:
