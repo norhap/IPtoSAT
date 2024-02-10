@@ -328,16 +328,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.list.append(getConfigListEntry(language.get(lang, "151"),
 					config.plugins.IPToSAT.typecategories, language.get(lang, "152")))
 			if config.plugins.IPToSAT.typecategories.value == "all":
-				if not exists(str(ALL_CATEGORIES)):
-					self.list.append(getConfigListEntry(language.get(lang, "151"),
-						config.plugins.IPToSAT.typecategories, language.get(lang, "159")))
-				else:
-					if config.plugins.IPToSAT.usercategories.value:
-						self.list.append(getConfigListEntry(language.get(lang, "151"),
-							config.plugins.IPToSAT.typecategories, language.get(lang, "173")))
-					else:
-						self.list.append(getConfigListEntry(language.get(lang, "151"),
-							config.plugins.IPToSAT.typecategories, language.get(lang, "174")))
+				self.list.append(getConfigListEntry(language.get(lang, "151"),
+					config.plugins.IPToSAT.typecategories, language.get(lang, "159")))
 			if config.plugins.IPToSAT.typecategories.value == "none":
 				self.list.append(getConfigListEntry(language.get(lang, "160"),
 					config.plugins.IPToSAT.typecategories, language.get(lang, "168")))
@@ -2431,7 +2423,7 @@ class EditCategories(Screen):
 				self["key_yellow"].setText("")
 				if fileContains(WILD_CARD_CATYOURLIST, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
-					self["status"].setText(language.get(lang, "177"))
+					self["status"].setText(language.get(lang, "173"))
 				else:
 					self["key_blue"].setText("")
 
@@ -2529,7 +2521,7 @@ class EditCategories(Screen):
 			message = language.get(lang, "175")
 			self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 		else:
-			self.session.open(MessageBox, language.get(lang, "178"), MessageBox.TYPE_ERROR, simple=True)
+			self.session.open(MessageBox, language.get(lang, "174"), MessageBox.TYPE_ERROR, simple=True)
 
 	def keyRed(self, ret=None):
 		self.close(True)
