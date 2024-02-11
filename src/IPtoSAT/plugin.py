@@ -465,8 +465,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			else:
 				copy(str(CONFIG_PATH_CATEGORIES), str(ALL_CATEGORIES))
 		if config.plugins.IPToSAT.typecategories.value == "none":
-			if exists(str(WILD_CARD_CATYOURLIST)):
-				remove(WILD_CARD_CATYOURLIST)
 			self.deleteBouquetsNorhap()
 		AssignService(self)
 		self.saveiptosatconf()
@@ -2400,6 +2398,7 @@ class EditCategories(Screen):
 				if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
 				self["status"].show()
+				self["key_red"].setText(language.get(lang, "137"))
 				self["status"].setText(language.get(lang, "136"))
 			else:
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
@@ -2444,6 +2443,12 @@ class EditCategories(Screen):
 						for bouquet in categoriesjsonread.readlines():
 							if str(index) not in bouquet:
 								fwildcardwrite.write(bouquet)
+				if config.plugins.IPToSAT.typecategories.value == "all":
+					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+						with open(WILD_CARD_CATYOURLIST, "w") as fw:
+							for lines in fr.readlines():
+								if "{" not in lines and "}" not in lines and "null" not in lines or "," in lines and "{" not in lines and "}" not in lines:
+									fw.write(lines)
 			except Exception:
 				pass
 			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
@@ -2484,11 +2489,10 @@ class EditCategories(Screen):
 											fw.write(lines)
 					else:
 						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-							with open(WILD_CARD_CATYOURLIST, "a") as fw:
+							with open(WILD_CARD_CATYOURLIST, "w") as fw:
 								for lines in fr.readlines():
-									if not fileContains(WILD_CARD_CATYOURLIST, lines):
-										if "{" not in lines and "}" not in lines and "null" not in lines:
-											fw.write(lines)
+									if "{" not in lines and "}" not in lines and "null" not in lines:
+										fw.write(lines)
 				with open(WILD_CARD_CATYOURLIST, "r") as fr:
 					with open(CONFIG_PATH_CATEGORIES, "w") as fw:
 						fw.write("{" +'\n')
