@@ -445,7 +445,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.timerinstance.refreshScheduler()
 		if self.timeriptosat != config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
-				remove(str(CATEGORIES_TIMER_ERROR))
+				remove(CATEGORIES_TIMER_ERROR)
 			self.session.open(TryQuitMainloop, 3)
 		if self.typecategories != config.plugins.IPToSAT.typecategories.value and config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if config.plugins.IPToSAT.usercategories.value:
@@ -588,9 +588,9 @@ class TimerUpdateCategories:
 						fw.write(str(err))
 		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
-				remove(str(CATEGORIES_TIMER_ERROR))
+				remove(CATEGORIES_TIMER_ERROR)
 			if exists(str(CATEGORIES_TIMER_OK)):
-				remove(str(CATEGORIES_TIMER_OK))
+				remove(CATEGORIES_TIMER_OK)
 			try:
 				if response:
 					m3u = response.read()
@@ -621,7 +621,7 @@ class TimerUpdateCategories:
 								m3uw.write(line)
 					move(READ_M3U, str(self.m3ufile))
 					if exists(str(BUILDBOUQUETS_FILE)):
-						move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
+						move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 					sleep(3)
 					with open(CATEGORIES_TIMER_OK, "w") as fw:
 						now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
@@ -901,6 +901,8 @@ class AssignService(ChannelSelectionBase):
 			"0": self.searchBouquetIPTV,
 		}, -2)
 		self.errortimer = eTimer()
+		if not fileContains(CONFIG_PATH, "pass") and not fileContains(CONFIG_PATH, "domain"):
+			self["key_yellow"].setText(language.get(lang, "32"))
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
 		if self.storage and not fileContains(CONFIG_PATH, "pass"):
@@ -944,7 +946,7 @@ class AssignService(ChannelSelectionBase):
 						backupfiles = ""
 						bouquetiptosatepg = ""
 						if exists(str(BUILDBOUQUETS_SOURCE)):
-							move(str(BUILDBOUQUETS_SOURCE), str(BUILDBOUQUETS_FILE))
+							move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 						for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
 							backupfiles = join(self.backupdirectory, files)
 							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
@@ -955,8 +957,6 @@ class AssignService(ChannelSelectionBase):
 								self["key_red"].setText(language.get(lang, "18"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-		if not fileContains(CONFIG_PATH, "pass"):
-			self["key_yellow"].setText(language.get(lang, "32"))
 
 	def showHelpChangeList(self):
 		if self.storage:
@@ -1379,16 +1379,16 @@ class AssignService(ChannelSelectionBase):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
 		if exists(str(BUILDBOUQUETS_FILE)):
-			move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
+			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
 				m3u = ""
 				response = ""
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					if exists(str(CATEGORIES_TIMER_ERROR)):
-						remove(str(CATEGORIES_TIMER_ERROR))
+						remove(CATEGORIES_TIMER_ERROR)
 					if exists(str(CATEGORIES_TIMER_OK)):
-						remove(str(CATEGORIES_TIMER_OK))
+						remove(CATEGORIES_TIMER_OK)
 					with open(REFERENCES_FILE, "a") as updatefile:
 						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 							channel_name = channel_name.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
@@ -1440,7 +1440,7 @@ class AssignService(ChannelSelectionBase):
 											m3uw.write(line)
 								move(READ_M3U, str(self.m3ufile))
 								if exists(str(BUILDBOUQUETS_FILE)):
-									move(str(BUILDBOUQUETS_FILE), str(BUILDBOUQUETS_SOURCE))
+									move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 								sleep(3)
 								eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 								if self.storage:
@@ -2575,6 +2575,7 @@ class InstallChannelsLists(Screen):
 		self.zip_jungle = None
 		self.zip_sorys_vuplusmania = None
 		self.path = None
+		self.tuxboxxml = 'https://github.com/OpenPLi/tuxbox-xml/archive/refs/heads/master.zip'
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(language.get(lang, "88"))
 		self['list'] = MenuList([])
@@ -2611,6 +2612,7 @@ class InstallChannelsLists(Screen):
 				self.folderlistchannels = join(self.path, "IPToSAT/%s/ChannelsLists" % MODEL)
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
 				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
+				self.zip_tuxbox_xml = join(self.folderlistchannels, "tuxbox-xml-master.zip")
 				if not exists(str(self.folderlistchannels)):
 					makedirs(self.folderlistchannels)
 				workdirectory = self.folderlistchannels + '/*'
@@ -2656,13 +2658,21 @@ class InstallChannelsLists(Screen):
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
 				junglerepository = requests.get(urljungle, allow_redirects=True)
 				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
+				tuxboxrepository = requests.get(self.tuxboxxml, allow_redirects=True)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				with open(str(self.zip_jungle), "wb") as jungle:
 					jungle.write(junglerepository.content)
 				with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
 					norhap.write(norhaprepository.content)
+				with open(str(self.zip_tuxbox_xml), "wb") as xml:
+					xml.write(tuxboxrepository.content)
+				if exists(str(self.zip_tuxbox_xml)):
+					with ZipFile(self.zip_tuxbox_xml, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
 				sleep(10)
+				# TUXBOX FILES UPDATE REPOSITORY OPenPLi
+				eConsoleAppContainer().execute('cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/')
 				# JUNGLE TEAM
 				if exists(str(self.zip_jungle)):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
@@ -2740,7 +2750,7 @@ class InstallChannelsLists(Screen):
 			norhaprepository = requests.get(urlnorhap, allow_redirects=True)
 			if answer:
 				if exists(str(BUILDBOUQUETS_SOURCE)):
-					move(str(BUILDBOUQUETS_SOURCE), str(BUILDBOUQUETS_FILE))
+					move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
 					source.write(norhaprepository.content)
@@ -2750,6 +2760,7 @@ class InstallChannelsLists(Screen):
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
 	def doInstallChannelsList(self, answer):
+		from zipfile import ZipFile
 		channelslists = self["list"].getCurrent()
 		if answer:
 			self.session.open(MessageBox, language.get(lang, "77") + str(channelslists), MessageBox.TYPE_INFO, simple=True)
@@ -2759,6 +2770,12 @@ class InstallChannelsLists(Screen):
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
 				junglerepository = requests.get(urljungle, allow_redirects=True)
 				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
+				tuxboxrepository = requests.get(self.tuxboxxml, allow_redirects=True)
+				with open(str(self.zip_tuxbox_xml), "wb") as xml:
+					xml.write(tuxboxrepository.content)
+				if exists(str(self.zip_tuxbox_xml)):
+					with ZipFile(self.zip_tuxbox_xml, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				if "Jungle-" in channelslists:
@@ -2781,7 +2798,10 @@ class InstallChannelsLists(Screen):
 							installedfiles = join(ENIGMA2_PATH, installedlist)
 							if installedfiles:
 								remove(installedfiles)
-					eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml /etc/tuxbox/ && cp -a ' + dirnewlist + '/* /etc/enigma2/ && init 3')
+					if exists(self.folderlistchannels + '/tuxbox-xml-master'):
+						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ && cp -a ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' && cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/ && init 3')
+					else:
+						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ && cp -a ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' && init 3')
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
 					if exists(str(dirfiles)):
