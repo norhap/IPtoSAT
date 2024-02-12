@@ -451,19 +451,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if config.plugins.IPToSAT.usercategories.value:
 				config.plugins.IPToSAT.usercategories.value = False
 				config.plugins.IPToSAT.usercategories.save()
-			if self.typecategories == "all" and self.usercategories and exists(str(CONFIG_PATH_CATEGORIES)):
-				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-					with open(WILD_CARD_CATYOURLIST, "w") as fw:
-						for lines in fr.readlines():
-							if not fileContains(WILD_CARD_CATYOURLIST, lines):
-								if "{" not in lines and "}" not in lines and "null" not in lines:
-									fw.write(lines)
 			self.session.open(AssignService)
-		if config.plugins.IPToSAT.typecategories.value == "all" and exists(str(ALL_CATEGORIES)) and exists(str(CONFIG_PATH_CATEGORIES)):
-			if not config.plugins.IPToSAT.usercategories.value:
-				copy(str(ALL_CATEGORIES), str(CONFIG_PATH_CATEGORIES))
-			else:
-				copy(str(CONFIG_PATH_CATEGORIES), str(ALL_CATEGORIES))
 		if config.plugins.IPToSAT.typecategories.value == "none":
 			self.deleteBouquetsNorhap()
 		AssignService(self)
@@ -2359,12 +2347,11 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
-				if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					self["key_blue"].setText(language.get(lang, "176"))
-					if config.plugins.IPToSAT.typecategories.value != "all":
-						self["status"].setText(language.get(lang, "139"))
-					else:
-						self["status"].setText(language.get(lang, "169"))
+				self["key_blue"].setText(language.get(lang, "176"))
+				if config.plugins.IPToSAT.typecategories.value != "all":
+					self["status"].setText(language.get(lang, "139"))
+				else:
+					self["status"].setText(language.get(lang, "169"))
 			else:
 				self["status"].setText(language.get(lang, "140"))
 				self['list'].hide()
@@ -2419,17 +2406,18 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					self["key_blue"].setText(language.get(lang, "176"))
+				self["key_blue"].setText(language.get(lang, "176"))
+				if fileContains(WILD_CARD_CATYOURLIST, ":"):
 					self["status"].setText(language.get(lang, "173"))
-				else:
-					self["key_blue"].setText("")
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
-		message = language.get(lang, "135")
+		if fileContains(WILD_CARD_CATYOURLIST, ":"):
+			message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "177")
+		else:
+			message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index)
 		if index and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
-			self.session.openWithCallback(self.deleteBouquet, MessageBox, message + "iptosat_norhap_" + str(index), MessageBox.TYPE_YESNO, default=False)
+			self.session.openWithCallback(self.deleteBouquet, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def deleteBouquet(self, answer):
 		if answer:
@@ -2472,16 +2460,29 @@ class EditCategories(Screen):
 			self.iniMenu()
 
 	def keyYellow(self):
-		message = language.get(lang, "26") if config.plugins.IPToSAT.typecategories.value != "all" else language.get(lang, "162")
+		if config.plugins.IPToSAT.typecategories.value != "all":
+			message = language.get(lang, "26")
+		else:
+			if fileContains(WILD_CARD_CATYOURLIST, ":"):
+				message = language.get(lang, "162")
+			else:
+				message = language.get(lang, "178")
 		if self.categories and len(self.bouquets) > 0 and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
 			self.session.openWithCallback(self.deleteBouquetsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def restoreYourList(self, answer):
 		if answer:
 			try:
-				if not exists(str(WILD_CARD_CATYOURLIST)):
-					with open(WILD_CARD_CATYOURLIST, "w") as fr:
-						fr.write("")
+				if not fileContains(WILD_CARD_CATYOURLIST, ":"):
+					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+						with open(WILD_CARD_CATYOURLIST, "a") as fw:
+							for lines in fr.readlines():
+								if "{" not in lines and "}" not in lines and "null" not in lines:
+									fw.write(lines)
+						with open(WILD_CARD_CATYOURLIST, "a") as fw:
+							for lines in fr.readlines():
+								lines = lines.replace("]", "],").replace("],,", "],")
+								fw.write(lines)
 				if config.plugins.IPToSAT.usercategories.value:
 					if config.plugins.IPToSAT.typecategories.value != "all":
 						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
@@ -2523,11 +2524,14 @@ class EditCategories(Screen):
 			self.exit()
 
 	def keyBlue(self):
-		if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
+		if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 			message = language.get(lang, "175")
 			self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 		else:
-			self.session.open(MessageBox, language.get(lang, "174"), MessageBox.TYPE_ERROR, simple=True)
+			if fileContains(WILD_CARD_CATYOURLIST, ":"):
+				self.session.open(MessageBox, language.get(lang, "174"), MessageBox.TYPE_ERROR, simple=True)
+			else:
+				self.session.open(MessageBox, language.get(lang, "179"), MessageBox.TYPE_ERROR, simple=True)
 
 	def keyRed(self, ret=None):
 		self.close(True)
