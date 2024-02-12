@@ -451,7 +451,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if config.plugins.IPToSAT.usercategories.value:
 				config.plugins.IPToSAT.usercategories.value = False
 				config.plugins.IPToSAT.usercategories.save()
-			if self.typecategories == "all" and self.usercategories:
+			if self.typecategories == "all" and self.usercategories and exists(str(CONFIG_PATH_CATEGORIES)):
 				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
 					with open(WILD_CARD_CATYOURLIST, "w") as fw:
 						for lines in fr.readlines():
@@ -723,7 +723,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="670,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="list" position="23,42" size="613,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-			<widget name="list2" position="658,42" size="612,305" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="list2" position="658,42" size="612,304" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="680,42" size="590,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
 			<widget name="status" position="33,394" size="870,355" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="description" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
@@ -1965,7 +1965,7 @@ class AssignService(ChannelSelectionBase):
 			for cat in js:
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
-				bouquets_categories.append((str(cat['category_name'].replace('/', '').replace('\u2022', '').replace('\u26a1', '').replace('\u26bd', '').replace('\u00d1', 'N').replace('\u00cb', 'E')), str(cat['category_name'])))
+				bouquets_categories.append((str(cat['category_name'].replace(u'\u00f1', '').replace(u'\u00c7', '').replace(u'\u00c2', '').replace(u'\u00da', '').replace(u'\u00cd', '').replace(u'\u00c9', '').replace(u'\u00d3', '').replace(u'\u2b50', '').replace('/', '').replace(u'\u2022', '').replace(u'\u26a1', '').replace(u'\u26bd', '').replace(u'\u00d1', 'N').replace(u'\u00cb', 'E')), str(cat['category_name'])))
 		if config.plugins.IPToSAT.typecategories.value != "all":
 			if not config.plugins.IPToSAT.usercategories.value or fileContains(CONFIG_PATH_CATEGORIES, "null") or not fileContains(CONFIG_PATH_CATEGORIES, ":"):
 				iptosatcategoriesjson = ""
@@ -2395,7 +2395,7 @@ class EditCategories(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self["key_green"].setText(language.get(lang, "138"))
-				if fileContains(WILD_CARD_CATYOURLIST, ":") or fileContains(CONFIG_PATH_CATEGORIES, ":"):
+				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
 				self["status"].show()
 				self["key_red"].setText(language.get(lang, "137"))
@@ -2419,7 +2419,7 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
-				if fileContains(WILD_CARD_CATYOURLIST, ":"):
+				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "176"))
 					self["status"].setText(language.get(lang, "173"))
 				else:
@@ -2442,7 +2442,10 @@ class EditCategories(Screen):
 					with open(WILD_CARD_CATEGORIES_FILE, "w") as fwildcardwrite:
 						for bouquet in categoriesjsonread.readlines():
 							if str(index) not in bouquet:
-								fwildcardwrite.write(bouquet)
+								if "EU | GR " in bouquet or "AR| " in bouquet:  # remove global for flags AR and GR unicode characters in CONFIG_PATH_CATEGORIES
+									fwildcardwrite.write(bouquet.replace(bouquet, ""))
+								else:
+									fwildcardwrite.write(bouquet)
 				if config.plugins.IPToSAT.typecategories.value == "all":
 					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
 						with open(WILD_CARD_CATYOURLIST, "w") as fw:
