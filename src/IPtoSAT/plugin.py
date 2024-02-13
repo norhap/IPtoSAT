@@ -297,7 +297,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.createSetup()
 		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
-		self.usercategories = config.plugins.IPToSAT.usercategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
@@ -1895,12 +1894,17 @@ class AssignService(ChannelSelectionBase):
 
 	def assignWidget(self, color, text):
 		self['assign'].setText(text)
-		self['assign'].instance.setForegroundColor(parseColor(color))
-		self['status'].hide()
-
+		try:
+			self['assign'].instance.setForegroundColor(parseColor(color))
+			self['status'].hide()
+		except:
+			pass
 	def assignWidgetScript(self, color, text):
 		self['managerlistchannels'].setText(text)
-		self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
+		try:
+			self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
+		except:
+			pass
 
 	def resetWidget(self):
 		self['assign'].setText('')
