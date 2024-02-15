@@ -13,7 +13,6 @@ from time import sleep, localtime, mktime, time
 from shutil import move, copy
 from re import search
 from sys import stdout
-import PowerTimer
 import RecordTimer
 from ServiceReference import ServiceReference
 from timer import TimerEntry
@@ -240,7 +239,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget name="config" itemHeight="50" position="0,10" font="Regular;27" valueFont="Regular;22" size="980,860" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget name="key_red" position="12,872" size="165,52" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="189,872" size="165,52" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="VKeyIcon" text="TEXT" render="Label" position="365,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" halign="center" valign="center">
+		<widget source="VKeyIcon" text="TEXT" render="Label" position="365,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
@@ -317,7 +316,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if config.plugins.IPToSAT.typecategories.value == "none":
 				self.list.append(getConfigListEntry(language.get(lang, "160"),
 					config.plugins.IPToSAT.typecategories, language.get(lang, "168")))
-			if config.plugins.IPToSAT.typecategories.value != "none":
+			else:
 				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self.list.append(getConfigListEntry(typeselectcategorie(),
 						config.plugins.IPToSAT.categories, language.get(lang, "74")))
@@ -424,7 +423,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if fileContains(WILD_CARD_CATYOURLIST, ":"):
 					with open(WILD_CARD_CATYOURLIST, "r") as fr:
 						with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-							fw.write("{" +'\n')
+							fw.write("{" + '\n')
 						with open(CONFIG_PATH_CATEGORIES, "a") as fw:
 							for lines in fr.readlines():
 								lines = lines.replace("]", "],").replace("],,", "],")
@@ -445,7 +444,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if fileContains(WILD_CARD_CATYOURLIST, ":"):
 					with open(WILD_CARD_CATYOURLIST, "r") as fr:
 						with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-							fw.write("{" +'\n')
+							fw.write("{" + '\n')
 						with open(CONFIG_PATH_CATEGORIES, "a") as fw:
 							for lines in fr.readlines():
 								lines = lines.replace("]", "],").replace("],,", "],")
@@ -545,7 +544,7 @@ class TimerUpdateCategories:
 			if downloadtime < now:
 				downloadtime += 24 * 3600
 				while (int(downloadtime) - 30) < now:
-					scheduled_time += 24 * 3600
+					downloadtime += 24 * 3600
 			next = downloadtime - now
 			self.categoriestimer.startLongTimer(next)
 		else:
@@ -606,7 +605,7 @@ class TimerUpdateCategories:
 					with open(READ_M3U, "wb") as m3ufile:
 						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with requests.get
 					with open(READ_M3U, "r") as m3uread:
-						charactertoreplace= m3uread.readlines()
+						charactertoreplace = m3uread.readlines()
 						sleep(3)
 						with open(READ_M3U, "w") as m3uw:
 							for line in charactertoreplace:
@@ -1358,7 +1357,6 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			try:
 				backupfiles = ""
-				enigma2files = ""
 				if not exists(str(self.backupdirectory)):
 					makedirs(self.backupdirectory)
 				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or ".xml" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
@@ -1425,7 +1423,7 @@ class AssignService(ChannelSelectionBase):
 								with open(READ_M3U, "wb") as m3ufile:
 									m3ufile.write(m3u)
 								with open(READ_M3U, "r") as m3uread:
-									charactertoreplace= m3uread.readlines()
+									charactertoreplace = m3uread.readlines()
 									sleep(3)
 									with open(READ_M3U, "w") as m3uw:
 										for line in charactertoreplace:
@@ -1591,7 +1589,7 @@ class AssignService(ChannelSelectionBase):
 						for line in lines:
 							for character in characterascii:
 								if sref in line and "http" in line and ":" + epg_channel_name not in line:
-									replacement = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name) # add condition -> two points + channel_name for change old reference
+									replacement = line.replace(".ts", ".ts" + ":" + epg_channel_name).replace(".m3u8", ".m3u8" + ":" + epg_channel_name).replace(".m3u", ".m3u" + ":" + epg_channel_name)  # add condition -> two points + channel_name for change old reference
 									if ":" + epg_channel_name + ":" in replacement:  # remove one :channel_name (two channels name in bouquets_categories)
 										if ".ts" in replacement:
 											if search(r'[Á]', character):
@@ -1785,8 +1783,6 @@ class AssignService(ChannelSelectionBase):
 		try:
 			iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
-			iptosatconf = join(self.alternatefolder, "iptosat.conf")
-			fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 			if answer:
 				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
@@ -1807,10 +1803,8 @@ class AssignService(ChannelSelectionBase):
 
 	def doChangeList2(self, answer):
 		try:
-			fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 			iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
-			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			if answer:
 				move(iptosat2change, iptosatlist2conf)
 				self.categories = None
@@ -2010,7 +2004,7 @@ class AssignService(ChannelSelectionBase):
 			else:
 				if "Banned" not in status:
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + anguage.get(lang, "107") + " " + max_connections + " " + language.get(lang, "119"))
+						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "119"))
 					else:
 						if int(max_connections) == 2:
 							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "120"))
@@ -2047,7 +2041,7 @@ class AssignService(ChannelSelectionBase):
 
 			with open(WILD_CARD_ALL_CATEGORIES, "r") as fr:
 				with open(ALL_CATEGORIES, "w") as fw:
-					fw.write("{" +'\n')
+					fw.write("{" + '\n')
 				with open(ALL_CATEGORIES, "a") as fw:
 					for lines in fr.readlines():
 						lines = lines.replace("]", "],").replace("],,", "],")
@@ -2119,7 +2113,6 @@ class AssignService(ChannelSelectionBase):
 		if ret:
 			self.close(True)
 		if self.selectedList == self['list'] and self.in_bouquets:
-			ref = self.getCurrentSelection()
 			self.showFavourites()
 			self.in_bouquets = False
 		elif self.selectedList == self["list2"] and self.in_channels and not fileContains(CONFIG_PATH, "pass"):
@@ -2517,7 +2510,7 @@ class EditCategories(Screen):
 									fw.write(lines)
 				with open(WILD_CARD_CATYOURLIST, "r") as fr:
 					with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-						fw.write("{" +'\n')
+						fw.write("{" + '\n')
 					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
 						for lines in fr.readlines():
 							lines = lines.replace("]", "],").replace("],,", "],")

@@ -1,4 +1,4 @@
-#Convert m3u into favorite enigma2 by jungle-team based on dictionary keywords.
+# Convert m3u into favorite enigma2 by jungle-team based on dictionary keywords.
 
 from os.path import exists, splitext, basename, join
 from re import search, sub, match
@@ -159,13 +159,11 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 	occupied_orders = []
 	skip_channel = False
 	is_video_channel = False
-	tvg_ids = parse_m3u(input_file)
-	channel_index = 0
 	with open(input_file, "rb") as m3u_file:
 		for raw_line in m3u_file:
 			try:
 				line = raw_line.decode('utf-8')
-			except UnicodeDecodeError as e:
+			except UnicodeDecodeError:
 				continue
 			if line.startswith("#EXTINF:"):
 				if skip_channel:
@@ -185,7 +183,7 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						else:
 							print(f"Error: Could not extract channel name from line: {line.strip()}")
 							continue
-				group_title = search('group-title\s*=\s*["\'](.*?)["\']', line)
+				group_title = search(r'group-title\s*=\s*["\'](.*?)["\']', line)
 				if group_title:
 					group_title = group_title.group(1)
 				if not is_video_channel and "SD" not in channel_name and "ES" in channel_name and "US:" not in channel_name and "WEST" not in channel_name and "GR" not in channel_name:
@@ -234,7 +232,6 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 			if free_order not in occupied_orders:
 				yield free_order
 			free_order += 1
-	free_order_gen = get_free_order()
 	ordered_channels = []
 	unordered_channels = []
 	for channel in channels:
@@ -262,7 +259,7 @@ if __name__ == "__main__":
 		headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
 		try:
 			response = requests.get(m3u_url, headers=headers)
-		except requests.exceptions.RequestException as e:
+		except requests.exceptions.RequestException:
 			print(f"Could not download m3u file {m3u_url}")
 			exit(1)
 		if response.status_code == 200:
