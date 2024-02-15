@@ -128,7 +128,6 @@ config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLI
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
 config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
-config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.autotimerbouquets = ConfigYesNo(default=False)
 config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -153,14 +152,6 @@ def typeselectcategorie():
 	else:
 		USER_LIST_CATEGORIE_CHOSEN = language.get(lang, "163") + " " + '"' + language.get(lang, "157") + '"'
 	return USER_LIST_CATEGORIE_CHOSEN
-
-
-def categoriedit():
-	if config.plugins.IPToSAT.typecategories.value != "all":
-		USER_EDIT_CATEGORIE = language.get(lang, "141")
-	else:
-		USER_EDIT_CATEGORIE = language.get(lang, "165")
-	return USER_EDIT_CATEGORIE
 
 
 def trace_error():
@@ -331,22 +322,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.list.append(getConfigListEntry(typeselectcategorie(),
 						config.plugins.IPToSAT.categories, language.get(lang, "74")))
 				else:
-					if not config.plugins.IPToSAT.usercategories:
-						self.list.append(getConfigListEntry(typeselectcategorie(),
-							config.plugins.IPToSAT.categories, language.get(lang, "172")))
-					else:
-						self.list.append(getConfigListEntry(typeselectcategorie(),
-							config.plugins.IPToSAT.categories, language.get(lang, "166")))
-				if not config.plugins.IPToSAT.usercategories.value and config.plugins.IPToSAT.typecategories.value != "all":
-					self.list.append(getConfigListEntry(categoriedit(),
-						config.plugins.IPToSAT.usercategories, language.get(lang, "164") + " " + typeselectcategorie() + ", " + language.get(lang, "161")))
-				else:
-					if config.plugins.IPToSAT.typecategories.value != "all":
-						self.list.append(getConfigListEntry(categoriedit(),
-							config.plugins.IPToSAT.usercategories, language.get(lang, "123") + " " + typeselectcategorie() + "."))
-				if config.plugins.IPToSAT.typecategories.value == "all":
-					self.list.append(getConfigListEntry(categoriedit(),
-						config.plugins.IPToSAT.usercategories, language.get(lang, "178") + " " + typeselectcategorie() + "."))
+					self.list.append(getConfigListEntry(typeselectcategorie(),
+						config.plugins.IPToSAT.categories, language.get(lang, "172")))
 				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
 					self.list.append(getConfigListEntry(language.get(lang, "127"),
 						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
@@ -442,9 +419,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(TryQuitMainloop, 3)
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
-				if config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = False
-					config.plugins.IPToSAT.usercategories.save()
 				self.session.open(AssignService)
 			else:
 				if fileContains(WILD_CARD_CATYOURLIST, ":"):
@@ -466,9 +440,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							fw.write("}")
 		else:
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
-				if not config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = True
-					config.plugins.IPToSAT.usercategories.save()
+				config.plugins.IPToSAT.typecategories.value = "all"
+				config.plugins.IPToSAT.typecategories.save()
 				if fileContains(WILD_CARD_CATYOURLIST, ":"):
 					with open(WILD_CARD_CATYOURLIST, "r") as fr:
 						with open(CONFIG_PATH_CATEGORIES, "w") as fw:
@@ -1785,10 +1758,6 @@ class AssignService(ChannelSelectionBase):
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
-				else:
-					if config.plugins.IPToSAT.usercategories.value:
-						config.plugins.IPToSAT.usercategories.value = False
-						config.plugins.IPToSAT.usercategories.save()
 				if exists(str(iptosat2conf)):
 					if exists(str(iptosatlist2conf)) or exists(str(iptosatlist1conf)):
 						remove(iptosat2conf)
@@ -1830,10 +1799,6 @@ class AssignService(ChannelSelectionBase):
 							remove(WILD_CARD_ALL_CATEGORIES)
 						if exists(str(WILD_CARD_CATYOURLIST)):
 							remove(WILD_CARD_CATYOURLIST)
-					else:
-						if config.plugins.IPToSAT.usercategories.value:
-							config.plugins.IPToSAT.usercategories.value = False
-							config.plugins.IPToSAT.usercategories.save()
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
@@ -1860,10 +1825,6 @@ class AssignService(ChannelSelectionBase):
 						remove(WILD_CARD_ALL_CATEGORIES)
 					if exists(str(WILD_CARD_CATYOURLIST)):
 						remove(WILD_CARD_CATYOURLIST)
-				else:
-					if config.plugins.IPToSAT.usercategories.value:
-						config.plugins.IPToSAT.usercategories.value = False
-						config.plugins.IPToSAT.usercategories.save()
 				with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 					dump(self.categories, f)
 				IPToSATSetup.saveConfig(self)
@@ -1895,10 +1856,6 @@ class AssignService(ChannelSelectionBase):
 							remove(WILD_CARD_ALL_CATEGORIES)
 						if exists(str(WILD_CARD_CATYOURLIST)):
 							remove(WILD_CARD_CATYOURLIST)
-					else:
-						if config.plugins.IPToSAT.usercategories.value:
-							config.plugins.IPToSAT.usercategories.value = False
-							config.plugins.IPToSAT.usercategories.save()
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
@@ -2011,7 +1968,7 @@ class AssignService(ChannelSelectionBase):
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
 				bouquets_categories.append((str(cat['category_name'].replace(u'\u00f1', '').replace(u'\u00c7', '').replace(u'\u00c2', '').replace(u'\u00da', '').replace(u'\u00cd', '').replace(u'\u00c9', '').replace(u'\u00d3', '').replace(u'\u2b50', '').replace('/', '').replace(u'\u2022', '').replace(u'\u26a1', '').replace(u'\u26bd', '').replace(u'\u00d1', 'N').replace(u'\u00cb', 'E')), str(cat['category_name'])))
-		if config.plugins.IPToSAT.typecategories.value != "all" and not config.plugins.IPToSAT.usercategories.value:
+		if config.plugins.IPToSAT.typecategories.value != "all":
 			iptosatcategoriesjson = ""
 			with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
 				catclean.write("null")
@@ -2403,7 +2360,7 @@ class EditCategories(Screen):
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
-				self["key_blue"].setText(language.get(lang, "176"))
+				self["key_blue"].setText(language.get(lang, "161"))
 				if config.plugins.IPToSAT.typecategories.value != "all":
 					self["status"].setText(language.get(lang, "139"))
 				else:
@@ -2439,7 +2396,7 @@ class EditCategories(Screen):
 				self['list'].l.setList(list)
 				self["key_green"].setText(language.get(lang, "138"))
 				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					self["key_blue"].setText(language.get(lang, "176"))
+					self["key_blue"].setText(language.get(lang, "161"))
 				self["status"].show()
 				self["key_red"].setText(language.get(lang, "137"))
 				self["status"].setText(language.get(lang, "136"))
@@ -2463,15 +2420,15 @@ class EditCategories(Screen):
 				self["key_green"].setText("")
 				self["key_yellow"].setText("")
 				if fileContains(CONFIG_PATH_CATEGORIES, ":") and fileContains(WILD_CARD_CATYOURLIST, ":"):
-					self["key_blue"].setText(language.get(lang, "176"))
+					self["key_blue"].setText(language.get(lang, "161"))
 				else:
 					self["key_blue"].setText("")
 				if fileContains(WILD_CARD_CATYOURLIST, ":") and fileContains(WILD_CARD_CATEGORIES_FILE, ":"):
-					self["status"].setText(language.get(lang, "173"))
-					self["key_blue"].setText(language.get(lang, "176"))
+					self["status"].setText(language.get(lang, "165"))
+					self["key_blue"].setText(language.get(lang, "161"))
 				else:
 					self["key_blue"].setText("")
-					self["status"].setText(language.get(lang, "177"))
+					self["status"].setText(language.get(lang, "123"))
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
@@ -2479,7 +2436,7 @@ class EditCategories(Screen):
 			message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "155")
 		else:
 			if config.plugins.IPToSAT.typecategories.value == "all":
-				message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "174")
+				message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "166")
 			else:
 				message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index)
 		if index and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
@@ -2506,9 +2463,6 @@ class EditCategories(Screen):
 			except Exception:
 				pass
 			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			if not config.plugins.IPToSAT.usercategories.value:
-				config.plugins.IPToSAT.usercategories.value = True
-				config.plugins.IPToSAT.usercategories.save()
 			self.session.openWithCallback(self.exit, EditCategories)
 
 	def deleteBouquetsList(self, answer):
@@ -2524,15 +2478,12 @@ class EditCategories(Screen):
 				if exists(str(WILD_CARD_CATYOURLIST)):
 					remove(WILD_CARD_CATYOURLIST)
 			else:
-				if config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = False
-					config.plugins.IPToSAT.usercategories.save()
-					if exists(str(CONFIG_PATH_CATEGORIES)):
-						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-							with open(WILD_CARD_CATYOURLIST, "w") as fw:
-								for lines in fr.readlines():
-									if "{" not in lines and "}" not in lines and "null" not in lines:
-										fw.write(lines)
+				if exists(str(CONFIG_PATH_CATEGORIES)):
+					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+						with open(WILD_CARD_CATYOURLIST, "w") as fw:
+							for lines in fr.readlines():
+								if "{" not in lines and "}" not in lines and "null" not in lines:
+									fw.write(lines)
 			self.iniMenu()
 		else:
 			self.iniMenu()
@@ -2558,20 +2509,19 @@ class EditCategories(Screen):
 							for lines in fr.readlines():
 								lines = lines.replace("]", "],").replace("],,", "],")
 								fw.write(lines)
-				if config.plugins.IPToSAT.usercategories.value:
-					if config.plugins.IPToSAT.typecategories.value != "all":
-						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-							with open(WILD_CARD_CATYOURLIST, "a") as fw:
-								for lines in fr.readlines():
-									if not fileContains(WILD_CARD_CATYOURLIST, lines):
-										if "{" not in lines and "}" not in lines and "null" not in lines:
-											fw.write(lines)
-					else:
-						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-							with open(WILD_CARD_CATYOURLIST, "w") as fw:
-								for lines in fr.readlines():
+				if config.plugins.IPToSAT.typecategories.value != "all":
+					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+						with open(WILD_CARD_CATYOURLIST, "a") as fw:
+							for lines in fr.readlines():
+								if not fileContains(WILD_CARD_CATYOURLIST, lines):
 									if "{" not in lines and "}" not in lines and "null" not in lines:
 										fw.write(lines)
+				else:
+					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+						with open(WILD_CARD_CATYOURLIST, "w") as fw:
+							for lines in fr.readlines():
+								if "{" not in lines and "}" not in lines and "null" not in lines:
+									fw.write(lines)
 				with open(WILD_CARD_CATYOURLIST, "r") as fr:
 					with open(CONFIG_PATH_CATEGORIES, "w") as fw:
 						fw.write("{" +'\n')
@@ -2588,9 +2538,6 @@ class EditCategories(Screen):
 									fwildcardwrite.write(last)
 					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
 						fw.write("}")
-				if not config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = True
-					config.plugins.IPToSAT.usercategories.save()
 				if config.plugins.IPToSAT.typecategories.value != "all":
 					config.plugins.IPToSAT.typecategories.value = "all"
 					config.plugins.IPToSAT.typecategories.save()
@@ -2599,7 +2546,7 @@ class EditCategories(Screen):
 			self.exit()
 
 	def keyBlue(self):
-		message = language.get(lang, "175")
+		message = language.get(lang, "164")
 		if fileContains(CONFIG_PATH_CATEGORIES, ":") and fileContains(WILD_CARD_CATYOURLIST, ":"):
 			self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 		else:
