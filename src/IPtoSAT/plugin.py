@@ -293,7 +293,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				config.plugins.IPToSAT.enable, language.get(lang, "8"))]
 		else:
 			self.list = [getConfigListEntry(language.get(lang, "14"),
-				config.plugins.IPToSAT.enable, language.get(lang, "171"))]
+				config.plugins.IPToSAT.enable, language.get(lang, "141"))]
 		self.list.append(getConfigListEntry(language.get(lang, "15"),
 			config.plugins.IPToSAT.assign, language.get(lang, "35")))
 		self.list.append(getConfigListEntry(language.get(lang, "16"),
@@ -323,7 +323,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						config.plugins.IPToSAT.categories, language.get(lang, "74")))
 				else:
 					self.list.append(getConfigListEntry(typeselectcategorie(),
-						config.plugins.IPToSAT.categories, language.get(lang, "172")))
+						config.plugins.IPToSAT.categories, language.get(lang, "156")))
 				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
 					self.list.append(getConfigListEntry(language.get(lang, "127"),
 						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
@@ -628,7 +628,7 @@ class TimerUpdateCategories:
 				else:
 					if m3u:
 						with open(CATEGORIES_TIMER_ERROR, "w") as fw:
-							fw.write(language.get(lang, "172"))
+							fw.write(language.get(lang, "156"))
 			except Exception as err:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
@@ -1450,7 +1450,7 @@ class AssignService(ChannelSelectionBase):
 						else:
 							self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
-					self.assignWidgetScript("#00ff2525", language.get(lang, "172"))
+					self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 		else:
@@ -1753,8 +1753,6 @@ class AssignService(ChannelSelectionBase):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
 						remove(WILD_CARD_ALL_CATEGORIES)
-					if exists(str(WILD_CARD_CATYOURLIST)):
-						remove(WILD_CARD_CATYOURLIST)
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
@@ -1797,8 +1795,6 @@ class AssignService(ChannelSelectionBase):
 							remove(ALL_CATEGORIES)
 						if exists(str(WILD_CARD_ALL_CATEGORIES)):
 							remove(WILD_CARD_ALL_CATEGORIES)
-						if exists(str(WILD_CARD_CATYOURLIST)):
-							remove(WILD_CARD_CATYOURLIST)
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
@@ -1823,8 +1819,6 @@ class AssignService(ChannelSelectionBase):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
 						remove(WILD_CARD_ALL_CATEGORIES)
-					if exists(str(WILD_CARD_CATYOURLIST)):
-						remove(WILD_CARD_CATYOURLIST)
 				with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 					dump(self.categories, f)
 				IPToSATSetup.saveConfig(self)
@@ -1854,8 +1848,6 @@ class AssignService(ChannelSelectionBase):
 							remove(ALL_CATEGORIES)
 						if exists(str(WILD_CARD_ALL_CATEGORIES)):
 							remove(WILD_CARD_ALL_CATEGORIES)
-						if exists(str(WILD_CARD_CATYOURLIST)):
-							remove(WILD_CARD_CATYOURLIST)
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
@@ -1909,6 +1901,7 @@ class AssignService(ChannelSelectionBase):
 			self['status'].hide()
 		except:
 			pass
+
 	def assignWidgetScript(self, color, text):
 		self['managerlistchannels'].setText(text)
 		try:
