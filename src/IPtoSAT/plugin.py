@@ -2038,7 +2038,6 @@ class AssignService(ChannelSelectionBase):
 							if not fileContains(WILD_CARD_ALL_CATEGORIES, lines):
 								if "{" not in lines and "}" not in lines and "null" not in lines:
 									fw.write(lines)
-
 			with open(WILD_CARD_ALL_CATEGORIES, "r") as fr:
 				with open(ALL_CATEGORIES, "w") as fw:
 					fw.write("{" + '\n')
@@ -2280,23 +2279,23 @@ class EditPlaylist(Screen):
 
 class EditCategories(Screen):
 	skin = """
-	<screen name="EditCategories" position="center,center" size="1500,700" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="40" position="18,14" size="1476,600" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,628" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+	<screen name="EditCategories" position="center,center" size="1500,815" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="41" position="18,14" size="1476,658" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,743" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,628" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,743" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,628" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,743" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,628" zPosition="2" size="215,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,743" zPosition="2" size="215,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="755,617" size="830,82" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="footnote" conditional="footnote" position="18,677" size="1476,40" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
+		<widget name="status" position="755,732" size="830,82" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-		<widget name="footnote" conditional="footnote" position="18,632" size="0,0" foregroundColor="#e5e619" font="Regular;24" zPosition="0" />
 	</screen>"""
 
 	def __init__(self, session, *args):
@@ -2342,7 +2341,6 @@ class EditCategories(Screen):
 			if len(list) > 0:
 				self['list'].l.setList(list)
 				self.bouquets = sorted(list)
-				self["status"].show()
 				self["key_red"].setText(language.get(lang, "137"))
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
@@ -2414,7 +2412,10 @@ class EditCategories(Screen):
 					self["key_blue"].setText(language.get(lang, "161"))
 				else:
 					self["key_blue"].setText("")
-					self["status"].setText(language.get(lang, "123"))
+					if config.plugins.IPToSAT.typecategories.value == "all":
+						self["status"].setText(language.get(lang, "123"))
+					else:
+						self["status"].setText(language.get(lang, "143"))
 
 	def keyGreen(self):
 		index = self['list'].getCurrent()
@@ -2449,8 +2450,10 @@ class EditCategories(Screen):
 			except Exception:
 				pass
 			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			self.session.openWithCallback(self.exit, EditCategories)
-
+			try:
+				self.session.openWithCallback(self.exit, EditCategories)
+			except Exception:
+				pass
 	def deleteBouquetsList(self, answer):
 		if answer:
 			self.categories = None
