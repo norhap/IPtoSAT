@@ -289,14 +289,15 @@ if __name__ == "__main__":
 		for categorie, favorites in bouquets_categories.items():
 			categorie_favorite_name = f"{favorite_name}_{categorie}"
 			if "\u2606" not in categorie_favorite_name:
+				channel_counter = 0
 				country_output_file = join(enigma2_dir, f"userbouquet.{categorie_favorite_name}.tv")
 				with open(country_output_file, "w") as bouquet_enigma2_file:
-					channel_counter = 0
 					ordered_channels_by_categorie = order_channels(favorites)
 					channel_counter = len(ordered_channels_by_categorie)
 					bouquet_enigma2_file.write(f"#NAME {categorie_favorite_name}   ({channel_counter})\n") if channel_counter > 0 else bouquet_enigma2_file.write(f"#NAME {categorie_favorite_name}   ({channel_counter})\n")
 					for order, channel_reference, enigma2_url, channel_name in ordered_channels_by_categorie:
 						bouquet_enigma2_file.write("#SERVICE {}{}\n".format(channel_reference, enigma2_url))
 						bouquet_enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
-				add_to_bouquets_tv(categorie_favorite_name)
-				add_to_bouquets_tv(favorite_name)
+				if channel_counter > 0:
+					add_to_bouquets_tv(categorie_favorite_name)
+					add_to_bouquets_tv(favorite_name)
