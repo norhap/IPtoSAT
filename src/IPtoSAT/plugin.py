@@ -1754,6 +1754,10 @@ class AssignService(ChannelSelectionBase):
 				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
+				iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
+				iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
+				if exists(str(iptosatyourcatall)):
+					move(iptosatyourcatall, iptosatyourcatallsaved)
 				if config.plugins.IPToSAT.typecategories.value == "all":
 					if exists(str(ALL_CATEGORIES)):
 						remove(ALL_CATEGORIES)
@@ -1785,8 +1789,9 @@ class AssignService(ChannelSelectionBase):
 					move(CONFIG_PATH, iptosatlist2conf)
 					move(iptosatlist1conf, fileconf)
 					self.secondSuscription = False
+					if exists(str(iptosatyourcatallsaved)):
+						move(iptosatyourcatallsaved, iptosatyourcatall)
 				self.getUserData()
-				IPToSATSetup.saveConfig(self)
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1795,7 +1800,11 @@ class AssignService(ChannelSelectionBase):
 		try:
 			iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
+			iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
+			iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
 			if answer:
+				if exists(str(iptosatyourcatall)):
+					move(iptosatyourcatall, iptosatyourcatallsaved)
 				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
 					if config.plugins.IPToSAT.typecategories.value == "all":
@@ -1810,7 +1819,6 @@ class AssignService(ChannelSelectionBase):
 					self.categories = None
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 						dump(self.categories, f)
-					IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1821,7 +1829,11 @@ class AssignService(ChannelSelectionBase):
 		try:
 			iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
+			iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
+			iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
 			if answer:
+				if exists(str(iptosatyourcatall)):
+					move(iptosatyourcatall, iptosatyourcatallsaved)
 				move(iptosat2change, iptosatlist2conf)
 				self.categories = None
 				if config.plugins.IPToSAT.typecategories.value == "all":
@@ -1835,7 +1847,6 @@ class AssignService(ChannelSelectionBase):
 						config.plugins.IPToSAT.usercategories.save()
 				with open(CONFIG_PATH_CATEGORIES, 'w') as f:
 					dump(self.categories, f)
-				IPToSATSetup.saveConfig(self)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -1900,7 +1911,6 @@ class AssignService(ChannelSelectionBase):
 				if not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
-				IPToSATSetup.saveConfig(self)
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -2510,6 +2520,7 @@ class EditCategories(Screen):
 				self.session.openWithCallback(self.exit, EditCategories)
 			except Exception:
 				pass
+
 	def deleteBouquetsList(self, answer):
 		if answer:
 			self.categories = None
