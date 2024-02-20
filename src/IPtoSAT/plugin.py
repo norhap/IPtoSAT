@@ -2864,7 +2864,10 @@ class InstallChannelsLists(Screen):
 		if not exists(CHANNELS_LISTS_PATH):
 			with open(CHANNELS_LISTS_PATH, 'w') as fw:
 				fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-		self["key_yellow"].setText(language.get(lang, "92"))
+				if exists(CHANNELS_LISTS_PATH):
+					self["key_yellow"].setText(language.get(lang, "92"))
+					self["key_red"].setText(language.get(lang, "89"))
+					self["status"].setText(language.get(lang, "184"))
 		if self.listChannels:
 			list = []
 			for listtype in self.listChannels['channelslists']:
@@ -2878,6 +2881,10 @@ class InstallChannelsLists(Screen):
 				self["key_red"].setText(language.get(lang, "89"))
 				self["key_green"].setText(language.get(lang, "90"))
 				self["status"].setText(language.get(lang, "2"))
+			else:
+				self["key_yellow"].setText(language.get(lang, "92"))
+				self["key_red"].setText(language.get(lang, "89"))
+				self["status"].setText(language.get(lang, "184"))
 
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
