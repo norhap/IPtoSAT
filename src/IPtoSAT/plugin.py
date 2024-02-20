@@ -942,10 +942,10 @@ class AssignService(ChannelSelectionBase):
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(str(self.path)) and listdir(self.path):
 						self.storage = True
-						self.backupdirectory = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
-						self.alternatefolder = join(self.path, "IPToSAT/%s/AlternateList" % MODEL)
-						self.changefolder = join(self.path, "IPToSAT/%s/ChangeSuscriptionList" % MODEL)
-						self.m3ufolder = join(self.path, "IPToSAT/%s/M3U" % MODEL)
+						self.backupdirectory = join(self.path, f"IPToSAT/{MODEL}/BackupChannelsList")
+						self.alternatefolder = join(self.path, f"IPToSAT/{MODEL}/AlternateList")
+						self.changefolder = join(self.path, f"IPToSAT/{MODEL}/ChangeSuscriptionList")
+						self.m3ufolder = join(self.path, f"IPToSAT/{MODEL}/M3U")
 						self.m3ustoragefile = join(self.m3ufolder, "iptosat_norhap.m3u")
 						backupfiles = ""
 						bouquetiptosatepg = ""
@@ -2385,7 +2385,7 @@ class EditCategories(Screen):
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
-				self.folderBackupCategories = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
+				self.folderBackupCategories = join(self.path, f"IPToSAT/{MODEL}/BackupChannelsList")
 				self.backup_categories = join(self.folderBackupCategories, BACKUP_CATEGORIES)
 
 	def iniMenu(self):
@@ -2849,7 +2849,7 @@ class InstallChannelsLists(Screen):
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
-				self.folderlistchannels = join(self.path, "IPToSAT/%s/ChannelsLists" % MODEL)
+				self.folderlistchannels = join(self.path, f"IPToSAT/{MODEL}/ChannelsLists")
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
 				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
 				self.zip_tuxbox_xml = join(self.folderlistchannels, "tuxbox-xml-master.zip")
