@@ -44,6 +44,7 @@ REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
 CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
 WILD_CARD_ALL_CATEGORIES = "/etc/enigma2/iptosatcatall"
 WILD_CARD_CATYOURLIST = "/etc/enigma2/iptosatyourcatall"
+BACKUP_CATEGORIES = "iptosatyourcatbackup"
 WILD_CARD_CATEGORIES_FILE = "/etc/enigma2/wildcardcategories"
 ALL_CATEGORIES = "/etc/enigma2/iptosatcategoriesall.json"
 CATEGORIES_TIMER_OK = "/tmp/timercatiptosat.log"
@@ -2313,22 +2314,28 @@ class EditPlaylist(Screen):
 
 class EditCategories(Screen):
 	skin = """
-	<screen name="EditCategories" position="center,center" size="1500,815" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="41" position="18,14" size="1476,658" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,743" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+	<screen name="EditCategories" position="center,center" size="1600,960" title="IPToSAT - Edit">
+		<widget name="list" itemHeight="41" position="18,14" size="1566,698" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,895" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,743" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,895" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,743" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,895" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,743" zPosition="2" size="215,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,895" zPosition="2" size="165,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="footnote" conditional="footnote" position="18,677" size="1476,40" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
-		<widget name="status" position="755,732" size="830,82" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget source="key_0" render="Label" position="7,860" size="80,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="key_1" render="Label" position="92,860" size="80,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget name="footnote" conditional="footnote" position="118,712" size="1465,40" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
+		<widget name="status" position="755,755" size="830,200" font="Regular;23" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -2342,8 +2349,14 @@ class EditCategories(Screen):
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
 		self["key_blue"] = StaticText("")
+		self["key_0"] = StaticText("")
+		self["key_1"] = StaticText("")
 		self["status"] = Label()
 		self["footnote"] = Label()
+		self.folderBackupCategories = None
+		self.backup_categories = None
+		self.path = None
+		self.storage = False
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -2359,10 +2372,21 @@ class EditCategories(Screen):
 			"up": self.moveUp,
 			"pageUp": self.pageUp,
 			"pageDown": self.pageDown,
+			"0": self.restoreCategories,
+			"1": self.deleteBackupCategories,
 		}, -2)
+		self.chekScenarioToBackup()
 		self.bouquets = []
 		self.categories = getCategories()
 		self.iniMenu()
+
+	def chekScenarioToBackup(self):
+		for partition in harddiskmanager.getMountedPartitions():
+			self.path = normpath(partition.mountpoint)
+			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
+				self.storage = True
+				self.folderBackupCategories = join(self.path, "IPToSAT/%s/BackupChannelsList" % MODEL)
+				self.backup_categories = join(self.folderBackupCategories, BACKUP_CATEGORIES)
 
 	def iniMenu(self):
 		list = []
@@ -2379,13 +2403,44 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
 				self["key_blue"].setText(language.get(lang, "161"))
+				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage or exists(str(self.backup_categories)):
+					self["key_0"].setText("0")
+				if exists(str(self.backup_categories)):
+					self["key_1"].setText("1")
 				if config.plugins.IPToSAT.typecategories.value != "all":
 					if not config.plugins.IPToSAT.usercategories.value:
-						self["status"].setText(language.get(lang, "139"))
+						if not self.storage:
+							self["status"].setText(language.get(lang, "139"))
+						else:
+							if exists(str(self.backup_categories)):
+								self["status"].setText(language.get(lang, "175"))
+							else:
+								if fileContains(WILD_CARD_CATYOURLIST, ":"):
+									self["status"].setText(language.get(lang, "180"))
+								else:
+									self["status"].setText(language.get(lang, "169"))
 					else:
-						self["status"].setText(language.get(lang, "173"))
+						if not self.storage:
+							self["status"].setText(language.get(lang, "173"))
+						else:
+							if exists(str(self.backup_categories)):
+								self["status"].setText(language.get(lang, "175"))
+							else:
+								if fileContains(WILD_CARD_CATYOURLIST, ":"):
+									self["status"].setText(language.get(lang, "180"))
+								else:
+									self["status"].setText(language.get(lang, "169"))
 				else:
-					self["status"].setText(language.get(lang, "169"))
+					if not self.storage:
+						self["status"].setText(language.get(lang, "169"))
+					else:
+						if exists(str(self.backup_categories)):
+							self["status"].setText(language.get(lang, "175"))
+						else:
+							if fileContains(WILD_CARD_CATYOURLIST, ":"):
+								self["status"].setText(language.get(lang, "180"))
+							else:
+								self["status"].setText(language.get(lang, "169"))
 			else:
 				self["status"].setText(language.get(lang, "140"))
 				self['list'].hide()
@@ -2423,12 +2478,17 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self["key_blue"].setText(language.get(lang, "161"))
+				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage:
+					self["key_0"].setText("0")
 				self["status"].show()
 				self["key_red"].setText(language.get(lang, "137"))
 				self["status"].setText(language.get(lang, "136"))
 			else:
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
-					self["status"].setText(language.get(lang, "134"))
+					if not exists(str(self.backup_categories)):
+						self["status"].setText(language.get(lang, "134"))
+					else:
+						self["status"].setText(language.get(lang, "177"))
 					self["key_red"].setText(language.get(lang, "137"))
 					with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
 						catclean.write("null")
@@ -2443,9 +2503,13 @@ class EditCategories(Screen):
 							config.plugins.IPToSAT.usercategories.save()
 							AssignService(self.session)
 					else:
-						self["status"].setText(language.get(lang, "134"))
-						if exists(str(WILD_CARD_CATYOURLIST)):
-							remove(WILD_CARD_CATYOURLIST)
+						if not exists(str(self.backup_categories)):
+							if not fileContains(WILD_CARD_CATYOURLIST, ":"):
+								self["status"].setText(language.get(lang, "134"))
+							else:
+								self["status"].setText(language.get(lang, "183"))
+						else:
+							self["status"].setText(language.get(lang, "177"))
 				AssignService(self.session)
 				self["status"].show()
 				self['list'].hide()
@@ -2456,20 +2520,41 @@ class EditCategories(Screen):
 					self["key_blue"].setText(language.get(lang, "161"))
 				else:
 					self["key_blue"].setText("")
+				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage:
+					self["key_0"].setText("0")
 				if fileContains(WILD_CARD_CATYOURLIST, ":") and fileContains(WILD_CARD_CATEGORIES_FILE, ":"):
-					self["status"].setText(language.get(lang, "165"))
-					self["key_blue"].setText(language.get(lang, "161"))
+					if not self.storage:
+						self["status"].setText(language.get(lang, "165"))
+						self["key_blue"].setText(language.get(lang, "161"))
+					else:
+						self["key_blue"].setText(language.get(lang, "161"))
+						if not exists(str(self.backup_categories)):
+							self["status"].setText(language.get(lang, "176"))
+						else:
+							self["status"].setText(language.get(lang, "181"))
 				else:
 					if config.plugins.IPToSAT.typecategories.value == "all":
 						if fileContains(WILD_CARD_CATYOURLIST, ":"):
 							with open(WILD_CARD_CATYOURLIST, "r") as f:
 								for line in f.readlines():
 									if len(line) > 2 and fileContains(WILD_CARD_CATYOURLIST, "}"):
-										self["key_blue"].setText(language.get(lang, "161"))
-										self["status"].setText(language.get(lang, "165"))
+										if not self.storage:
+											self["key_blue"].setText(language.get(lang, "161"))
+											self["status"].setText(language.get(lang, "165"))
+										else:
+											self["key_blue"].setText(language.get(lang, "161"))
+											if not exists(str(self.backup_categories)):
+												self["status"].setText(language.get(lang, "176"))
+											else:
+												self["status"].setText(language.get(lang, "181"))
 						else:
 							self["key_blue"].setText("")
-							self["status"].setText(language.get(lang, "123"))
+							if not exists(str(self.backup_categories)):
+								self["status"].setText(language.get(lang, "123"))
+							else:
+								self["key_0"].setText("0")
+								self["key_1"].setText("1")
+								self["status"].setText(language.get(lang, "178"))
 					else:
 						if not config.plugins.IPToSAT.usercategories.value:
 							self["status"].setText(language.get(lang, "143"))
@@ -2627,6 +2712,55 @@ class EditCategories(Screen):
 									config.plugins.IPToSAT.typecategories.save()
 					self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 					return
+
+	def doRestorecategories(self, answer):
+		if answer:
+			try:
+				if not exists(str(self.backup_categories)) and fileContains(WILD_CARD_CATYOURLIST, ":"):
+					copy(WILD_CARD_CATYOURLIST, self.backup_categories)
+				else:
+					if exists(str(self.backup_categories)):
+						copy(self.backup_categories, WILD_CARD_CATYOURLIST)
+						with open(self.backup_categories, "r") as fr:
+							with open(CONFIG_PATH_CATEGORIES, "w") as fw:
+								fw.write("{" + '\n')
+							with open(CONFIG_PATH_CATEGORIES, "a") as fw:
+								for lines in fr.readlines():
+									lines = lines.replace("]", "],").replace("],,", "],")
+									fw.write(lines)
+							with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
+								with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
+									readcategoriesjson = fwildcardread.readlines()
+									if len(readcategoriesjson) > 1:
+										for last in readcategoriesjson[-2]:
+											last = last.replace(",", "")
+											fwildcardwrite.write(last)
+							with open(CONFIG_PATH_CATEGORIES, "a") as fw:
+								fw.write("}")
+						if config.plugins.IPToSAT.typecategories.value != "all":
+							config.plugins.IPToSAT.typecategories.value = "all"
+							config.plugins.IPToSAT.typecategories.save()
+			except Exception:
+				self.exit()
+			self.exit()
+
+	def restoreCategories(self):
+		message = ""
+		if self.folderBackupCategories:
+			if not exists(str(self.folderBackupCategories)):
+				makedirs(self.folderBackupCategories)
+			if fileContains(WILD_CARD_CATYOURLIST, ":") and not exists(str(self.backup_categories)) or exists(str(self.backup_categories)):
+				if exists(str(self.backup_categories)):
+					message = language.get(lang, "182")
+				else:
+					message = language.get(lang, "174")
+				self.session.openWithCallback(self.doRestorecategories, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+				return
+
+	def deleteBackupCategories(self):
+		if exists(str(self.backup_categories)):
+			remove(self.backup_categories)
+			self.exit()
 
 	def keyRed(self, ret=None):
 		self.close(True)

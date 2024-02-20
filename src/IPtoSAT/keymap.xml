@@ -15,6 +15,8 @@
 		<key id="KEY_GREEN" mapto="green" flags="m"/>
 		<key id="KEY_BLUE" mapto="blue" flags="m"/>
 		<key id="KEY_YELLOW" mapto="yellow" flags="m"/>
+		<key id="KEY_0" mapto="0" flags="m" />
+		<key id="KEY_1" mapto="1" flags="m" />
 	</map>
 	<map context="IPToSATAsignActions">
 		<key id="KEY_LEFT" mapto="left" flags="mr"/>
