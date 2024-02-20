@@ -2896,9 +2896,9 @@ class InstallChannelsLists(Screen):
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
-				junglerepository = requests.get(urljungle, allow_redirects=True)
-				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
-				tuxboxrepository = requests.get(self.tuxboxxml, allow_redirects=True)
+				junglerepository = requests.get(urljungle, timeout=10)
+				norhaprepository = requests.get(urlnorhap, timeout=10)
+				tuxboxrepository = requests.get(self.tuxboxxml, timeout=10)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				with open(str(self.zip_jungle), "wb") as jungle:
@@ -2910,7 +2910,6 @@ class InstallChannelsLists(Screen):
 				if exists(str(self.zip_tuxbox_xml)):
 					with ZipFile(self.zip_tuxbox_xml, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
-				sleep(10)
 				# TUXBOX FILES UPDATE REPOSITORY OPenPLi
 				eConsoleAppContainer().execute('cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/')
 				# JUNGLE TEAM
@@ -2987,14 +2986,13 @@ class InstallChannelsLists(Screen):
 	def dogetSourceUpdated(self, answer):
 		try:
 			urlnorhap = 'https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip'
-			norhaprepository = requests.get(urlnorhap, allow_redirects=True)
+			norhaprepository = requests.get(urlnorhap, timeout=10)
 			if answer:
 				if exists(str(BUILDBOUQUETS_SOURCE)):
 					move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
 					source.write(norhaprepository.content)
-				sleep(2)
 				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + SOURCE_PATH + "buildbouquets" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -3008,9 +3006,9 @@ class InstallChannelsLists(Screen):
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
-				junglerepository = requests.get(urljungle, allow_redirects=True)
-				norhaprepository = requests.get(urlnorhap, allow_redirects=True)
-				tuxboxrepository = requests.get(self.tuxboxxml, allow_redirects=True)
+				junglerepository = requests.get(urljungle, timeout=10)
+				norhaprepository = requests.get(urlnorhap, timeout=10)
+				tuxboxrepository = requests.get(self.tuxboxxml, timeout=10)
 				with open(str(self.zip_tuxbox_xml), "wb") as xml:
 					xml.write(tuxboxrepository.content)
 				if exists(str(self.zip_tuxbox_xml)):
@@ -3022,13 +3020,14 @@ class InstallChannelsLists(Screen):
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0] + '/etc/enigma2'
 					with open(str(self.zip_jungle), "wb") as jungle:
 						jungle.write(junglerepository.content)
-					eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip ' + self.zip_jungle)
+					with ZipFile(self.zip_jungle, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
 				if "Sorys-" in channelslists or "Vuplusmania-" in channelslists:
 					dirpath = self.folderlistchannels + '/**/' + channelslists.split()[0]
 					with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
 						norhap.write(norhaprepository.content)
-					eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip ' + self.zip_sorys_vuplusmania)
-				sleep(8)
+					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
+						zipfile.extractall(self.folderlistchannels)
 				for dirnewlist in glob(dirpath, recursive=True):
 					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
 						updatefiles = join(dirnewlist, files)
