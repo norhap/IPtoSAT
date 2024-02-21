@@ -2845,10 +2845,11 @@ class InstallChannelsLists(Screen):
 				self["status"].setText(language.get(lang, "92"))
 				self["key_red"].setText(language.get(lang, "89"))
 				self["key_green"].setText(language.get(lang, "90"))
+				self["key_yellow"].setText(language.get(lang, "92"))
 				self["status"].setText(language.get(lang, "2"))
 			else:
-				self["key_yellow"].setText(language.get(lang, "92"))
 				self["key_red"].setText(language.get(lang, "89"))
+				self["key_yellow"].setText(language.get(lang, "92"))
 				self["status"].setText(language.get(lang, "184"))
 
 	def keyGreen(self):
