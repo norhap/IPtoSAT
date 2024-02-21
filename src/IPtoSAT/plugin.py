@@ -2334,8 +2334,8 @@ class EditCategories(Screen):
 		<widget source="key_1" render="Label" position="92,860" size="80,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="footnote" conditional="footnote" position="118,712" size="1465,40" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
-		<widget name="status" position="755,755" size="830,200" font="Regular;23" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="footnote" conditional="footnote" position="18,712" size="1566,70" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
+		<widget name="status" position="755,783" size="830,175" font="Regular;23" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -2403,6 +2403,8 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
 				self["key_blue"].setText(language.get(lang, "161"))
+				if len(list) < 7:
+					self["footnote"] = Label(language.get(lang, "185"))
 				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage or exists(str(self.backup_categories)):
 					self["key_0"].setText("0")
 				if exists(str(self.backup_categories)):
