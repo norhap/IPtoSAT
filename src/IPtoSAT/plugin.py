@@ -92,24 +92,6 @@ except Exception:
 		language.read(LANGUAGE_PATH, encoding="utf8")
 	except Exception:
 		pass
-# try:
-# 	if fileContains(str(BOUQUET_IPTV_NORHAP), "#NAME iptosat_norhap") and fileContains(str(BOUQUETS_TV), "userbouquet.iptosat_norhap.tv"):
-# 		ALL = "#NAME iptosat_norhap"
-# 		LIVE_VOD_SERIES = language.get(lang, "153")
-# 		with open(BOUQUET_IPTV_NORHAP, "r") as fr:
-# 			with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "w") as fw:
-# 				for lines in fr.readlines():
-# 					if ALL not in lines:
-# 						fw.write(lines)
-# 		with open(BOUQUET_IPTV_NORHAP, "w") as fw:
-# 			fw.write(LIVE_VOD_SERIES + "\n")
-# 		with open(WILD_CARD_BOUQUET_IPTV_NORHAP, "r") as f:
-# 			for lines in f.readlines():
-# 				with open(BOUQUET_IPTV_NORHAP, "a") as fw:
-# 					fw.write(lines)
-# 		eConsoleAppContainer().execute("rm -f " + WILD_CARD_BOUQUET_IPTV_NORHAP + " && sleep 10 && wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2")
-# except Exception:
-# 	pass
 
 
 def choices_list():
@@ -427,25 +409,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
 				AssignService(self.session)
-			# else:
-			# 	if self.timeriptosat != config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]:
-			# 		if fileContains(WILD_CARD_CATYOURLIST, ":"):
-			# 			with open(WILD_CARD_CATYOURLIST, "r") as fr:
-			# 				with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-			# 					fw.write("{" + '\n')
-			# 				with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-			# 					for lines in fr.readlines():
-			# 						lines = lines.replace("]", "],").replace("],,", "],")
-			# 						fw.write(lines)
-			# 				with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
-			# 					with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
-			# 						readcategoriesjson = fwildcardread.readlines()
-			# 						if len(readcategoriesjson) > 1:
-			# 							for last in readcategoriesjson[-2]:
-			# 								last = last.replace(",", "")
-			# 								fwildcardwrite.write(last)
-			# 				with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-			# 					fw.write("}")
 		else:
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				config.plugins.IPToSAT.typecategories.value = "all"
