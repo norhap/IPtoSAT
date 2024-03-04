@@ -1,6 +1,6 @@
 from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB, eConsoleAppContainer, getDesktop
 from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
-import requests
+from requests import get
 from urllib.request import urlopen, Request
 from twisted.web.client import getPage
 from datetime import datetime
@@ -13,7 +13,7 @@ from time import sleep, localtime, mktime, time
 from shutil import move, copy
 from re import search
 from sys import stdout
-import RecordTimer
+from RecordTimer import RecordTimerEntry
 from ServiceReference import ServiceReference
 from timer import TimerEntry
 from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
@@ -329,7 +329,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.saveConfig()
 		if TimerEntry.StateEnded < int(time()):
 			self.session.nav.PowerTimer.cleanup()
-		if RecordTimer.RecordTimerEntry.StateEnded < int(time()):
+		if RecordTimerEntry.StateEnded < int(time()):
 			self.session.nav.RecordTimer.cleanup()
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			if exists(str(CATEGORIES_TIMER_OK)):
@@ -537,11 +537,11 @@ class TimerUpdateCategories:
 			password = configfile.split()[3].split('Pass=')[1]
 			# try:
 			# 	urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
-			# 	m3u = requests.get(urlm3u, allow_redirects=True)
+			# 	m3u = get(urlm3u, allow_redirects=True)
 			# except Exception:
 			# 	try:
 			# 		urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=m3u8'
-			# 		m3u = requests.get(urlm3u, allow_redirects=True)
+			# 		m3u = get(urlm3u, allow_redirects=True)
 			urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
 			header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
 			request = Request(urlm3u, headers=header)
@@ -575,7 +575,7 @@ class TimerUpdateCategories:
 				AssignService.checkStorageDevice(self)
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
 					with open(READ_M3U, "wb") as m3ufile:
-						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with requests.get
+						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with get
 					with open(READ_M3U, "r") as m3uread:
 						charactertoreplace = m3uread.readlines()
 						sleep(3)
@@ -2869,9 +2869,9 @@ class InstallChannelsLists(Screen):
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
-				junglerepository = requests.get(urljungle, timeout=10)
-				norhaprepository = requests.get(urlnorhap, timeout=10)
-				tuxboxrepository = requests.get(self.tuxboxxml, timeout=10)
+				junglerepository = get(urljungle, timeout=10)
+				norhaprepository = get(urlnorhap, timeout=10)
+				tuxboxrepository = get(self.tuxboxxml, timeout=10)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				with open(str(self.zip_jungle), "wb") as jungle:
@@ -2959,7 +2959,7 @@ class InstallChannelsLists(Screen):
 	def dogetSourceUpdated(self, answer):
 		try:
 			urlnorhap = 'https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip'
-			norhaprepository = requests.get(urlnorhap, timeout=10)
+			norhaprepository = get(urlnorhap, timeout=10)
 			if answer:
 				if exists(str(BUILDBOUQUETS_SOURCE)):
 					move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
@@ -2979,9 +2979,9 @@ class InstallChannelsLists(Screen):
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
-				junglerepository = requests.get(urljungle, timeout=10)
-				norhaprepository = requests.get(urlnorhap, timeout=10)
-				tuxboxrepository = requests.get(self.tuxboxxml, timeout=10)
+				junglerepository = get(urljungle, timeout=10)
+				norhaprepository = get(urlnorhap, timeout=10)
+				tuxboxrepository = get(self.tuxboxxml, timeout=10)
 				with open(str(self.zip_tuxbox_xml), "wb") as xml:
 					xml.write(tuxboxrepository.content)
 				if exists(str(self.zip_tuxbox_xml)):
