@@ -444,24 +444,24 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def moveUp(self):
 		self["config"].moveUp()
-		if BoxInfo.getItem("distro") not in ("norhap"):
+		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def moveDown(self):
 		self["config"].moveDown()
-		if BoxInfo.getItem("distro") not in ("norhap"):
+		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
 		self.createSetup()
-		if BoxInfo.getItem("distro") not in ("norhap"):
+		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyRight(self):
 		ConfigListScreen.keyRight(self)
 		self.createSetup()
-		if BoxInfo.getItem("distro") not in ("norhap"):
+		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def saveiptosatconf(self):
