@@ -630,10 +630,10 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		try:
 			self.Timer.callback.append(self.get_channel)
-			if config.plugins.IPToSAT.autotimerbouquets.value:
-				self.timerinstance = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
 		except Exception:
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
+		if config.plugins.IPToSAT.autotimerbouquets.value:
+			self.timerinstance = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
