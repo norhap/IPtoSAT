@@ -118,10 +118,11 @@ config.plugins.IPToSAT.typecategories = ConfigSelection(choices=[("live", langua
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.categories = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
-config.plugins.IPToSAT.domain = ConfigText(default="http://hostname", fixed_size=False)
+config.plugins.IPToSAT.domain = ConfigText(default="http://domain", fixed_size=False)
 config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
 config.plugins.IPToSAT.username = ConfigText(default=language.get(lang, "113"), fixed_size=False)
 config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), fixed_size=False)
+config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang, "188"), fixed_size=False)
 config.plugins.IPToSAT.scheduletime = ConfigClock(default=0)
 
 
@@ -223,11 +224,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget name="config" itemHeight="50" position="0,10" font="Regular;27" valueFont="Regular;22" size="980,860" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 		<widget name="key_red" position="12,872" size="165,52" zPosition="2" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
 		<widget name="key_green" position="189,872" size="165,52" zPosition="2" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
-		<widget source="VKeyIcon" text="TEXT" render="Label" position="365,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" horizontalAlignment="center" verticalAlignment="center">
+		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="366,872" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
+		<widget source="VKeyIcon" text="TEXT" render="Label" position="543,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
-		<widget name="HelpWindow" position="1010,820" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+		<widget name="HelpWindow" position="1010,840" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 		<widget name="description" font="Regular;26" position="985,520" size="860,320" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
 		<widget name="footnote" conditional="footnote" position="985,842" size="860,80" foregroundColor="#0086dc3d" font="Regular;25" transparent="1" zPosition="3" />
 	</screen>"""
@@ -251,6 +255,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			"cancel": self.keyCancel,
 			"red": self.keyCancel,
 			"green": self.keySave,
+			"yellow": self.joinZeroTier,
 			"ok": self.ok,
 		}, -2)
 		for partition in harddiskmanager.getMountedPartitions():
@@ -261,6 +266,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["description"] = Label("")
 		self["key_red"] = Label(_("Cancel"))  # noqa: F821
 		self["key_green"] = Label(_("Save"))  # noqa: F821
+		self["key_yellow"] = StaticText("")  # noqa: F821
 		self["footnote"] = Label("")  # noqa: F821
 		self.createSetup()
 		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
@@ -290,6 +296,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				config.plugins.IPToSAT.username, language.get(lang, "99")))
 			self.list.append(getConfigListEntry(language.get(lang, "114"),
 				config.plugins.IPToSAT.password, language.get(lang, "99")))
+			if exists("/usr/sbin/zerotier-one"):
+				if config.plugins.IPToSAT.networkidzerotier.default != config.plugins.IPToSAT.networkidzerotier.value:
+					self.list.append(getConfigListEntry(language.get(lang, "186"),
+						config.plugins.IPToSAT.networkidzerotier, language.get(lang, "191")))
+				else:
+					self.list.append(getConfigListEntry(language.get(lang, "186"),
+						config.plugins.IPToSAT.networkidzerotier, language.get(lang, "187")))
 		if not fileContains(CONFIG_PATH, "pass"):
 			if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 				self.list.append(getConfigListEntry(language.get(lang, "151"),
@@ -433,6 +446,23 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
 
+	def joinZeroTier(self):
+		if config.plugins.IPToSAT.showuserdata.value:
+			if exists("/usr/sbin/zerotier-one"):
+				from process import ProcessList  # noqa: E402
+				zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
+				zerotier_auto = glob("/etc/rc2.d/S*" + "zerotier")
+				if not zerotier_process:
+					eConsoleAppContainer().execute("/etc/init.d/zerotier start")
+				if len(zerotier_auto) < 1:
+					eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
+				if config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
+					eConsoleAppContainer().execute('sleep 15; zerotier-cli join {}' .format(config.plugins.IPToSAT.networkidzerotier.value))
+					self.session.open(MessageBox, language.get(lang, "190"), MessageBox.TYPE_INFO, default=False, simple=True, timeout=15)
+				else:
+					self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
+			else:
+				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
 
@@ -465,6 +495,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		else:
 			with open(CONFIG_PATH, 'w') as iptosatconf:
 				iptosatconf.write("[IPToSAT]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+		if config.plugins.IPToSAT.showuserdata.value:
+			if exists("/usr/sbin/zerotier-one"):
+				self["key_yellow"] = StaticText(language.get(lang, "189"))  # noqa: F821
 
 	def deleteBouquetsNorhap(self):
 		with open(CONFIG_PATH_CATEGORIES, 'w') as fw:
@@ -893,7 +926,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			if not exists(CONFIG_PATH):
 				with open(CONFIG_PATH, 'w') as fw:
-					fw.write("[IPToSAT]" + "\n" + 'Host=http://hostname:port' + "\n" + "User=user" + "\n" + "Pass=pass")
+					fw.write("[IPToSAT]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 			for partition in harddiskmanager.getMountedPartitions():
 				self.path = normpath(partition.mountpoint)
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
