@@ -342,17 +342,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self["footnote"] = Label(language.get(lang, "147") + " " + TIMER_ERROR)
 		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
 			try:
-				if config.usage.remote_fallback_enabled.value or not config.plugins.fccsetup.activate.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.zapupdown.value or config.plugins.fccsetup.activate.value and not config.plugins.fccsetup.history.value:
+				if not config.plugins.fccsetup.activate.value:
 					config.plugins.fccsetup.activate.value = True
 					config.plugins.fccsetup.activate.save()
-					config.plugins.fccsetup.zapupdown.value = True
-					config.plugins.fccsetup.zapupdown.save()
-					config.plugins.fccsetup.history.value = True
-					config.plugins.fccsetup.history.save()
 					config.plugins.fccsetup.maxfcc.value = 2
 					config.plugins.fccsetup.maxfcc.save()
-					config.plugins.fccsetup.priority.value = "zapupdown"
-					config.plugins.fccsetup.priority.save()
 					config.usage.remote_fallback_enabled.value = False
 					config.usage.remote_fallback_enabled.save()
 					self.session.open(TryQuitMainloop, 3)
