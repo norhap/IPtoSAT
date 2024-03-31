@@ -1783,6 +1783,21 @@ class AssignService(ChannelSelectionBase):
 					if exists(str(iptosatyourcatallsaved)):
 						move(iptosatyourcatallsaved, iptosatyourcatall)
 				self.getUserData()
+				if fileExists(CONFIG_PATH):
+					with open(CONFIG_PATH, "r") as f:
+						iptosatconfread = f.read()
+						host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
+						port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
+						user = iptosatconfread.split()[2].split('User=')[1]
+						password = iptosatconfread.split()[3].split('Pass=')[1]
+						config.plugins.IPToSAT.domain.value = host
+						config.plugins.IPToSAT.domain.save()
+						config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
+						config.plugins.IPToSAT.serverport.save()
+						config.plugins.IPToSAT.username.value = user
+						config.plugins.IPToSAT.username.save()
+						config.plugins.IPToSAT.password.value = password
+						config.plugins.IPToSAT.password.save()
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
