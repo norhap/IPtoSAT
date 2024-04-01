@@ -18,7 +18,7 @@ from ServiceReference import ServiceReference
 from timer import TimerEntry
 from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
 from Plugins.Plugin import PluginDescriptor
-from Components.config import config, getConfigListEntry, ConfigClock, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection
+from Components.config import config, getConfigListEntry, ConfigClock, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection, ConfigEnableDisable, ConfigSubDict
 from Components.ActionMap import ActionMap
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ConfigList import ConfigListScreen
@@ -123,7 +123,15 @@ config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
 config.plugins.IPToSAT.username = ConfigText(default=language.get(lang, "113"), fixed_size=False)
 config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), fixed_size=False)
 config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang, "188"), fixed_size=False)
-config.plugins.IPToSAT.scheduletime = ConfigClock(default=0)
+config.plugins.IPToSAT.timebouquets = ConfigClock(default=64800)
+if BoxInfo.getItem("distro") == "norhap":
+	config.plugins.IPToSAT.timecardon = ConfigSubDict()
+	config.plugins.IPToSAT.timecardoff = ConfigSubDict()
+	config.plugins.IPToSAT.cardday = ConfigSubDict()
+	for day in range(7):
+		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
+		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60 + 0) * 60))
+		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((20 * 60 + 0) * 60))
 
 
 def typeselectcategorie():
@@ -227,11 +235,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="366,872" zPosition="2" size="165,52" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
+		<widget source="key_blue" conditional="key_blue" render="Label" objectTypes="key_blue,StaticText" position="720,872" zPosition="2" size="200,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<convert type="ConditionalShowHide"/>
+		</widget>
 		<widget source="VKeyIcon" text="TEXT" render="Label" position="543,872" size="165,52" zPosition="2" backgroundColor="key_back" conditional="VKeyIcon" font="Regular;22" foregroundColor="key_text" horizontalAlignment="center" verticalAlignment="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
-		<widget name="HelpWindow" position="1010,840" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+		<widget name="HelpWindow" position="1010,855" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 		<widget name="description" font="Regular;26" position="985,520" size="860,320" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
 		<widget name="footnote" conditional="footnote" position="985,842" size="860,80" foregroundColor="#0086dc3d" font="Regular;25" transparent="1" zPosition="3" />
 	</screen>"""
@@ -256,22 +267,31 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			"red": self.keyCancel,
 			"green": self.keySave,
 			"yellow": self.joinZeroTier,
+			"blue": self.IPToSATWithCardOrFull,
 			"ok": self.ok,
 		}, -2)
+		self["description"] = Label("")
+		self["key_red"] = Label(_("Cancel"))  # noqa: F821
+		self["key_green"] = Label(_("Save"))  # noqa: F821
+		self["key_yellow"] = StaticText("")  # noqa: F821
+		self["key_blue"] = StaticText("")  # noqa: F821
+		self["footnote"] = Label("")  # noqa: F821
+		self.timerupdatebouquets = config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]
+		self.typecategories = config.plugins.IPToSAT.typecategories.value
+		self.onLayoutFinish.append(self.layoutFinished)
 		for partition in harddiskmanager.getMountedPartitions():
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				if exists(str(self.path)) and listdir(self.path):
 					self.storage = True
-		self["description"] = Label("")
-		self["key_red"] = Label(_("Cancel"))  # noqa: F821
-		self["key_green"] = Label(_("Save"))  # noqa: F821
-		self["key_yellow"] = StaticText("")  # noqa: F821
-		self["footnote"] = Label("")  # noqa: F821
+		if BoxInfo.getItem("distro") == "norhap":
+			if not exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and not exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+				copy(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+			if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
+				self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
+			elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+				self["key_blue"].setText(language.get(lang, "195"))  # noqa: F821
 		self.createSetup()
-		self.timeriptosat = config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]
-		self.typecategories = config.plugins.IPToSAT.typecategories.value
-		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
 		self.setTitle(language.get(lang, "13"))
@@ -330,7 +350,24 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.IPToSAT.autotimerbouquets, language.get(lang, "146")))
 				if config.plugins.IPToSAT.autotimerbouquets.value:
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
-						config.plugins.IPToSAT.scheduletime, language.get(lang, "130")))
+						config.plugins.IPToSAT.timebouquets, language.get(lang, "130")))
+		if BoxInfo.getItem("distro") == "norhap":
+			for day in range(7):
+				self.list.append(getConfigListEntry([
+					language.get(lang, "199"),
+					language.get(lang, "200"),
+					language.get(lang, "201"),
+					language.get(lang, "202"),
+					language.get(lang, "203"),
+					language.get(lang, "204"),
+					language.get(lang, "205")]
+					[day],
+					config.plugins.IPToSAT.cardday[day]))
+				if config.plugins.IPToSAT.cardday[day].value:
+					self.list.append(getConfigListEntry(language.get(lang, "197"),
+						config.plugins.IPToSAT.timecardoff[day]))
+					self.list.append(getConfigListEntry(language.get(lang, "198"),
+						config.plugins.IPToSAT.timecardon[day]))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
@@ -406,10 +443,15 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timerinstance = TimerUpdateCategories(self.session)
 			self.timerinstance.refreshScheduler()
-		if self.timeriptosat != config.plugins.IPToSAT.scheduletime.value[0] + config.plugins.IPToSAT.scheduletime.value[1]:
+		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
-			self.session.open(TryQuitMainloop, 3)
+		if config.plugins.IPToSAT.autotimerbouquets.value:
+			self.timercategories = TimerUpdateCategories(self)
+		if BoxInfo.getItem("distro") == "norhap":
+			if config.plugins.IPToSAT.cardday[day].value:
+				self.timercardoff = TimerOffCard(self)  # timer cardoff init
+				self.timercardon = TimerOnCard(self)  # timer cardon init
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -463,6 +505,25 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
 			else:
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
+
+	def IPToSATWithCardOrFull(self):
+		if BoxInfo.getItem("distro") == "norhap" and exists(FILES_TUXBOX + "/config/oscam/oscam.services") and exists(str(PLAYLIST_PATH)):
+			if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
+				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+				move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+				move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+				self["key_blue"].setText(language.get(lang, "195"))
+				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+				return
+			elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+				self["key_blue"].setText(language.get(lang, "194"))
+				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
 
@@ -530,14 +591,14 @@ class TimerUpdateCategories:
 		self.iptosatpolltimer.stop()
 		self.scheduledtime = self.prepareTimer()
 
-	def getTimeDownaloadCategories(self):
-		downloadcategoriesclock = config.plugins.IPToSAT.scheduletime.value
+	def getTimeDownloadCategories(self):
+		downloadcategoriesclock = config.plugins.IPToSAT.timebouquets.value
 		now = localtime(time())
 		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, downloadcategoriesclock[0], downloadcategoriesclock[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
 
 	def prepareTimer(self):
 		self.categoriestimer.stop()
-		downloadtime = self.getTimeDownaloadCategories()
+		downloadtime = self.getTimeDownloadCategories()
 		now = int(time())
 		if downloadtime > 0:
 			if downloadtime < now:
@@ -553,7 +614,7 @@ class TimerUpdateCategories:
 	def iptosatDownloadTimer(self):
 		self.categoriestimer.stop()
 		now = int(time())
-		wake = self.getTimeDownaloadCategories()
+		wake = self.getTimeDownloadCategories()
 		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		m3u = ""
 		response = ""
@@ -644,6 +705,113 @@ class TimerUpdateCategories:
 			self.iptosatpolltimer.stop()
 
 
+class TimerOffCard:
+	def __init__(self, session):
+		self.session = session
+		self.cardofftimer = eTimer()
+		self.cardofftimer.callback.append(self.iptosatCardOffTimer)
+		self.cardpolltimer = eTimer()
+		self.cardpolltimer.timeout.get().append(self.cardPollTimer)
+		self.refreshTimerCard()
+
+	def cardPollTimer(self):
+		self.cardpolltimer.stop()
+		self.scheduledtime = self.prepareTimer()
+
+	def getTimeOffCard(self):
+		now = localtime()
+		current_day = int(now.tm_wday)
+		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, config.plugins.IPToSAT.timecardoff[current_day].value[0], config.plugins.IPToSAT.timecardoff[current_day].value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
+
+	def prepareTimer(self):
+		self.cardofftimer.stop()
+		cardofftime = self.getTimeOffCard()
+		now = int(time())
+		if cardofftime > 0:
+			if cardofftime < now:
+				cardofftime += 24 * 3600
+				while (int(cardofftime) - 30) < now:
+					cardofftime += 24 * 3600
+			next = cardofftime - now
+			self.cardofftimer.startLongTimer(next)
+		else:
+			cardofftime = -1
+		return cardofftime
+
+	def iptosatCardOffTimer(self):
+		now = int(time())
+		cardoff = self.getTimeOffCard()
+		if cardoff - now < 60 and config.plugins.IPToSAT.cardday[day].value:
+			if exists(FILES_TUXBOX + "/config/oscam/oscam.services") and exists(str(PLAYLIST_PATH)):
+				if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
+					move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+					move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+					move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+					move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+					eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+
+	def refreshTimerCard(self):
+		now = int(time())
+		if now > 1262304000:
+			self.scheduledtime = self.prepareTimer()
+		else:
+			self.scheduledtime = 0
+			self.cardpolltimer.start(36000)
+
+
+class TimerOnCard:
+	def __init__(self, session):
+		self.session = session
+		self.cardontimer = eTimer()
+		self.cardontimer.callback.append(self.iptosatCardOnTimer)
+		self.cardpolltimer = eTimer()
+		self.cardpolltimer.timeout.get().append(self.cardPollTimer)
+		self.refreshTimerCard()
+
+	def cardPollTimer(self):
+		self.cardpolltimer.stop()
+		self.scheduledtime = self.prepareTimer()
+
+	def getTimeOnCard(self):
+		now = localtime()
+		current_day = int(now.tm_wday)
+		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, config.plugins.IPToSAT.timecardon[current_day].value[0], config.plugins.IPToSAT.timecardon[current_day].value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
+
+	def prepareTimer(self):
+		self.cardontimer.stop()
+		cardofftime = self.getTimeOnCard()
+		now = int(time())
+		if cardofftime > 0:
+			if cardofftime < now:
+				cardofftime += 24 * 3600
+				while (int(cardofftime) - 30) < now:
+					cardofftime += 24 * 3600
+			next = cardofftime - now
+			self.cardontimer.startLongTimer(next)
+		else:
+			cardofftime = -1
+		return cardofftime
+
+	def iptosatCardOnTimer(self):
+		now = int(time())
+		cardon = self.getTimeOnCard()
+		if cardon - now < 60 and config.plugins.IPToSAT.cardday[day].value:
+			if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+
+	def refreshTimerCard(self):
+		now = int(time())
+		if now > 1262304000:
+			self.scheduledtime = self.prepareTimer()
+		else:
+			self.scheduledtime = 0
+			self.cardpolltimer.start(36000)
+
+
 class IPToSAT(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -659,8 +827,12 @@ class IPToSAT(Screen):
 			self.Timer.callback.append(self.get_channel)
 		except Exception:
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
+		if BoxInfo.getItem("distro") == "norhap":
+			if config.plugins.IPToSAT.cardday[day].value:
+				self.timercardoff = TimerOffCard(self)  # timer cardoff init in restart enigma and reboot
+				self.timercardon = TimerOnCard(self)  # timer cardon init in restart enigma and reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timerinstance = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
+			self.timercategories = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
@@ -1180,6 +1352,9 @@ class AssignService(ChannelSelectionBase):
 					self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
+		if exists(FILES_TUXBOX + "/config/oscam/oscam.services.no.card"):
+			self['managerlistchannels'].show()
+			self.assignWidgetScript("#e5e619", language.get(lang, "196"))
 		playlist = getPlaylist()
 		if playlist:
 			if sref.startswith('1') and 'http' not in sref:
@@ -1255,10 +1430,10 @@ class AssignService(ChannelSelectionBase):
 			backupfilestuxbox = ""
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
-				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfilesenigma = join(self.backupdirectory, filesenigma2)
 					if backupfilesenigma:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "iptv.sh" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "iptv.sh" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
@@ -1277,7 +1452,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			try:
 				backupfiles = ""
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					if backupfiles:
 						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, language.get(lang, "71"), MessageBox.TYPE_YESNO)
@@ -1292,7 +1467,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
@@ -1324,10 +1499,10 @@ class AssignService(ChannelSelectionBase):
 			bouquetiptosatepg = ""
 			tuxboxfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
@@ -1358,7 +1533,7 @@ class AssignService(ChannelSelectionBase):
 				backupfiles = ""
 				if not exists(str(self.backupdirectory)):
 					makedirs(self.backupdirectory)
-				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or ".xml" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
+				for backupfiles in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or ".xml" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x]:
 					backupfiles = join(self.backupdirectory, backupfiles)
 				if backupfiles:
 					self.session.openWithCallback(self.dobackupChannelsList, MessageBox, language.get(lang, "63") + " " + self.backupdirectory + "/" + "\n\n" + language.get(lang, "64"), MessageBox.TYPE_YESNO)
