@@ -1893,7 +1893,9 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			iptosatconf = join(self.alternatefolder, "iptosat.conf")
 			iptosat2conf = join(self.changefolder, "iptosat.conf")
-			if exists(str(iptosatconf)) or exists(str(iptosat2conf)):
+			iptosatjson = join(self.alternatefolder, "iptosat.json")
+			iptosat2json = join(self.changefolder, "iptosat.json")
+			if exists(str(iptosatconf)) or exists(str(iptosat2conf)) or exists(str(iptosatjson)) or exists(str(iptosat2json)):
 				self.session.openWithCallback(self.purgeDeviceFiles, MessageBox, language.get(lang, "57"), MessageBox.TYPE_YESNO, default=False)
 			else:
 				self.session.open(MessageBox, language.get(lang, "43"), MessageBox.TYPE_INFO)
@@ -1903,11 +1905,17 @@ class AssignService(ChannelSelectionBase):
 			try:
 				iptosatconf = join(self.alternatefolder, "iptosat.conf")
 				iptosat2conf = join(self.changefolder, "iptosat.conf")
+				iptosatjson = join(self.alternatefolder, "iptosat.json")
+				iptosat2json = join(self.changefolder, "iptosat.json")
 				if exists(str(iptosatconf)):
 					remove(iptosatconf)
 				if exists(str(iptosat2conf)):
 					remove(iptosat2conf)
-				if not exists(str(iptosatconf)) or not exists(str(iptosat2conf)):
+				if exists(str(iptosatjson)):
+					remove(iptosatjson)
+				if exists(str(iptosat2json)):
+					remove(iptosat2json)
+				if not exists(str(iptosatconf)) or not exists(str(iptosat2conf)) or not exists(str(iptosatjson)) or not exists(str(iptosat2json)):
 					self.session.open(MessageBox, language.get(lang, "52"), MessageBox.TYPE_INFO)
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -1920,29 +1928,40 @@ class AssignService(ChannelSelectionBase):
 				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 				iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
-				iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
-				iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
-				if exists(str(iptosatyourcatall)):
-					move(iptosatyourcatall, iptosatyourcatallsaved)
+				filejson = join(ENIGMA2_PATH, "iptosat.json")
+				iptosat2json = join(self.alternatefolder, "iptosat.json")
+				iptosatlist2json = join(self.alternatefolder, "iptosat_LIST2.json")
+				iptosatlist1json = join(self.alternatefolder, "iptosat_LIST1.json")
+				if config.plugins.IPToSAT.usercategories.value:
+					config.plugins.IPToSAT.usercategories.value = False
+					config.plugins.IPToSAT.usercategories.save()
 				if config.plugins.IPToSAT.typecategories.value == "all":
 					if exists(str(ALL_CATEGORIES)):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
 						remove(WILD_CARD_ALL_CATEGORIES)
-					self.categories = None
+					if exists(str(WILD_CARD_CATYOURLIST)):
+						remove(WILD_CARD_CATYOURLIST)
 					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-						dump(self.categories, f)
-				else:
-					if config.plugins.IPToSAT.usercategories.value:
-						config.plugins.IPToSAT.usercategories.value = False
-						config.plugins.IPToSAT.usercategories.save()
+						f.write("null")
 				if exists(str(iptosat2conf)):
 					if exists(str(iptosatlist2conf)) or exists(str(iptosatlist1conf)):
 						remove(iptosat2conf)
+				if exists(str(iptosat2json)):
+					if exists(str(iptosatlist2json)) or exists(str(iptosatlist1json)):
+						remove(iptosat2json)
 				if not exists(str(self.alternatefolder)):
 					makedirs(self.alternatefolder)
 				if not exists(str(iptosat2conf)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)):
-					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "208"), MessageBox.TYPE_INFO)
+					return
+				if not exists(str(iptosat2json)) and not exists(str(iptosatlist1json)) and not exists(str(iptosatlist2json)):
+					self.session.open(MessageBox, language.get(lang, "206") + "\n\n" + language.get(lang, "207") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "208"), MessageBox.TYPE_INFO)
+					return
+				if BoxInfo.getItem("distro") == "norhap":
+					if not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
+						self.session.open(MessageBox, language.get(lang, "209"), MessageBox.TYPE_INFO, simple=True)
+						return
 				if exists(CONFIG_PATH) and exists(str(iptosat2conf)):
 					move(CONFIG_PATH, iptosatlist1conf)
 					move(iptosat2conf, fileconf)
@@ -1955,8 +1974,25 @@ class AssignService(ChannelSelectionBase):
 					move(CONFIG_PATH, iptosatlist2conf)
 					move(iptosatlist1conf, fileconf)
 					self.secondSuscription = False
-					if exists(str(iptosatyourcatallsaved)):
-						move(iptosatyourcatallsaved, iptosatyourcatall)
+				if exists(PLAYLIST_PATH) and exists(str(iptosat2json)):
+					move(PLAYLIST_PATH, iptosatlist1json)
+					move(iptosat2json, filejson)
+					self.secondSuscription = True
+				elif exists(PLAYLIST_PATH) and exists(str(iptosatlist2json)):
+					move(PLAYLIST_PATH, iptosatlist1json)
+					move(iptosatlist2json, filejson)
+					self.secondSuscription = True
+				elif exists(PLAYLIST_PATH) and exists(str(iptosatlist1json)):
+					move(PLAYLIST_PATH, iptosatlist2json)
+					move(iptosatlist1json, filejson)
+					self.secondSuscription = False
+				else:
+					if exists(str(iptosat2json)):  # user enters the iptosat.json file
+						if exists(str(iptosatlist1conf)):
+							move(iptosat2json, iptosatlist1json)
+						if exists(str(iptosatlist2conf)):
+							move(iptosat2json, iptosatlist2json)
+						self.secondSuscription = False
 				self.getUserData()
 				if fileExists(CONFIG_PATH):
 					with open(CONFIG_PATH, "r") as f:
@@ -1981,11 +2017,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			iptosatlist1conf = join(self.alternatefolder, "iptosat_LIST1.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
-			iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
-			iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
 			if answer:
-				if exists(str(iptosatyourcatall)):
-					move(iptosatyourcatall, iptosatyourcatallsaved)
 				if exists(str(iptosat2change)):
 					move(iptosat2change, iptosatlist1conf)
 					if config.plugins.IPToSAT.typecategories.value == "all":
@@ -1993,13 +2025,12 @@ class AssignService(ChannelSelectionBase):
 							remove(ALL_CATEGORIES)
 						if exists(str(WILD_CARD_ALL_CATEGORIES)):
 							remove(WILD_CARD_ALL_CATEGORIES)
+						if exists(str(WILD_CARD_CATYOURLIST)):
+							remove(WILD_CARD_CATYOURLIST)
 					else:
 						if config.plugins.IPToSAT.usercategories.value:
 							config.plugins.IPToSAT.usercategories.value = False
 							config.plugins.IPToSAT.usercategories.save()
-					self.categories = None
-					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-						dump(self.categories, f)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -2010,24 +2041,19 @@ class AssignService(ChannelSelectionBase):
 		try:
 			iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
 			iptosat2change = join(self.changefolder, "iptosat.conf")
-			iptosatyourcatallsaved = join(self.alternatefolder, "iptosatyourcatall")
-			iptosatyourcatall = join(ENIGMA2_PATH, "iptosatyourcatall")
 			if answer:
-				if exists(str(iptosatyourcatall)):
-					move(iptosatyourcatall, iptosatyourcatallsaved)
 				move(iptosat2change, iptosatlist2conf)
-				self.categories = None
 				if config.plugins.IPToSAT.typecategories.value == "all":
 					if exists(str(ALL_CATEGORIES)):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
 						remove(WILD_CARD_ALL_CATEGORIES)
+					if exists(str(WILD_CARD_CATYOURLIST)):
+						remove(WILD_CARD_CATYOURLIST)
 				else:
 					if config.plugins.IPToSAT.usercategories.value:
 						config.plugins.IPToSAT.usercategories.value = False
 						config.plugins.IPToSAT.usercategories.save()
-				with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-					dump(self.categories, f)
 			else:
 				self.session.open(MessageBox, language.get(lang, "46") + "\n\n" + language.get(lang, "42"), MessageBox.TYPE_INFO)
 		except Exception as err:
@@ -2058,9 +2084,6 @@ class AssignService(ChannelSelectionBase):
 						if config.plugins.IPToSAT.usercategories.value:
 							config.plugins.IPToSAT.usercategories.value = False
 							config.plugins.IPToSAT.usercategories.save()
-					self.categories = None
-					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-						dump(self.categories, f)
 					self.getUserData()
 					with open(fileconf, "r") as f:
 						host = f.read()
@@ -2089,8 +2112,6 @@ class AssignService(ChannelSelectionBase):
 						host = f.read()
 						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist2conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
 					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
-				if not exists(str(iptosat2change)):
-					self.session.open(MessageBox, language.get(lang, "55") + "\n\n" + self.changefolder + "/" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				self.getUserData()
 				self["codestatus"].hide()
 			except Exception as err:
