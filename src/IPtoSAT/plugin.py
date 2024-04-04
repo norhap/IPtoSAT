@@ -493,10 +493,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if exists("/usr/sbin/zerotier-one"):
 				from process import ProcessList  # noqa: E402
 				zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
-				zerotier_auto = glob("/etc/rc2.d/S*" + "zerotier")
+				zerotier_auto = glob("/etc/rc2.d/S*zerotier")
 				if not zerotier_process:
 					eConsoleAppContainer().execute("/etc/init.d/zerotier start")
-				if len(zerotier_auto) < 1:
+				if not zerotier_auto:
 					eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
 				if config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
 					eConsoleAppContainer().execute('sleep 15; zerotier-cli join {}' .format(config.plugins.IPToSAT.networkidzerotier.value))
@@ -507,7 +507,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
 	def IPToSATWithCardOrFull(self):
-		if BoxInfo.getItem("distro") == "norhap" and exists(FILES_TUXBOX + "/config/oscam/oscam.services") and exists(str(PLAYLIST_PATH)):
+		if BoxInfo.getItem("distro") == "norhap" and exists(FILES_TUXBOX + "/config/oscam/oscam.services.no.card") and exists(str(PLAYLIST_PATH)):
 			if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
