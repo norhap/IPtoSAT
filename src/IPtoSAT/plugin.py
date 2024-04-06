@@ -440,18 +440,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x()
 
 	def keySave(self):
-		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timerinstance = TimerUpdateCategories(self.session)
-			self.timerinstance.refreshScheduler()
 		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
-		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timercategories = TimerUpdateCategories(self)
-		if BoxInfo.getItem("distro") == "norhap":
-			if config.plugins.IPToSAT.cardday[day].value:
-				self.timercardOff = TimerOffCard(self)  # timer cardoff init
-				self.timercardOn = TimerOnCard(self)  # timer cardon init
+			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -507,8 +499,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
 	def IPToSATWithCardOrFull(self):
-		if BoxInfo.getItem("distro") == "norhap" and exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam")):
-			if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and exists(FILES_TUXBOX + "/config/oscam/oscam.services.no.card"):
+		if BoxInfo.getItem("distro") == "norhap" and exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
+			if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
@@ -516,7 +508,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self["key_blue"].setText(language.get(lang, "195"))
 				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
 				return
-			elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+			elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
@@ -550,6 +542,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self["description"].text = self.getCurrentDescription()
 
 	def saveiptosatconf(self):
+		if BoxInfo.getItem("distro") == "norhap":
+			now = localtime(time())
+			current_day = int(now.tm_wday)
+			if config.plugins.IPToSAT.timecardon[current_day].value:  # ignore timer ON for not current day
+				self.timercardOn = TimerOnCard(self)  # card ON timer start
+			if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
+				self.timercardOff = TimerOffCard(self)  # card OFF timer start
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as iptosatconf:
 				iptosatconf.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
@@ -719,7 +718,7 @@ class TimerOffCard:
 		self.scheduledtime = self.prepareTimer()
 
 	def getTimeOffCard(self):
-		now = localtime()
+		now = localtime(time())
 		current_day = int(now.tm_wday)
 		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, config.plugins.IPToSAT.timecardoff[current_day].value[0], config.plugins.IPToSAT.timecardoff[current_day].value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
 
@@ -739,11 +738,12 @@ class TimerOffCard:
 		return cardofftime
 
 	def iptosatCardOffTimer(self):
+		self.cardofftimer.stop()
 		now = int(time())
 		cardoff = self.getTimeOffCard()
-		if cardoff - now < 60 and config.plugins.IPToSAT.cardday[day].value:
-			if exists(PLAYLIST_PATH) and exists(FILES_TUXBOX + "/config/oscam/oscam.services"):
-				if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and exists(FILES_TUXBOX + "/config/oscam/oscam.services.no.card"):
+		if cardoff - now < 60:
+			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
+				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
 					move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 					move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
 					move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
@@ -751,12 +751,17 @@ class TimerOffCard:
 					eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
 
 	def refreshTimerCard(self):
+		current_day = int(localtime().tm_wday)
 		now = int(time())
-		if now > 1262304000:
-			self.scheduledtime = self.prepareTimer()
+		if config.plugins.IPToSAT.timecardoff[current_day].value:
+			if now > 1262304000:
+				self.scheduledtime = self.prepareTimer()
+			else:
+				self.scheduledtime = 0
+				self.cardpolltimer.start(36000)
 		else:
 			self.scheduledtime = 0
-			self.cardpolltimer.start(36000)
+			self.cardpolltimer.stop()
 
 
 class TimerOnCard:
@@ -773,30 +778,31 @@ class TimerOnCard:
 		self.scheduledtime = self.prepareTimer()
 
 	def getTimeOnCard(self):
-		now = localtime()
+		now = localtime(time())
 		current_day = int(now.tm_wday)
 		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, config.plugins.IPToSAT.timecardon[current_day].value[0], config.plugins.IPToSAT.timecardon[current_day].value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
 
 	def prepareTimer(self):
 		self.cardontimer.stop()
-		cardofftime = self.getTimeOnCard()
+		cardontime = self.getTimeOnCard()
 		now = int(time())
-		if cardofftime > 0:
-			if cardofftime < now:
-				cardofftime += 24 * 3600
-				while (int(cardofftime) - 30) < now:
-					cardofftime += 24 * 3600
-			next = cardofftime - now
+		if cardontime > 0:
+			if cardontime < now:
+				cardontime += 24 * 3600
+				while (int(cardontime) - 30) < now:
+					cardontime += 24 * 3600
+			next = cardontime - now
 			self.cardontimer.startLongTimer(next)
 		else:
-			cardofftime = -1
-		return cardofftime
+			cardontime = -1
+		return cardontime
 
 	def iptosatCardOnTimer(self):
+		self.cardontimer.stop()
 		now = int(time())
 		cardon = self.getTimeOnCard()
-		if cardon - now < 60 and config.plugins.IPToSAT.cardday[day].value:
-			if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(FILES_TUXBOX + "/config/oscam/oscam.services.card"):
+		if cardon - now < 60:
+			if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
@@ -804,12 +810,17 @@ class TimerOnCard:
 				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
 
 	def refreshTimerCard(self):
+		current_day = int(localtime().tm_wday)
 		now = int(time())
-		if now > 1262304000:
-			self.scheduledtime = self.prepareTimer()
+		if config.plugins.IPToSAT.timecardon[current_day].value:
+			if now > 1262304000:
+				self.scheduledtime = self.prepareTimer()
+			else:
+				self.scheduledtime = 0
+				self.cardpolltimer.start(36000)
 		else:
 			self.scheduledtime = 0
-			self.cardpolltimer.start(36000)
+			self.cardpolltimer.stop()
 
 
 class IPToSAT(Screen):
@@ -829,10 +840,10 @@ class IPToSAT(Screen):
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		if BoxInfo.getItem("distro") == "norhap":
 			if config.plugins.IPToSAT.cardday[day].value:
-				self.timercardoff = TimerOffCard(self)  # timer cardoff init in restart enigma and reboot
-				self.timercardon = TimerOnCard(self)  # timer cardon init in restart enigma and reboot
+				self.timercardOff = TimerOffCard(self)  # card timer initializer off from reboot
+				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timerCategories = TimerUpdateCategories(self)  # timer init in restart enigma and reboot
+			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
