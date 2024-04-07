@@ -2615,8 +2615,8 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
 				self["key_blue"].setText(language.get(lang, "161"))
-				if len(list) < 7:
-					self["footnote"] = Label(language.get(lang, "185"))
+				if len(list) < 4:
+					self["footnote"] = Label(language.get(lang, "185")) if config.plugins.IPToSAT.typecategories.value != "all" else Label(language.get(lang, "210"))
 				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage or exists(str(self.backup_categories)):
 					self["key_0"].setText("0")
 				if exists(str(self.backup_categories)):

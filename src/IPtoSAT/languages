@@ -209,6 +209,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 207 = Place the file in this path:
 208 = If you do not have an iptosat.json file:\n1. Download it from /etc/enigma2/ so you will get the above channel list.\n2. Enter it in the indicated path.\n3. Press VOLUME + to toggle the list.\n4. Delete the channels from the list above before you start assigning them.
 209 = You must first change the list. You must NOT use the card.
+210 = You must keep at least TWO bouquets on this list: the one you are going to keep, plus the one above or below it.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -420,3 +421,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 207 = Coloque el archivo en esta ruta:
 208 = Si no dispone de archivo iptosat.json:\n1. Descárguelo de /etc/enigma2/ así obtendrá la lista de canales anterior.\n2. Ingréselo en la ruta indicada.\n3. Pulse VOLUMEN + para alternar la lista.\n4. Elimine los canales de la lista anterior antes de comenzar a asignarlos.
 209 = Antes debe cambiar de lista NO debe usar la tarjeta.
+210 = Debe mantener al menos DOS bouquets en esta lista: el que va a conservar, más el que está encima o debajo.
