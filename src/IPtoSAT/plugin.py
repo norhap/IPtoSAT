@@ -2902,6 +2902,15 @@ class EditCategories(Screen):
 
 	def keyBlue(self):
 		message = language.get(lang, "164")
+		if not fileContains(ALL_CATEGORIES, ":"):
+			if fileContains(CONFIG_PATH_CATEGORIES, ":"):
+				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
+					with open(ALL_CATEGORIES, "w") as fw:
+						fw.write("{" + '\n')
+					with open(ALL_CATEGORIES, "a") as fw:
+						for lines in fr.readlines():
+							lines = lines.replace("]", "],").replace("],,", "],")
+							fw.write(lines)
 		with open(CONFIG_PATH_CATEGORIES, "r") as fr:
 			readcategoriesjson = fr.readlines()
 			if len(readcategoriesjson) > 3:
