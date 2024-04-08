@@ -212,7 +212,7 @@ def getChannelsLists():
 				trace_error()
 	else:
 		return None
-		
+
 
 def getUserDataSuscription():
 	try:
@@ -1939,6 +1939,8 @@ class AssignService(ChannelSelectionBase):
 				iptosat2json = join(self.alternatefolder, "iptosat.json")
 				iptosatlist2json = join(self.alternatefolder, "iptosat_LIST2.json")
 				iptosatlist1json = join(self.alternatefolder, "iptosat_LIST1.json")
+				categoriesall = join(self.alternatefolder, "iptosatcategories.json")
+				categoriesallwildcard = join(self.alternatefolder, "categoriesalljson")
 				if BoxInfo.getItem("distro") == "norhap":
 					if not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
 						self.session.open(MessageBox, language.get(lang, "55"), MessageBox.TYPE_INFO, simple=True)
@@ -1953,8 +1955,15 @@ class AssignService(ChannelSelectionBase):
 						remove(WILD_CARD_ALL_CATEGORIES)
 					if exists(str(WILD_CARD_CATYOURLIST)):
 						remove(WILD_CARD_CATYOURLIST)
-					with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-						f.write("null")
+					if exists(str(CONFIG_PATH_CATEGORIES)) and not exists(str(categoriesallwildcard)):
+						move(CONFIG_PATH_CATEGORIES, categoriesallwildcard)
+						with open(CONFIG_PATH_CATEGORIES, 'w') as f:
+							f.write("null")
+					elif exists(str(CONFIG_PATH_CATEGORIES)):
+						move(CONFIG_PATH_CATEGORIES, categoriesall)
+						move(categoriesallwildcard, CONFIG_PATH_CATEGORIES)
+					if exists(str(CONFIG_PATH_CATEGORIES)) and exists(str(categoriesall)):
+						move(categoriesall, categoriesallwildcard)
 				if exists(str(iptosat2conf)):
 					if exists(str(iptosatlist2conf)) or exists(str(iptosatlist1conf)):
 						remove(iptosat2conf)
