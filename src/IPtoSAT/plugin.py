@@ -212,6 +212,26 @@ def getChannelsLists():
 				trace_error()
 	else:
 		return None
+		
+
+def getUserDataSuscription():
+	try:
+		with open(CONFIG_PATH, "r") as f:
+			iptosatconfread = f.read()
+			host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
+			port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
+			user = iptosatconfread.split()[2].split('User=')[1]
+			password = iptosatconfread.split()[3].split('Pass=')[1]
+			config.plugins.IPToSAT.domain.value = host
+			config.plugins.IPToSAT.domain.save()
+			config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
+			config.plugins.IPToSAT.serverport.save()
+			config.plugins.IPToSAT.username.value = user
+			config.plugins.IPToSAT.username.save()
+			config.plugins.IPToSAT.password.value = password
+			config.plugins.IPToSAT.password.save()
+	except Exception as err:
+		print("ERROR: %s" % str(err))
 
 
 class IPToSATSetup(Screen, ConfigListScreen):
@@ -405,23 +425,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def saveConfig(self):
 		if fileExists(CONFIG_PATH):
-			try:
-				with open(CONFIG_PATH, "r") as f:
-					iptosatconfread = f.read()
-					host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-					port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
-					user = iptosatconfread.split()[2].split('User=')[1]
-					password = iptosatconfread.split()[3].split('Pass=')[1]
-					config.plugins.IPToSAT.domain.value = host
-					config.plugins.IPToSAT.domain.save()
-					config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
-					config.plugins.IPToSAT.serverport.save()
-					config.plugins.IPToSAT.username.value = user
-					config.plugins.IPToSAT.username.save()
-					config.plugins.IPToSAT.password.value = password
-					config.plugins.IPToSAT.password.save()
-			except Exception as err:
-				print("ERROR: %s" % str(err))
+			getUserDataSuscription()
 		self.saveiptosatconf()
 
 	def ok(self):
@@ -617,29 +621,25 @@ class TimerUpdateCategories:
 		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		m3u = ""
 		response = ""
-		with open(CONFIG_PATH, "r") as fr:
-			configfile = fr.read()
-			hostport = configfile.split()[1].split("Host=")[1]
-			user = configfile.split()[2].split('User=')[1]
-			password = configfile.split()[3].split('Pass=')[1]
-			# try:
-			# 	urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
-			# 	m3u = get(urlm3u, allow_redirects=True)
-			# except Exception:
-			# 	try:
-			# 		urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=m3u8'
-			# 		m3u = get(urlm3u, allow_redirects=True)
-			urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
-			header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
-			request = Request(urlm3u, headers=header)
+		hostport = config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value
+		# try:
+		# 	urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=ts'
+		# 	m3u = get(urlm3u, allow_redirects=True)
+		# except Exception:
+		# 	try:
+		# 		urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=m3u8'
+		# 		m3u = get(urlm3u, allow_redirects=True)
+		urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=ts'
+		header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
+		request = Request(urlm3u, headers=header)
+		try:
+			response = urlopen(request, timeout=5)
+		except Exception:
 			try:
-				response = urlopen(request, timeout=5)
-			except Exception:
-				try:
-					response = urlopen(request, timeout=75)
-				except Exception as err:
-					with open(CATEGORIES_TIMER_ERROR, "w") as fw:
-						fw.write(str(err))
+				response = urlopen(request, timeout=75)
+			except Exception as err:
+				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+					fw.write(str(err))
 		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
@@ -1369,7 +1369,7 @@ class AssignService(ChannelSelectionBase):
 		playlist = getPlaylist()
 		if playlist:
 			if sref.startswith('1') and 'http' not in sref:
-				url = self.host + '/' + self.user + '/' + self.password + '/' + stream_id
+				url = config.plugins.IPToSAT.domain.value + '/' + config.plugins.IPToSAT.username.value + '/' + config.plugins.IPToSAT.password.value + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref) and "FROM BOUQUET" not in sref:
 					from unicodedata import normalize
 					playlist['playlist'].append({'sref': sref, 'channel': normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url': url})
@@ -1576,62 +1576,58 @@ class AssignService(ChannelSelectionBase):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref) + "-->1")
 							else:
 								updatefile.write(str(channel_name).lower() + "-->" + str(sref) + "-->1")
-					with open(CONFIG_PATH, "r") as fr:
-						configfile = fr.read()
-						hostport = configfile.split()[1].split("Host=")[1]
-						user = configfile.split()[2].split('User=')[1]
-						password = configfile.split()[3].split('Pass=')[1]
-						urlm3u = str(hostport) + '/get.php?username=' + str(user) + '&password=' + str(password) + '&type=m3u_plus&output=ts'
-						header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
-						request = Request(urlm3u, headers=header)
+					hostport = config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value
+					urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=ts'
+					header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
+					request = Request(urlm3u, headers=header)
+					try:
+						response = urlopen(request, timeout=5)
+					except Exception:
 						try:
-							response = urlopen(request, timeout=5)
+							response = urlopen(request, timeout=75)
 						except Exception:
-							try:
-								response = urlopen(request, timeout=75)
-							except Exception:
-								pass
-						if response:
-							m3u = response.read()
-							if config.plugins.IPToSAT.deletecategories.value and m3u:
-								for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
-									with open(BOUQUETS_TV, "r") as fr:
-										bouquetread = fr.readlines()
-										with open(BOUQUETS_TV, "w") as bouquetswrite:
-											for line in bouquetread:
-												if "iptosat_norhap" not in line:
-													bouquetswrite.write(line)
-									enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-									if enigma2files:
-										remove(enigma2files)
-							if m3u:
-								with open(READ_M3U, "wb") as m3ufile:
-									m3ufile.write(m3u)
-								with open(READ_M3U, "r") as m3uread:
-									charactertoreplace = m3uread.readlines()
-									sleep(3)
-									with open(READ_M3U, "w") as m3uw:
-										for line in charactertoreplace:
-											if '[' in line and ']' in line and '|' in line:
-												line = line.replace('[', '').replace(']', '|')
-											if '|  ' in line:
-												line = line.replace('|  ', '| ')
-											m3uw.write(line)
-								move(READ_M3U, str(self.m3ufile))
-								if exists(str(BUILDBOUQUETS_FILE)):
-									move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+							pass
+					if response:
+						m3u = response.read()
+						if config.plugins.IPToSAT.deletecategories.value and m3u:
+							for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
+								with open(BOUQUETS_TV, "r") as fr:
+									bouquetread = fr.readlines()
+									with open(BOUQUETS_TV, "w") as bouquetswrite:
+										for line in bouquetread:
+											if "iptosat_norhap" not in line:
+												bouquetswrite.write(line)
+								enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
+								if enigma2files:
+									remove(enigma2files)
+						if m3u:
+							with open(READ_M3U, "wb") as m3ufile:
+								m3ufile.write(m3u)
+							with open(READ_M3U, "r") as m3uread:
+								charactertoreplace = m3uread.readlines()
 								sleep(3)
-								eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
-								if self.storage:
-									eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
-								self["helpbouquetepg"].hide()
-								self['managerlistchannels'].show()
-								self.assignWidgetScript("#e5e619", language.get(lang, "5"))
-								with open(CATEGORIES_TIMER_OK, "w") as fw:
-									now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
-									fw.write(now)
-						else:
-							self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
+								with open(READ_M3U, "w") as m3uw:
+									for line in charactertoreplace:
+										if '[' in line and ']' in line and '|' in line:
+											line = line.replace('[', '').replace(']', '|')
+										if '|  ' in line:
+											line = line.replace('|  ', '| ')
+										m3uw.write(line)
+							move(READ_M3U, str(self.m3ufile))
+							if exists(str(BUILDBOUQUETS_FILE)):
+								move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+							sleep(3)
+							eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+							if self.storage:
+								eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
+							self["helpbouquetepg"].hide()
+							self['managerlistchannels'].show()
+							self.assignWidgetScript("#e5e619", language.get(lang, "5"))
+							with open(CATEGORIES_TIMER_OK, "w") as fw:
+								now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
+								fw.write(now)
+					else:
+						self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 			except Exception as err:
@@ -2006,20 +2002,7 @@ class AssignService(ChannelSelectionBase):
 						self.secondSuscription = False
 				self.getUserData()
 				if fileExists(CONFIG_PATH):
-					with open(CONFIG_PATH, "r") as f:
-						iptosatconfread = f.read()
-						host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-						port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
-						user = iptosatconfread.split()[2].split('User=')[1]
-						password = iptosatconfread.split()[3].split('Pass=')[1]
-						config.plugins.IPToSAT.domain.value = host
-						config.plugins.IPToSAT.domain.save()
-						config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
-						config.plugins.IPToSAT.serverport.save()
-						config.plugins.IPToSAT.username.value = user
-						config.plugins.IPToSAT.username.save()
-						config.plugins.IPToSAT.password.value = password
-						config.plugins.IPToSAT.password.save()
+					getUserDataSuscription()
 				self["codestatus"].hide()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
@@ -2114,24 +2097,8 @@ class AssignService(ChannelSelectionBase):
 							config.plugins.IPToSAT.usercategories.save()
 					self.getUserData()
 					if fileExists(CONFIG_PATH):
-						with open(CONFIG_PATH, "r") as f:
-							iptosatconfread = f.read()
-							host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-							port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
-							user = iptosatconfread.split()[2].split('User=')[1]
-							password = iptosatconfread.split()[3].split('Pass=')[1]
-							config.plugins.IPToSAT.domain.value = host
-							config.plugins.IPToSAT.domain.save()
-							config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
-							config.plugins.IPToSAT.serverport.save()
-							config.plugins.IPToSAT.username.value = user
-							config.plugins.IPToSAT.username.save()
-							config.plugins.IPToSAT.password.value = password
-							config.plugins.IPToSAT.password.save()
-					with open(fileconf, "r") as f:
-						host = f.read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(fileconf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "73") + self.host + "\n\n" + language.get(lang, "59") + self.alternatefolder + "/", MessageBox.TYPE_INFO)
+						getUserDataSuscription()
+					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "73") + config.plugins.IPToSAT.domain.value + "\n\n" + language.get(lang, "59") + self.alternatefolder + "/", MessageBox.TYPE_INFO)
 				if not exists(str(iptosat2jsonchange)) and not exists(str(iptosat2change)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)) and not exists(str(iptosatconf)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/\n\n" + language.get(lang, "50"), MessageBox.TYPE_INFO)
 				if exists(str(iptosatconf)) and exists(str(iptosat2change)):
@@ -2149,17 +2116,11 @@ class AssignService(ChannelSelectionBase):
 				if exists(str(iptosatconf)) and not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "49") + self.changefolder + "/", MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist1conf)) and exists(str(iptosat2change)):
-					with open(fileconf, "r") as f:
-						host = f.read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist1conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
+					self.session.openWithCallback(self.doChangeList, MessageBox, language.get(lang, "48") + config.plugins.IPToSAT.domain.value + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				if not exists(str(iptosat2change)):
 					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.changefolder + "/\n\n" + language.get(lang, "56"), MessageBox.TYPE_INFO)
 				if exists(str(iptosatlist2conf)) and exists(str(iptosat2change)):
-					with open(fileconf, "r") as f:
-						host = f.read()
-						self.host = host.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(iptosatlist2conf, "https") else host.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + self.host + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
+					self.session.openWithCallback(self.doChangeList2, MessageBox, language.get(lang, "48") + config.plugins.IPToSAT.domain.value + "\n\n" + language.get(lang, "45"), MessageBox.TYPE_YESNO, default=False)
 				self.getUserData()
 				self["codestatus"].hide()
 			except Exception as err:
