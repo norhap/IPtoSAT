@@ -1979,6 +1979,8 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			self["helpbouquetepg"].hide()
 			try:
+				if not exists(str(self.alternatefolder)):
+					makedirs(self.alternatefolder)
 				fileconf = join(ENIGMA2_PATH, "iptosat.conf")
 				iptosat2conf = join(self.alternatefolder, "iptosat.conf")
 				iptosatlist2conf = join(self.alternatefolder, "iptosat_LIST2.conf")
@@ -2018,8 +2020,6 @@ class AssignService(ChannelSelectionBase):
 				if exists(str(iptosat2json)):
 					if exists(str(iptosatlist2json)) or exists(str(iptosatlist1json)):
 						remove(iptosat2json)
-				if not exists(str(self.alternatefolder)):
-					makedirs(self.alternatefolder)
 				if not exists(str(iptosat2conf)) and not exists(str(iptosatlist1conf)) and not exists(str(iptosatlist2conf)):
 					self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "206"), MessageBox.TYPE_INFO)
 					return
