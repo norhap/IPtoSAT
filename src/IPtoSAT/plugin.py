@@ -503,22 +503,47 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
 	def IPToSATWithCardOrFull(self):
-		if BoxInfo.getItem("distro") == "norhap" and exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
-			if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
-				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
-				move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
-				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
-				move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-				self["key_blue"].setText(language.get(lang, "195"))
-				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
-				return
-			elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
-				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
-				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
-				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
-				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-				self["key_blue"].setText(language.get(lang, "194"))
-				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+		if BoxInfo.getItem("distro") == "norhap":
+			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
+				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
+					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+						move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+						move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						self["key_blue"].setText(language.get(lang, "195"))
+						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+						return
+					else:
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+							move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+							move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+							move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+							self["key_blue"].setText(language.get(lang, "195"))
+							eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+							return
+				elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
+					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
+						move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+						move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						self["key_blue"].setText(language.get(lang, "194"))
+						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+						return
+					else:
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
+							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+							move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+							move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+							move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+							self["key_blue"].setText(language.get(lang, "194"))
+							eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
 
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
@@ -743,12 +768,27 @@ class TimerOffCard:
 		cardoff = self.getTimeOffCard()
 		if cardoff - now < 60:
 			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
-				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
-					move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
-					move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
-					move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
-					move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-					eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
+					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+						move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+						move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+					elif exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+							move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+							move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+							move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+							eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+				else:
+					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
+						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+						eConsoleAppContainer().execute("sleep 2 && /etc/init.d/softcam.oscam restart")
 
 	def refreshTimerCard(self):
 		current_day = int(localtime().tm_wday)
@@ -807,7 +847,15 @@ class TimerOnCard:
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-				eConsoleAppContainer().execute("/etc/init.d/softcam.oscam restart")
+				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+			elif not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
+				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
+				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
+				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+			elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
+				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
 
 	def refreshTimerCard(self):
 		current_day = int(localtime().tm_wday)
