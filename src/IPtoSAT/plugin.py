@@ -1992,11 +1992,15 @@ class AssignService(ChannelSelectionBase):
 						return
 					else:
 						currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
-						with open("/etc/enigma2/settings", "r") as fr:
-							for ref in fr.readlines():
-								if "startupservice=" in ref:
-									startupservice = ref.split('=')[1]
-									eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={startupservice}')
+						if not exists(str(self.iptosatconfalternate)) and not exists(str(self.iptosatlist1conf)) and not exists(str(self.iptosatlist2conf)):
+							self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "206"), MessageBox.TYPE_INFO)
+							return
+						if "http" not in currentservice:
+							with open("/etc/enigma2/settings", "r") as fr:
+								for ref in fr.readlines():
+									if "startupservice=" in ref:
+										startupservice = ref.split('=')[1]
+										eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={startupservice}')
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
@@ -2062,7 +2066,7 @@ class AssignService(ChannelSelectionBase):
 							move(self.iptosatjsonalternate, self.iptosatlist2json)
 						self.secondSuscription = False
 				self.getUserData()
-				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
+				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice:
 					eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
 				if fileExists(CONFIG_PATH):
 					getUserDataSuscription()
