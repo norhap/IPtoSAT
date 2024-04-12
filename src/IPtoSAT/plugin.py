@@ -32,6 +32,7 @@ from Screens.Screen import Screen
 from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
+import NavigationInstance
 
 screenWidth = getDesktop(0).size().width()
 MODEL = getBoxType()
@@ -234,6 +235,15 @@ def getUserDataSuscription():
 		print("ERROR: %s" % str(err))
 
 
+def getStartupService():
+	with open("/etc/enigma2/settings", "r") as fr:
+		for ref in fr.readlines():
+			if "startupservice=" in ref:
+				startupservice = ref.split('=')[1]
+				return startupservice
+		return None
+
+
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
@@ -296,6 +306,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["key_yellow"] = StaticText("")  # noqa: F821
 		self["key_blue"] = StaticText("")  # noqa: F821
 		self["footnote"] = Label("")  # noqa: F821
+		self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 		self.timerupdatebouquets = config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
@@ -503,7 +514,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
 	def IPToSATWithCardOrFull(self):
-		if BoxInfo.getItem("distro") == "norhap":
+		if BoxInfo.getItem("distro") == "norhap" and not self.session.nav.getRecordings():
 			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
 				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
@@ -513,7 +524,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "195"))
 						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-						return
+						if "http" not in self.currentservice and getStartupService():
+							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
+							eConsoleAppContainer().execute(f'sleep 3 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={self.currentservice}')
+							return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -533,7 +547,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "194"))
 						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-						return
+						if "http" not in self.currentservice and getStartupService():
+							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
+							sleep(0.1)
+							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={self.currentservice}')
+							return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -544,6 +562,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 							self["key_blue"].setText(language.get(lang, "194"))
 							eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+		elif BoxInfo.getItem("distro") == "norhap":
+			self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
@@ -766,7 +786,7 @@ class TimerOffCard:
 		self.cardofftimer.stop()
 		now = int(time())
 		cardoff = self.getTimeOffCard()
-		if cardoff - now < 60:
+		if cardoff - now < 60 and not NavigationInstance.instance.getRecordings():
 			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
 				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 					if exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.no.card")):
@@ -775,6 +795,10 @@ class TimerOffCard:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+						currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+						if "http" not in currentservice and getStartupService():
+							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
+							eConsoleAppContainer().execute(f'sleep 3 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
 					elif exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -841,13 +865,18 @@ class TimerOnCard:
 		self.cardontimer.stop()
 		now = int(time())
 		cardon = self.getTimeOnCard()
-		if cardon - now < 60:
+		if cardon - now < 60 and not NavigationInstance.instance.getRecordings():
 			if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
+				currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+				if "http" not in currentservice and getStartupService():
+					eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
+					sleep(0.1)
+					eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
 			elif not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -1991,16 +2020,15 @@ class AssignService(ChannelSelectionBase):
 						self.session.open(MessageBox, language.get(lang, "55"), MessageBox.TYPE_INFO, simple=True)
 						return
 					else:
-						currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 						if not exists(str(self.iptosatconfalternate)) and not exists(str(self.iptosatlist1conf)) and not exists(str(self.iptosatlist2conf)):
 							self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "206"), MessageBox.TYPE_INFO)
 							return
-						if "http" not in currentservice:
-							with open("/etc/enigma2/settings", "r") as fr:
-								for ref in fr.readlines():
-									if "startupservice=" in ref:
-										startupservice = ref.split('=')[1]
-										eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={startupservice}')
+						elif self.session.nav.getRecordings():
+							self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
+							return
+						currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
+						if "http" not in currentservice and getStartupService():
+							eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
@@ -2066,7 +2094,7 @@ class AssignService(ChannelSelectionBase):
 							move(self.iptosatjsonalternate, self.iptosatlist2json)
 						self.secondSuscription = False
 				self.getUserData()
-				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice:
+				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice and not self.session.nav.getRecordings():
 					eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
 				if fileExists(CONFIG_PATH):
 					getUserDataSuscription()

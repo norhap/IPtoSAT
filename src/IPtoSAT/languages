@@ -207,6 +207,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 205 = Sunday
 206 = If you do not have an iptosat.json file with assigned channels from your new list:\n\nPlace the iptosat.conf file and press VOLUME +\nThen you can start synchronizing channels.
 207 = You must keep at least TWO bouquets on this list: the one you are going to keep, plus the one above or below it.
+208 = A recording is in progress: you cannot perform this action.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -416,3 +417,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 205 = Domingo
 206 = Si no dispone de archivo iptosat.json con canales asignados de su nueva lista:\n\nColoque el archivo iptosat.conf y pulse VOLUMEN +\nDespués puede comenzar a sincronizar canales.
 207 = Debe mantener al menos DOS bouquets en esta lista: el que va a conservar, más el que está encima o debajo.
+208 = Existe una grabación en curso: no puede realizar esta acción.
