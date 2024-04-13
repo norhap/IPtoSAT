@@ -126,6 +126,7 @@ config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), 
 config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang, "188"), fixed_size=False)
 config.plugins.IPToSAT.timebouquets = ConfigClock(default=64800)
 if BoxInfo.getItem("distro") == "norhap":
+	config.plugins.IPToSAT.timerscard = ConfigYesNo(default=False)
 	config.plugins.IPToSAT.timecardon = ConfigSubDict()
 	config.plugins.IPToSAT.timecardoff = ConfigSubDict()
 	config.plugins.IPToSAT.cardday = ConfigSubDict()
@@ -383,22 +384,25 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
 						config.plugins.IPToSAT.timebouquets, language.get(lang, "130")))
 		if BoxInfo.getItem("distro") == "norhap":
-			for day in range(7):
-				self.list.append(getConfigListEntry([
-					language.get(lang, "199"),
-					language.get(lang, "200"),
-					language.get(lang, "201"),
-					language.get(lang, "202"),
-					language.get(lang, "203"),
-					language.get(lang, "204"),
-					language.get(lang, "205")]
-					[day],
-					config.plugins.IPToSAT.cardday[day]))
-				if config.plugins.IPToSAT.cardday[day].value:
-					self.list.append(getConfigListEntry(language.get(lang, "197"),
-						config.plugins.IPToSAT.timecardoff[day]))
-					self.list.append(getConfigListEntry(language.get(lang, "198"),
-						config.plugins.IPToSAT.timecardon[day]))
+			self.list.append(getConfigListEntry(language.get(lang, "209"),
+				config.plugins.IPToSAT.timerscard))
+			if config.plugins.IPToSAT.timerscard.value:
+				for day in range(7):
+					self.list.append(getConfigListEntry([
+						language.get(lang, "199"),
+						language.get(lang, "200"),
+						language.get(lang, "201"),
+						language.get(lang, "202"),
+						language.get(lang, "203"),
+						language.get(lang, "204"),
+						language.get(lang, "205")]
+						[day],
+						config.plugins.IPToSAT.cardday[day]))
+					if config.plugins.IPToSAT.cardday[day].value:
+						self.list.append(getConfigListEntry(language.get(lang, "197"),
+							config.plugins.IPToSAT.timecardoff[day]))
+						self.list.append(getConfigListEntry(language.get(lang, "198"),
+							config.plugins.IPToSAT.timecardon[day]))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
@@ -594,10 +598,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if BoxInfo.getItem("distro") == "norhap":
 			now = localtime(time())
 			current_day = int(now.tm_wday)
-			if config.plugins.IPToSAT.timecardon[current_day].value:  # ignore timer ON for not current day
-				self.timercardOn = TimerOnCard(self)  # card ON timer start
-			if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
-				self.timercardOff = TimerOffCard(self)  # card OFF timer start
+			if config.plugins.IPToSAT.timerscard.value:
+				if config.plugins.IPToSAT.timecardon[current_day].value:  # ignore timer ON for not current day
+					self.timercardOn = TimerOnCard(self)  # card ON timer start
+				if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
+					self.timercardOff = TimerOffCard(self)  # card OFF timer start
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
@@ -916,7 +921,7 @@ class IPToSAT(Screen):
 		except Exception:
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		if BoxInfo.getItem("distro") == "norhap":
-			if config.plugins.IPToSAT.cardday[day].value:
+			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard(self)  # card timer initializer off from reboot
 				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
