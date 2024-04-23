@@ -24,7 +24,7 @@ from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ConfigList import ConfigListScreen
 from Components.MenuList import MenuList
 from Components.Label import Label
-from Components.SystemInfo import BoxInfo
+from Components.SystemInfo import BoxInfo, SystemInfo
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
 from Components.Harddisk import harddiskmanager
@@ -126,14 +126,23 @@ config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), 
 config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang, "188"), fixed_size=False)
 config.plugins.IPToSAT.timebouquets = ConfigClock(default=64800)
 if BoxInfo.getItem("distro") == "norhap":
+	config.plugins.IPToSAT.sequencetimers = ConfigYesNo(default=False)
 	config.plugins.IPToSAT.timerscard = ConfigYesNo(default=False)
 	config.plugins.IPToSAT.timecardon = ConfigSubDict()
 	config.plugins.IPToSAT.timecardoff = ConfigSubDict()
 	config.plugins.IPToSAT.cardday = ConfigSubDict()
-	for day in range(7):
+	for day in range(0, 2):
 		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
-		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60 + 0) * 60))
-		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((20 * 60 + 0) * 60))
+		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
+		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((20 * 60 + 5) * 60))
+	for day in range(1, 5):
+		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
+		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
+		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((19 * 60 + 30) * 60))
+	for day in range(5, 7):
+		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
+		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
+		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((11 * 60) * 60))
 
 
 def typeselectcategorie():
@@ -236,15 +245,6 @@ def getUserDataSuscription():
 		print("ERROR: %s" % str(err))
 
 
-def getStartupService():
-	with open("/etc/enigma2/settings", "r") as fr:
-		for ref in fr.readlines():
-			if "startupservice=" in ref:
-				startupservice = ref.split('=')[1]
-				return startupservice
-		return None
-
-
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
@@ -307,7 +307,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["key_yellow"] = StaticText("")  # noqa: F821
 		self["key_blue"] = StaticText("")  # noqa: F821
 		self["footnote"] = Label("")  # noqa: F821
-		self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
+		try:
+			self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
+		except:
+			self.currentservice = False
 		self.timerupdatebouquets = config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
@@ -387,6 +390,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.list.append(getConfigListEntry(language.get(lang, "209"),
 				config.plugins.IPToSAT.timerscard))
 			if config.plugins.IPToSAT.timerscard.value:
+				if SystemInfo["FbcTunerPowerAlwaysOn"]:
+					self.list.append(getConfigListEntry(language.get(lang, "210"),
+						config.plugins.IPToSAT.sequencetimers, language.get(lang, "211")))
 				for day in range(7):
 					self.list.append(getConfigListEntry([
 						language.get(lang, "199"),
@@ -528,10 +534,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "195"))
 						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-						if "http" not in self.currentservice and getStartupService():
-							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
-							eConsoleAppContainer().execute(f'sleep 3 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={self.currentservice}')
-							return
+						if self.currentservice:
+							if "http" not in self.currentservice and config.servicelist.startupservice.value:
+								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+								eConsoleAppContainer().execute(f'sleep 3 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+								return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -551,11 +558,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "194"))
 						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-						if "http" not in self.currentservice and getStartupService():
-							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
-							sleep(0.1)
-							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={self.currentservice}')
-							return
+						if self.currentservice:
+							if "http" not in self.currentservice and config.servicelist.startupservice.value:
+								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+								sleep(0.1)
+								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+								return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -598,6 +606,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if BoxInfo.getItem("distro") == "norhap":
 			now = localtime(time())
 			current_day = int(now.tm_wday)
+			if config.plugins.IPToSAT.sequencetimers.value:
+				config.plugins.IPToSAT.timecardon[current_day] = ConfigClock(default=((20 * 60 + 15) * 60))
+				config.plugins.IPToSAT.timecardon[current_day].value = config.plugins.IPToSAT.timecardon[current_day].default
+				config.plugins.IPToSAT.timecardon[current_day].save()
+				config.plugins.IPToSAT.timecardoff[current_day] = ConfigClock(default=((20 * 60 + 20) * 60))
+				config.plugins.IPToSAT.timecardoff[current_day].value = config.plugins.IPToSAT.timecardoff[current_day].default
+				config.plugins.IPToSAT.timecardoff[current_day].save()
 			if config.plugins.IPToSAT.timerscard.value:
 				if config.plugins.IPToSAT.timecardon[current_day].value:  # ignore timer ON for not current day
 					self.timercardOn = TimerOnCard(self)  # card ON timer start
@@ -787,10 +802,67 @@ class TimerOffCard:
 			cardofftime = -1
 		return cardofftime
 
+	def sequencetimers(self, currentservice):
+		eConsoleAppContainer().execute("sleep 625 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 628 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 900 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 903 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 1530 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 1533 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 1800 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 1803 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 2430 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 2433 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 2700 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 2703 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 3330 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 3333 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 3600 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 3603 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 4230 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 4233 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 4500 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 4503 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 5130 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 5133 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 5400 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 5403 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 6030 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 6033 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 6300 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 6303 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 6930 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 6933 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 7200 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 7203 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 7830 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 7833 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 8100 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 8103 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 8730 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsonall ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsoncard " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 8733 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		eConsoleAppContainer().execute("sleep 9000 ; mv " + PLAYLIST_PATH + " " + ENIGMA2_PATH_LISTS + "iptosatjsoncard ; mv " + ENIGMA2_PATH_LISTS + "iptosatjsonall " + PLAYLIST_PATH + " ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services " + FILES_TUXBOX + "/config/oscam/oscam.services.card ; mv " + FILES_TUXBOX + "/config/oscam/oscam.services.no.card " + FILES_TUXBOX + f'/config/oscam/oscam.services && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+		eConsoleAppContainer().execute(f'sleep 9003 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+		config.plugins.IPToSAT.sequencetimers.value = False
+		config.plugins.IPToSAT.sequencetimers.save()
+		now = localtime(time())
+		current_day = int(now.tm_wday)
+		config.plugins.IPToSAT.timecardoff[current_day] = ConfigClock(default=((19 * 60 + 30) * 60))
+		config.plugins.IPToSAT.timecardoff[current_day].value = config.plugins.IPToSAT.timecardoff[current_day].default
+		config.plugins.IPToSAT.timecardoff[current_day].save()
+		config.plugins.IPToSAT.timecardon[current_day] = ConfigClock(default=((23 * 60) * 60))
+		config.plugins.IPToSAT.timecardon[current_day].value = config.plugins.IPToSAT.timecardon[current_day].default
+		config.plugins.IPToSAT.timecardon[current_day].save()
+
 	def iptosatCardOffTimer(self):
+		import Screens.Standby  # noqa: E402
 		self.cardofftimer.stop()
 		now = int(time())
 		cardoff = self.getTimeOffCard()
+		if not Screens.Standby.inStandby:
+			currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+			if not SystemInfo["FbcTunerPowerAlwaysOn"]:
+				config.servicelist.startupservice.value = currentservice
 		if cardoff - now < 60 and not NavigationInstance.instance.getRecordings():
 			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
 				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
@@ -799,11 +871,17 @@ class TimerOffCard:
 						move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-						currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
-						if "http" not in currentservice and getStartupService():
-							eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
-							eConsoleAppContainer().execute(f'sleep 3 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
+						if not Screens.Standby.inStandby:
+							if "http" not in currentservice:
+								if SystemInfo["FbcTunerPowerAlwaysOn"]:
+									eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+									eConsoleAppContainer().execute(f'sleep 3 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice} && /etc/init.d/softcam.oscam stop && sleep 10 && /etc/init.d/softcam.oscam restart')
+								else:
+									eConsoleAppContainer().execute('/etc/init.d/softcam.oscam stop && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/powerstate?newstate=5 && sleep 2 && wget -O /dev/null -q http://127.0.0.1/web/powerstate?newstate=4')
+							if config.plugins.IPToSAT.sequencetimers.value and SystemInfo["FbcTunerPowerAlwaysOn"]:
+								self.sequencetimers(currentservice)
+						else:
+							eConsoleAppContainer().execute('/etc/init.d/softcam.oscam restart')
 					elif exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -867,6 +945,7 @@ class TimerOnCard:
 		return cardontime
 
 	def iptosatCardOnTimer(self):
+		import Screens.Standby  # noqa: E402
 		self.cardontimer.stop()
 		now = int(time())
 		cardon = self.getTimeOnCard()
@@ -877,11 +956,12 @@ class TimerOnCard:
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
-				currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
-				if "http" not in currentservice and getStartupService():
-					eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
-					sleep(0.1)
-					eConsoleAppContainer().execute(f'sleep 1 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
+				if not Screens.Standby.inStandby:
+					currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+					if "http" not in currentservice and config.servicelist.startupservice.value:
+						eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+						sleep(0.1)
+						eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 			elif not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -2032,8 +2112,8 @@ class AssignService(ChannelSelectionBase):
 							self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 							return
 						currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
-						if "http" not in currentservice and getStartupService():
-							eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={getStartupService()}')
+						if "http" not in currentservice and config.servicelist.startupservice.value:
+							eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
@@ -2100,7 +2180,7 @@ class AssignService(ChannelSelectionBase):
 						self.secondSuscription = False
 				self.getUserData()
 				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice and not self.session.nav.getRecordings():
-					eConsoleAppContainer().execute(f'sleep 6 && wget -q -O /dev/null http://root:password@127.0.0.1/web/zap?sRef={currentservice}')
+					eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 				if fileExists(CONFIG_PATH):
 					getUserDataSuscription()
 				self["codestatus"].hide()

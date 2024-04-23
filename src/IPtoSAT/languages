@@ -209,6 +209,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 207 = You must keep at least TWO bouquets on this list: the one you are going to keep, plus the one above or below it.
 208 = A recording is in progress: you cannot perform this action.
 209 = Use card timers
+210 = Use outage timers
+211 = Activated, alternates the card with IPTV during outages.\nIt is recommended NOT to activate it if it is a large audience event.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -420,3 +422,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 207 = Debe mantener al menos DOS bouquets en esta lista: el que va a conservar, más el que está encima o debajo.
 208 = Existe una grabación en curso: no puede realizar esta acción.
 209 = Usar temporizadores para la tarjeta
+210 = Usar temporizadores de cortes
+211 = Activado, alterna la tarjeta con IPTV en tiempos de cortes.\nSe recomienda NO activarlo si es un evento de gran audiencia.
