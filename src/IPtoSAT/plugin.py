@@ -1,4 +1,4 @@
-from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eTimer, gRGB, eConsoleAppContainer, getDesktop
+from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eDVBDB, eTimer, gRGB, eConsoleAppContainer, getDesktop
 from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
 from requests import get
 from urllib.request import urlopen, Request
@@ -62,6 +62,7 @@ VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 BOUQUETS_TV = "/etc/enigma2/bouquets.tv"
+BOUQUET_LAST_SCANNED = "userbouquet.LastScanned.tv"
 BOUQUET_IPTV_NORHAP = "/etc/enigma2/userbouquet.iptosat_norhap.tv"
 WILD_CARD_BOUQUET_IPTV_NORHAP = "/etc/enigma2/wildcardbouquetnorhap"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
@@ -465,6 +466,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x()
 
 	def keySave(self):
+		if config.plugins.IPToSAT.typecategories.value == "none":
+			self.deleteBouquetsNorhap()
 		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
@@ -499,8 +502,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				else:
 					if fileContains(ALL_CATEGORIES, ":"):
 						move(ALL_CATEGORIES, CONFIG_PATH_CATEGORIES)
-		if config.plugins.IPToSAT.typecategories.value == "none":
-			self.deleteBouquetsNorhap()
 		AssignService(self)
 		self.saveiptosatconf()
 		ConfigListScreen.keySave(self)
@@ -618,6 +619,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.timercardOn = TimerOnCard(self)  # card ON timer start
 				if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
 					self.timercardOff = TimerOffCard(self)  # card OFF timer start
+		if fileContains(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "Last Scanned") and lang != "en":
+			with open(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "r") as fr:
+				bouquetread = fr.readlines()
+				with open(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "w") as bouquetswrite:
+					for line in bouquetread:
+						bouquetswrite.write(line.replace("#NAME Last Scanned", "#NAME " + language.get(lang, "212")))
+			eDVBDB.getInstance().reloadBouquets()
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
@@ -643,7 +651,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
 			if enigma2files:
 				remove(enigma2files)
-			eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
+		eConsoleAppContainer().execute('sleep 3 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
 
 
 class TimerUpdateCategories:
@@ -745,7 +753,7 @@ class TimerUpdateCategories:
 					with open(CATEGORIES_TIMER_OK, "w") as fw:
 						now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 						fw.write(now)
-					eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+					eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 				else:
@@ -1588,7 +1596,8 @@ class AssignService(ChannelSelectionBase):
 									newbouquetstvwrite.write(linesbouquet)
 					move(WILD_CARD_BOUQUETSTV, BOUQUETS_TV)
 					copy(IPToSAT_EPG, ENIGMA2_PATH)
-					eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
+					eDVBDB.getInstance().reloadBouquets()
+					eDVBDB.getInstance().reloadServicelist()
 					self.session.open(MessageBox, "Bouquet" + " " + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "80"), MessageBox.TYPE_INFO, simple=True, timeout=5)
 				else:
 					self.session.open(MessageBox, FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + " " + language.get(lang, "82"), MessageBox.TYPE_INFO)
@@ -1792,7 +1801,7 @@ class AssignService(ChannelSelectionBase):
 							if exists(str(BUILDBOUQUETS_FILE)):
 								move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 							sleep(3)
-							eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+							eConsoleAppContainer().execute('python ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 							if self.storage:
 								eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 							self["helpbouquetepg"].hide()
@@ -1932,7 +1941,8 @@ class AssignService(ChannelSelectionBase):
 											if "#NAME" not in linesbouquet:
 												newbouquetstvwrite.write(linesbouquet)
 								move(WILD_CARD_BOUQUETSTV, BOUQUETS_TV)
-							eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
+							eDVBDB.getInstance().reloadBouquets()
+							eDVBDB.getInstance().reloadServicelist()
 						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE") and fileContains(IPToSAT_EPG_PATH, sref.upper()):
 							self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
@@ -2018,7 +2028,8 @@ class AssignService(ChannelSelectionBase):
 									if "#NAME" not in linesbouquet:
 										newbouquetstvwrite.write(linesbouquet)
 								move(WILD_CARD_BOUQUETSTV, BOUQUETS_TV)
-					eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
+					eDVBDB.getInstance().reloadBouquets()
+					eDVBDB.getInstance().reloadServicelist()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
 			self.resultEditionBouquets(epg_channel_name, sref, bouquetname)

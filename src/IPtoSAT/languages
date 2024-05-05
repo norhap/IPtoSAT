@@ -211,6 +211,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 209 = Use card timers
 210 = Use outage timers
 211 = Activated, alternates the card with IPTV during outages.\nIt is recommended NOT to activate it if it is a large audience event.
+212 = Last Scanned
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -424,3 +425,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 209 = Usar temporizadores para la tarjeta
 210 = Usar temporizadores de cortes
 211 = Activado, alterna la tarjeta con IPTV en tiempos de cortes.\nSe recomienda NO activarlo si es un evento de gran audiencia.
+212 = Último Escaneo
