@@ -62,7 +62,6 @@ VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
 BOUQUETS_TV = "/etc/enigma2/bouquets.tv"
-BOUQUET_LAST_SCANNED = "userbouquet.LastScanned.tv"
 BOUQUET_IPTV_NORHAP = "/etc/enigma2/userbouquet.iptosat_norhap.tv"
 WILD_CARD_BOUQUET_IPTV_NORHAP = "/etc/enigma2/wildcardbouquetnorhap"
 WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
@@ -619,13 +618,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.timercardOn = TimerOnCard(self)  # card ON timer start
 				if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
 					self.timercardOff = TimerOffCard(self)  # card OFF timer start
-		if fileContains(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "Last Scanned") and lang != "en":
-			with open(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "r") as fr:
-				bouquetread = fr.readlines()
-				with open(ENIGMA2_PATH_LISTS + BOUQUET_LAST_SCANNED, "w") as bouquetswrite:
-					for line in bouquetread:
-						bouquetswrite.write(line.replace("#NAME Last Scanned", "#NAME " + language.get(lang, "212")))
-			eDVBDB.getInstance().reloadBouquets()
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
