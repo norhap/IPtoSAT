@@ -2101,6 +2101,7 @@ class AssignService(ChannelSelectionBase):
 		if self.storage:
 			self["helpbouquetepg"].hide()
 			try:
+				currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if not exists(str(self.alternatefolder)):
 					makedirs(self.alternatefolder)
 				if BoxInfo.getItem("distro") == "norhap":
@@ -2114,9 +2115,17 @@ class AssignService(ChannelSelectionBase):
 						elif self.session.nav.getRecordings():
 							self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 							return
-						currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 						if "http" not in currentservice and config.servicelist.startupservice.value:
 							eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+				else:
+					if not exists(str(self.iptosatconfalternate)) and not exists(str(self.iptosatlist1conf)) and not exists(str(self.iptosatlist2conf)):
+						self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "206"), MessageBox.TYPE_INFO)
+						return
+					elif self.session.nav.getRecordings():
+						self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
+						return
+					if "http" not in currentservice and config.servicelist.startupservice.value:
+						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
@@ -2182,8 +2191,12 @@ class AssignService(ChannelSelectionBase):
 							move(self.iptosatjsonalternate, self.iptosatlist2json)
 						self.secondSuscription = False
 				self.getUserData()
-				if BoxInfo.getItem("distro") == "norhap" and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice and not self.session.nav.getRecordings():
-					eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+				if BoxInfo.getItem("distro") == "norhap":
+					if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice and not self.session.nav.getRecordings():
+						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+				else:
+					if "http" not in currentservice and not self.session.nav.getRecordings():
+						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 				if fileExists(CONFIG_PATH):
 					getUserDataSuscription()
 				self["codestatus"].hide()
