@@ -440,7 +440,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.fccsetup.maxfcc.save()
 					config.usage.remote_fallback_enabled.value = False
 					config.usage.remote_fallback_enabled.save()
-					self.session.open(TryQuitMainloop, 3)
+					if not self.session.nav.getRecordings():
+						self.session.open(TryQuitMainloop, 3)
 			except Exception:
 				pass
 
@@ -533,11 +534,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "195"))
-						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
 						if self.currentservice:
-							if "http" not in self.currentservice and config.servicelist.startupservice.value:
-								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
-								eConsoleAppContainer().execute(f'sleep 3 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+							if "http" not in self.currentservice:
+								self.session.nav.stopService()
+								eConsoleAppContainer().execute(f'sleep 2 && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
 								return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
@@ -557,12 +557,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						self["key_blue"].setText(language.get(lang, "194"))
-						eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
 						if self.currentservice:
-							if "http" not in self.currentservice and config.servicelist.startupservice.value:
-								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
-								sleep(0.1)
-								eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+							if "http" not in self.currentservice:
+								self.session.nav.stopService()
+								eConsoleAppContainer().execute(f'sleep 1 && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
 								return
 					else:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
@@ -860,9 +858,10 @@ class TimerOffCard:
 		now = int(time())
 		cardoff = self.getTimeOffCard()
 		if not Screens.Standby.inStandby:
-			currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
-			if not SystemInfo["FbcTunerPowerAlwaysOn"]:
-				config.servicelist.startupservice.value = currentservice
+			try:
+				currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+			except Exception:
+				return
 		if cardoff - now < 60 and not NavigationInstance.instance.getRecordings():
 			if exists(str(PLAYLIST_PATH)) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services")):
 				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
@@ -872,12 +871,10 @@ class TimerOffCard:
 						move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.card")
 						move(FILES_TUXBOX + "/config/oscam/oscam.services.no.card", FILES_TUXBOX + "/config/oscam/oscam.services")
 						if not Screens.Standby.inStandby:
-							if "http" not in currentservice:
-								if SystemInfo["FbcTunerPowerAlwaysOn"]:
-									eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
-									eConsoleAppContainer().execute(f'sleep 3 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice} && /etc/init.d/softcam.oscam stop && sleep 10 && /etc/init.d/softcam.oscam restart')
-								else:
-									eConsoleAppContainer().execute('/etc/init.d/softcam.oscam stop && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/powerstate?newstate=5 && sleep 2 && wget -O /dev/null -q http://127.0.0.1/web/powerstate?newstate=4')
+							if currentservice:
+								if "http" not in currentservice:
+									NavigationInstance.instance.stopService()
+									eConsoleAppContainer().execute(f'sleep 2 && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 							if config.plugins.IPToSAT.sequencetimers.value and SystemInfo["FbcTunerPowerAlwaysOn"]:
 								self.sequencetimers(currentservice)
 						else:
@@ -955,13 +952,15 @@ class TimerOnCard:
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
-				eConsoleAppContainer().execute("sleep 1 && /etc/init.d/softcam.oscam restart")
 				if not Screens.Standby.inStandby:
-					currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
-					if "http" not in currentservice and config.servicelist.startupservice.value:
-						eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
-						sleep(0.1)
-						eConsoleAppContainer().execute(f'sleep 1 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+					try:
+						currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+					except Exception:
+						return
+					if currentservice:
+						if "http" not in currentservice:
+							NavigationInstance.instance.stopService()
+							eConsoleAppContainer().execute(f'sleep 1 && /etc/init.d/softcam.oscam restart && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 			elif not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(FILES_TUXBOX + "/config/oscam/oscam.services.card")):
 				move(FILES_TUXBOX + "/config/oscam/oscam.services", FILES_TUXBOX + "/config/oscam/oscam.services.no.card")
 				move(FILES_TUXBOX + "/config/oscam/oscam.services.card", FILES_TUXBOX + "/config/oscam/oscam.services")
@@ -2116,7 +2115,7 @@ class AssignService(ChannelSelectionBase):
 							self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 							return
 						if "http" not in currentservice and config.servicelist.startupservice.value:
-							eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+							self.session.nav.stopService()
 				else:
 					if not exists(str(self.iptosatconfalternate)) and not exists(str(self.iptosatlist1conf)) and not exists(str(self.iptosatlist2conf)):
 						self.session.open(MessageBox, language.get(lang, "40") + "\n\n" + self.alternatefolder + "/" + "\n\n" + language.get(lang, "206"), MessageBox.TYPE_INFO)
@@ -2125,7 +2124,7 @@ class AssignService(ChannelSelectionBase):
 						self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 						return
 					if "http" not in currentservice and config.servicelist.startupservice.value:
-						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={config.servicelist.startupservice.value}')
+						self.session.nav.stopService()
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
