@@ -1452,7 +1452,7 @@ class AssignService(ChannelSelectionBase):
 		self.resetWidget()
 
 	def getUserData(self):
-		listsuscription = join(self.alternatefolder, "iptosat_LIST1.conf")
+		listsuscription = join(str(self.alternatefolder), "iptosat_LIST1.conf")
 		if exists(str(listsuscription)):
 			self.secondSuscription = True
 		self["titleSuscriptionList"].setText(language.get(lang, "12")) if not self.secondSuscription else self["titleSuscriptionList"].setText(language.get(lang, "44"))
