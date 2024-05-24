@@ -871,7 +871,7 @@ class TimerOffCard:
 				currentservice = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
 			except Exception:
 				return
-		if cardoff - now < 60 and not NavigationInstance.instance.getRecordings():
+		if cardoff - now < 60 and not NavigationInstance.instance.getRecordings() and config.plugins.IPToSAT.timerscard.value:
 			if exists(str(PLAYLIST_PATH)) and exists(str(OSCAM_SERVICES)):
 				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 					if exists(str(OSCAM_NO_CARD)):
@@ -956,7 +956,7 @@ class TimerOnCard:
 		self.cardontimer.stop()
 		now = int(time())
 		cardon = self.getTimeOnCard()
-		if cardon - now < 60 and not NavigationInstance.instance.getRecordings():
+		if cardon - now < 60 and not NavigationInstance.instance.getRecordings() and config.plugins.IPToSAT.timerscard.value:
 			if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(OSCAM_CARD)):
 				move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 				move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
