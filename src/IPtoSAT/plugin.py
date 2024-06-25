@@ -537,55 +537,57 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
 	def IPToSATWithCardOrFull(self):
-		if BoxInfo.getItem("distro") in ("norhap", "openspa") and not self.session.nav.getRecordings() and exists(str(OSCAM_SERVER)):
-			if exists(str(PLAYLIST_PATH)) and exists(str(OSCAM_SERVICES)):
-				if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
-					if exists(str(OSCAM_NO_CARD)):
-						move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
-						move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
-						move(OSCAM_SERVICES, OSCAM_CARD)
-						move(OSCAM_NO_CARD, OSCAM_SERVICES)
-						self["key_blue"].setText(language.get(lang, "195"))
-						if self.currentservice:
-							if "http" not in self.currentservice:
-								self.session.nav.stopService()
-								eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
-								return
-					else:
-						move(OSCAM_SERVICES, OSCAM_NO_CARD)
-						move(OSCAM_CARD, OSCAM_SERVICES)
+		if not self.session.nav.getRecordings():
+			if BoxInfo.getItem("distro") in ("norhap", "openspa") and exists(str(OSCAM_SERVER)):
+				if exists(str(PLAYLIST_PATH)) and exists(str(OSCAM_SERVICES)):
+					if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 						if exists(str(OSCAM_NO_CARD)):
 							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 							move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
 							move(OSCAM_SERVICES, OSCAM_CARD)
 							move(OSCAM_NO_CARD, OSCAM_SERVICES)
 							self["key_blue"].setText(language.get(lang, "195"))
-							eConsoleAppContainer().execute("sleep 1 && " + RESTART_OSCAM)
-							return
-				elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
-					if exists(str(OSCAM_CARD)):
-						move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
-						move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
-						move(OSCAM_SERVICES, OSCAM_NO_CARD)
-						move(OSCAM_CARD, OSCAM_SERVICES)
-						self["key_blue"].setText(language.get(lang, "194"))
-						if self.currentservice:
-							if "http" not in self.currentservice:
-								self.session.nav.stopService()
-								eConsoleAppContainer().execute('sleep 1 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+							if self.currentservice:
+								if "http" not in self.currentservice:
+									self.session.nav.stopService()
+									eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+									return
+						else:
+							move(OSCAM_SERVICES, OSCAM_NO_CARD)
+							move(OSCAM_CARD, OSCAM_SERVICES)
+							if exists(str(OSCAM_NO_CARD)):
+								move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
+								move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
+								move(OSCAM_SERVICES, OSCAM_CARD)
+								move(OSCAM_NO_CARD, OSCAM_SERVICES)
+								self["key_blue"].setText(language.get(lang, "195"))
+								eConsoleAppContainer().execute("sleep 1 && " + RESTART_OSCAM)
 								return
-					else:
-						move(OSCAM_SERVICES, OSCAM_CARD)
-						move(OSCAM_NO_CARD, OSCAM_SERVICES)
+					elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
 						if exists(str(OSCAM_CARD)):
 							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 							move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 							move(OSCAM_SERVICES, OSCAM_NO_CARD)
 							move(OSCAM_CARD, OSCAM_SERVICES)
 							self["key_blue"].setText(language.get(lang, "194"))
-							eConsoleAppContainer().execute("sleep 1 && " + RESTART_OSCAM)
-		elif BoxInfo.getItem("distro") in ("norhap", "openspa"):
-			self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
+							if self.currentservice:
+								if "http" not in self.currentservice:
+									self.session.nav.stopService()
+									eConsoleAppContainer().execute('sleep 1 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+									return
+						else:
+							move(OSCAM_SERVICES, OSCAM_CARD)
+							move(OSCAM_NO_CARD, OSCAM_SERVICES)
+							if exists(str(OSCAM_CARD)):
+								move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
+								move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
+								move(OSCAM_SERVICES, OSCAM_NO_CARD)
+								move(OSCAM_CARD, OSCAM_SERVICES)
+								self["key_blue"].setText(language.get(lang, "194"))
+								eConsoleAppContainer().execute("sleep 1 && " + RESTART_OSCAM)
+		else:
+			if BoxInfo.getItem("distro") in ("norhap", "openspa"):
+				self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 
 	def keyCancel(self):
 		ConfigListScreen.keyCancel(self)
