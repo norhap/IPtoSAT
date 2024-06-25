@@ -16,7 +16,7 @@ from sys import stdout
 from RecordTimer import RecordTimerEntry
 from ServiceReference import ServiceReference
 from timer import TimerEntry
-from Tools.Directories import SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
+from Tools.Directories import SCOPE_CONFIG, SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
 from Plugins.Plugin import PluginDescriptor
 from Components.config import config, getConfigListEntry, ConfigClock, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection, ConfigEnableDisable, ConfigSubDict
 from Components.ActionMap import ActionMap
@@ -36,38 +36,37 @@ import NavigationInstance
 
 screenWidth = getDesktop(0).size().width()
 MODEL = getBoxType()
-PLAYLIST_PATH = "/etc/enigma2/iptosat.json"
-CHANNELS_LISTS_PATH = "/etc/enigma2/iptosatchlist.json"
-SUSCRIPTION_USER_DATA = "/etc/enigma2/suscriptiondata"
+PLAYLIST_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.json")
+CHANNELS_LISTS_PATH = resolveFilename(SCOPE_CONFIG, "iptosatchlist.json")
+SUSCRIPTION_USER_DATA = resolveFilename(SCOPE_CONFIG, "suscriptiondata")
 BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
 BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
-REFERENCES_FILE = "/etc/enigma2/iptosatreferences"
-CONFIG_PATH_CATEGORIES = "/etc/enigma2/iptosatcategories.json"
-WILD_CARD_ALL_CATEGORIES = "/etc/enigma2/iptosatcatall"
-WILD_CARD_CATYOURLIST = "/etc/enigma2/iptosatyourcatall"
+REFERENCES_FILE = resolveFilename(SCOPE_CONFIG, "iptosatreferences")
+CONFIG_PATH_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategories.json")
+WILD_CARD_ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcatall")
+WILD_CARD_CATYOURLIST = resolveFilename(SCOPE_CONFIG, "iptosatyourcatall")
 BACKUP_CATEGORIES = "iptosatyourcatbackup"
-WILD_CARD_CATEGORIES_FILE = "/etc/enigma2/wildcardcategories"
-ALL_CATEGORIES = "/etc/enigma2/iptosatcategoriesall.json"
+WILD_CARD_CATEGORIES_FILE = resolveFilename(SCOPE_CONFIG, "wildcardcategories")
+ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategoriesall.json")
 CATEGORIES_TIMER_OK = "/tmp/timercatiptosat.log"
 TIMER_OK = ""
 CATEGORIES_TIMER_ERROR = "/tmp/timercatiptosat_error.log"
 TIMER_ERROR = ""
 USER_LIST_CATEGORIE_CHOSEN = ""
 USER_EDIT_CATEGORIE = ""
-READ_M3U = "/etc/enigma2/readm3u.txt"
-CONFIG_PATH = "/etc/enigma2/iptosat.conf"
+READ_M3U = resolveFilename(SCOPE_CONFIG, "readm3u.txt")
+CONFIG_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.conf")
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
-IPToSAT_EPG_PATH = "/etc/enigma2/userbouquet.iptosat_epg.tv"
+IPToSAT_EPG_PATH = resolveFilename(SCOPE_CONFIG, "userbouquet.iptosat_epg.tv")
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
-BOUQUETS_TV = "/etc/enigma2/bouquets.tv"
-BOUQUET_IPTV_NORHAP = "/etc/enigma2/userbouquet.iptosat_norhap.tv"
-WILD_CARD_BOUQUET_IPTV_NORHAP = "/etc/enigma2/wildcardbouquetnorhap"
-WILD_CARD_EPG_FILE = "/etc/enigma2/wildcardepg"
-WILD_CARD_BOUQUETSTV = "/etc/enigma2/wildcardbouquetstv"
+BOUQUETS_TV = resolveFilename(SCOPE_CONFIG, "bouquets.tv")
+BOUQUET_IPTV_NORHAP = resolveFilename(SCOPE_CONFIG, "userbouquet.iptosat_norhap.tv")
+WILD_CARD_EPG_FILE = resolveFilename(SCOPE_CONFIG, "wildcardepg")
+WILD_CARD_BOUQUETSTV = resolveFilename(SCOPE_CONFIG, "wildcardbouquetstv")
 ENIGMA2_PATH = "/etc/enigma2"
-ENIGMA2_PATH_LISTS = "/etc/enigma2/"
+ENIGMA2_PATH_LISTS = resolveFilename(SCOPE_CONFIG)
 FILES_TUXBOX = "/etc/tuxbox"
 FOLDER_OSCAM = "/config/oscam/" if BoxInfo.getItem("distro") == "norhap" else "/config/oscam_1.20/"
 RESTART_OSCAM = "/etc/init.d/softcam.oscam restart" if BoxInfo.getItem("distro") == "norhap" else "/usr/script/Oscam_1.20_cam.sh stop && /usr/script/Oscam_1.20_cam.sh start"
