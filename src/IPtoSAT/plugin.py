@@ -2116,7 +2116,7 @@ class AssignService(ChannelSelectionBase):
 				if not exists(str(self.alternatefolder)):
 					makedirs(self.alternatefolder)
 				if BoxInfo.getItem("distro") in ("norhap", "openspa"):
-					if not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(OSCAM_SERVER)):
+					if not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(OSCAM_SERVER)) and exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 						self.session.open(MessageBox, language.get(lang, "55"), MessageBox.TYPE_INFO, simple=True)
 						return
 					else:
