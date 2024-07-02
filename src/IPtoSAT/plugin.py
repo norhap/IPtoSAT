@@ -282,8 +282,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		</widget>
 		<widget source="session.VideoPicture" render="Pig" position="985,10" size="870,500" zPosition="1" backgroundColor="#df0b1300"/>
 		<widget name="HelpWindow" position="1010,855" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
-		<widget name="description" font="Regular;26" position="985,520" size="860,320" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
-		<widget name="footnote" conditional="footnote" position="985,842" size="860,80" foregroundColor="#0086dc3d" font="Regular;25" transparent="1" zPosition="3" />
+		<widget name="description" font="Regular;26" position="985,520" size="860,280" foregroundColor="#00e5e619" transparent="1" verticalAlignment="top"/>
+		<widget name="footnote" conditional="footnote" position="985,802" size="860,120" foregroundColor="#0086dc3d" font="Regular;25" transparent="1" zPosition="3" />
 	</screen>"""
 
 	def __init__(self, session):
@@ -541,6 +541,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if exists(str(PLAYLIST_PATH)) and exists(str(OSCAM_SERVICES)):
 					if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsonall")):
 						if exists(str(OSCAM_NO_CARD)):
+							self["footnote"].setText(language.get(lang, "212"))
 							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 							move(ENIGMA2_PATH_LISTS + "iptosatjsonall", PLAYLIST_PATH)
 							move(OSCAM_SERVICES, OSCAM_CARD)
@@ -564,6 +565,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 								return
 					elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
 						if exists(str(OSCAM_CARD)):
+							self["footnote"].setText(language.get(lang, "213"))
 							move(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsonall")
 							move(ENIGMA2_PATH_LISTS + "iptosatjsoncard", PLAYLIST_PATH)
 							move(OSCAM_SERVICES, OSCAM_NO_CARD)
