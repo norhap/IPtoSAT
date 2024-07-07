@@ -34,6 +34,21 @@ from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 import NavigationInstance
 
+
+def playersList():
+	if fileExists('/var/lib/dpkg/status'):
+		# Fixed DreamOS by. audi06_19 , gst-play-1.0
+		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
+	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
+		return [("gstplayer", "GstPlayer")]
+	else:
+		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
+
+
+LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
+lang = config.osd.language.value[:-3] if fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]") else "en"
+language = ConfigParser()
+language.read(LANGUAGE_PATH, encoding="utf8")
 screenWidth = getDesktop(0).size().width()
 MODEL = getBoxType()
 PLAYLIST_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.json")
@@ -57,7 +72,6 @@ USER_EDIT_CATEGORIE = ""
 READ_M3U = resolveFilename(SCOPE_CONFIG, "readm3u.txt")
 CONFIG_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.conf")
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
-LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
 IPToSAT_EPG_PATH = resolveFilename(SCOPE_CONFIG, "userbouquet.iptosat_epg.tv")
 FILE_IPToSAT_EPG = "userbouquet.iptosat_epg.tv"
@@ -78,41 +92,6 @@ OSCAM_NO_CARD = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services.no.card"
 OSCAM_SERVICES_IPTOSAT = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.no.card")
 OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.card")
 
-try:
-	if not fileContains(LANGUAGE_PATH, "[" + config.osd.language.value[:-3] + "]"):
-		lang = "en"
-	else:
-		from Components.Language import language
-		lang = language.getLanguage()
-		lang = lang[:2]
-except Exception:
-	try:
-		lang = config.osd.language.value[:-3]
-	except Exception:
-		lang = "en"
-
-try:
-	language = ConfigParser()
-	language.read(LANGUAGE_PATH, encoding="utf8")
-except Exception:
-	try:
-		lang = "en"
-		language = ConfigParser()
-		language.read(LANGUAGE_PATH, encoding="utf8")
-	except Exception:
-		pass
-
-
-def choices_list():
-	if fileExists('/var/lib/dpkg/status'):
-		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
-	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
-		return [("gstplayer", "GstPlayer")]
-	else:
-		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
-
-
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
@@ -121,7 +100,7 @@ config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.autotimerbouquets = ConfigYesNo(default=False)
-config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=choices_list())
+config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=playersList())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.typecategories = ConfigSelection(choices=[("live", language.get(lang, "148")), ("vod", language.get(lang, "149")), ("series", language.get(lang, "150")), ("all", language.get(lang, "157")), ("none", language.get(lang, "158"))], default="live")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
