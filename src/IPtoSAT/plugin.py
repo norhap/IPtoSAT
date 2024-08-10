@@ -1611,7 +1611,7 @@ class AssignService(ChannelSelectionBase):
 				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 					backupfilesenigma = join(self.backupdirectory, filesenigma2)
 					if backupfilesenigma:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "automounts.xml" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
@@ -1645,7 +1645,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
@@ -1677,10 +1677,10 @@ class AssignService(ChannelSelectionBase):
 			bouquetiptosatepg = ""
 			tuxboxfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
