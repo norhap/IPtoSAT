@@ -1529,7 +1529,7 @@ class AssignService(ChannelSelectionBase):
 					self.addChannel(channel_name, stream_id, sref, xtream_channel)
 
 	def addChannel(self, channel_name, stream_id, sref, xtream_channel):
-		if exists(str(OSCAM_NO_CARD)):
+		if exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
 			self['managerlistchannels'].show()
 			self.assignWidgetScript("#e5e619", language.get(lang, "196"))
 		playlist = getPlaylist()
