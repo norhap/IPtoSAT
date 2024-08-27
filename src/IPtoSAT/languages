@@ -215,6 +215,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 213 = In this mode: Use your subscription card or OSCam server to view satellite channels. Eliminate from your list of assigned channels those that you do not want to view through IPToSAT.
 214 = If you have started recording and you switch to channels on this tuner:\nThe recording will stop.\nPut the receiver in standby or switch to another channel on another tuner.
 215 = If you have started recording and you switch to channels on this tuner:\nThe recording will stop.\nPut the receiver in standby or switch to another channel on another tuner.\nWhen this recording is finished, log in to IPToSAT, your list will be updated.
+216 = You cannot record channels synchronized with IPToSAT.\nDelete the recording on your storage device.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -432,3 +433,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 213 = En este modo: Usa su tarjeta de abono o servidor OSCam para visionar los canales satélites. Elimine de su lista de canales asignados aquellos que no desee visionar a través de IPToSAT.
 214 = Si ha comenzado la grabación y cambia a canales en este sintonizador:\nLa grabación se detendrá.\nPonga el receptor en standby o cambie a otro canal en otro sintonizador.
 215 = Si ha comenzado la grabación y cambia a canales en este sintonizador:\nLa grabación se detendrá.\nPonga el receptor en standby o cambie a otro canal en otro sintonizador.\nCuando finalice esta grabación, ingrese en IPToSAT, su lista se actualizará.
+216 = No puede grabar canales sincronizados con IPToSAT.\nElimine la grabación en su dsipositivo de almacenamiento.
