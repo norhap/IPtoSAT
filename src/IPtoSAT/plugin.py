@@ -17,6 +17,7 @@ from RecordTimer import RecordTimerEntry
 from ServiceReference import ServiceReference
 from timer import TimerEntry
 from Tools.Directories import SCOPE_CONFIG, SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
+from Tools.Notifications import AddPopup
 from Plugins.Plugin import PluginDescriptor
 from Components.config import config, getConfigListEntry, ConfigClock, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection, ConfigEnableDisable, ConfigSubDict
 from Components.ActionMap import ActionMap
@@ -39,7 +40,7 @@ def playersList():
 	if fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
 		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
-	elif isPluginInstalled("FastChannelChange") and BoxInfo.getItem("distro") == "norhap":
+	elif isPluginInstalled("FastChannelChange"):
 		return [("gstplayer", "GstPlayer")]
 	else:
 		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
@@ -210,6 +211,16 @@ def getChannelsLists():
 				trace_error()
 	else:
 		return None
+
+
+def variousRecordings():
+	if exists(SUSCRIPTION_USER_DATA):
+		with open(SUSCRIPTION_USER_DATA, "r") as line:
+			for userdata in line:
+				max_connections = userdata.split('"max_connections": "')[1].split('", "allowed_output_formats"')[0]
+				if int(max_connections) > 1:
+					return True
+			return False
 
 
 def getUserDataSuscription():
@@ -421,7 +432,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				with open(CATEGORIES_TIMER_ERROR, "r") as fr:
 					TIMER_ERROR = fr.read()
 					self["footnote"] = Label(language.get(lang, "147") + " " + TIMER_ERROR)
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value:
+		if not self.session.nav.getRecordings():
+			if exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")) and exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
+				eConsoleAppContainer().execute('init 4 && sleep 5 && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb") + ' && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb5") + ' && init 3')
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value and not self.session.nav.getRecordings():
 			try:
 				if not config.plugins.fccsetup.activate.value:
 					config.plugins.fccsetup.activate.value = True
@@ -430,8 +444,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					config.plugins.fccsetup.maxfcc.save()
 					config.usage.remote_fallback_enabled.value = False
 					config.usage.remote_fallback_enabled.save()
-					if not self.session.nav.getRecordings():
-						self.session.open(TryQuitMainloop, 3)
+					self.session.open(TryQuitMainloop, 3)
 			except Exception:
 				pass
 
@@ -1014,6 +1027,22 @@ class IPToSAT(Screen):
 					self.ip_sat = True
 
 	def get_channel(self):
+		if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
+			if isPluginInstalled("FastChannelChange"):
+				from enigma import eFCCServiceManager  # noqa: E402
+				eFCCServiceManager.getInstance().setFCCEnable(0)
+				if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
+					copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
+				if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
+					copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
+			if self.ip_sat:
+				self.container.sendCtrlC()
+				self.ip_sat = False
+			if not variousRecordings():
+				self.__recordingInfo()
+			else:
+				if isPluginInstalled("FastChannelChange"):
+					self.session.nav.stopService()
 		service = self.session.nav.getCurrentService()
 		if service:
 			info = service and service.info()
@@ -1033,6 +1062,11 @@ class IPToSAT(Screen):
 
 	def __evStart(self):
 		self.Timer.start(1000)
+
+	def __recordingInfo(self):
+		self.container.sendCtrlC()
+		self.Timer.stop()
+		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
 		self.Timer.stop()
@@ -1632,8 +1666,11 @@ class AssignService(ChannelSelectionBase):
 				backupfiles = ""
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x]:
 					backupfiles = join(self.backupdirectory, files)
-					if backupfiles:
+					if backupfiles and not self.session.nav.getRecordings():
 						self.session.openWithCallback(self.doinstallChannelsList, MessageBox, language.get(lang, "71"), MessageBox.TYPE_YESNO)
+						break
+					elif self.session.nav.getRecordings():
+						self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
 						break
 					else:
 						self.session.open(MessageBox, language.get(lang, "70"), MessageBox.TYPE_ERROR, default=False, timeout=10)
@@ -2407,12 +2444,12 @@ class AssignService(ChannelSelectionBase):
 			if "null" not in exp_date:
 				if int(time()) < int(exp_date) and "Banned" not in status:
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "119"))
+						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
 					else:
 						if int(max_connections) == 2:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "120"))
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
 						else:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "121"))
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
 				elif int(time()) < int(exp_date):
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 				else:
@@ -2420,16 +2457,14 @@ class AssignService(ChannelSelectionBase):
 			else:
 				if "Banned" not in status:
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "119"))
+						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
 					else:
 						if int(max_connections) == 2:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "120"))
+							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
 						else:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + " " + language.get(lang, "121"))
+							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
-			if exists(SUSCRIPTION_USER_DATA):
-				remove(SUSCRIPTION_USER_DATA)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 		try:
@@ -3282,7 +3317,11 @@ class InstallChannelsLists(Screen):
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
 		if channelslists and self.storage:
-			self.session.openWithCallback(self.doInstallChannelsList, MessageBox, language.get(lang, "91") + " " + channelslists, MessageBox.TYPE_YESNO)
+			if self.session.nav.getRecordings():
+				self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
+				return
+			else:
+				self.session.openWithCallback(self.doInstallChannelsList, MessageBox, language.get(lang, "91") + " " + channelslists, MessageBox.TYPE_YESNO)
 
 	def keyRed(self):
 		self.close(True)
@@ -3381,7 +3420,11 @@ class InstallChannelsLists(Screen):
 
 	def getSourceUpdated(self):
 		if self.storage:
-			self.session.openWithCallback(self.dogetSourceUpdated, MessageBox, language.get(lang, "101"), MessageBox.TYPE_YESNO)
+			if self.session.nav.getRecordings():
+				self.session.open(MessageBox, language.get(lang, "208"), MessageBox.TYPE_INFO, simple=True)
+				return
+			else:
+				self.session.openWithCallback(self.dogetSourceUpdated, MessageBox, language.get(lang, "101"), MessageBox.TYPE_YESNO)
 
 	def dogetSourceUpdated(self, answer):
 		try:
