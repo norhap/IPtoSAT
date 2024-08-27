@@ -2233,8 +2233,9 @@ class AssignService(ChannelSelectionBase):
 						self.secondSuscription = False
 				self.getUserData()
 				if BoxInfo.getItem("distro") in ("norhap", "openspa"):
-					if exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and "http" not in currentservice and not self.session.nav.getRecordings():
-						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+					if "http" not in currentservice and not self.session.nav.getRecordings():
+						if not exists(str(OSCAM_SERVER)) or exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
+							eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 				else:
 					if "http" not in currentservice and not self.session.nav.getRecordings():
 						eConsoleAppContainer().execute(f'sleep 6 && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
