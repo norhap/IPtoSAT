@@ -435,18 +435,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if not self.session.nav.getRecordings():
 			if exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")) and exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
 				eConsoleAppContainer().execute('init 4 && sleep 5 && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb") + ' && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb5") + ' && init 3')
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and BoxInfo.getItem("distro") == "norhap" and config.plugins.IPToSAT.enable.value and not self.session.nav.getRecordings():
-			try:
-				if not config.plugins.fccsetup.activate.value:
-					config.plugins.fccsetup.activate.value = True
-					config.plugins.fccsetup.activate.save()
-					config.plugins.fccsetup.maxfcc.value = 2
-					config.plugins.fccsetup.maxfcc.save()
-					config.usage.remote_fallback_enabled.value = False
-					config.usage.remote_fallback_enabled.save()
-					self.session.open(TryQuitMainloop, 3)
-			except Exception:
-				pass
+		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value and not self.session.nav.getRecordings():
+			if not config.plugins.fccsetup.activate.value:
+				config.plugins.fccsetup.activate.value = True
+				config.plugins.fccsetup.activate.save()
+				config.plugins.fccsetup.maxfcc.value = 2
+				config.plugins.fccsetup.maxfcc.save()
+				config.usage.remote_fallback_enabled.value = False
+				config.usage.remote_fallback_enabled.save()
 
 	def saveConfig(self):
 		if fileExists(CONFIG_PATH):
@@ -1030,12 +1026,15 @@ class IPToSAT(Screen):
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				if isPluginInstalled("FastChannelChange"):
+					if not config.plugins.fccsetup.disableforrec.value:
+						config.plugins.fccsetup.disableforrec.value = True
+						config.plugins.fccsetup.disableforrec.save()
 					from enigma import eFCCServiceManager  # noqa: E402
-					eFCCServiceManager.getInstance().setFCCEnable(0)
 					if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
 						copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
 					if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
 						copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
+					eFCCServiceManager.getInstance().setFCCEnable(0)
 				if self.ip_sat:
 					self.container.sendCtrlC()
 					self.ip_sat = False
@@ -1043,7 +1042,7 @@ class IPToSAT(Screen):
 					self.__recordingInfo()
 				else:
 					if isPluginInstalled("FastChannelChange"):
-						self.session.nav.stopService()
+						self.__recordingInfovariousRecordings()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1061,24 +1060,35 @@ class IPToSAT(Screen):
 								self.container.sendCtrlC()
 								self.ip_sat = False
 		except Exception:
-			if self.session.nav.getRecordings():
-				from Screens.InfoBar import InfoBar  # noqa: E402
-				self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-				InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-				self.__recordingRemove()
+			service = self.session.nav.getCurrentService()
+			if service:
+				info = service and service.info()
+				if info:
+					FeInfo = service and service.frontendInfo()
+					if FeInfo:
+						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
+						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
+						if isCrypted and SNR > 10:
+							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
+							channel_name = ServiceReference(lastservice).getServiceName()
+							self.current_channel(channel_name, lastservice)
+						else:
+							if self.ip_sat:
+								self.container.sendCtrlC()
+								self.ip_sat = False
 
 	def __evStart(self):
 		self.Timer.start(1000)
-
-	def __recordingRemove(self):
-		self.container.sendCtrlC()
-		self.Timer.stop()
-		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
+
+	def __recordingInfovariousRecordings(self):
+		self.container.sendCtrlC()
+		self.Timer.stop()
+		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
 		self.Timer.stop()
