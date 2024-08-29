@@ -223,6 +223,15 @@ def allowsMultipleRecordings():
 			return False
 
 
+def isRecordable():
+	if PLAYLIST_PATH and config.plugins.IPToSAT.enable.value:
+		with open(PLAYLIST_PATH, "r") as fr:
+			for refiptosat in fr.readlines():
+				if "sref" in refiptosat and NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString() in refiptosat:
+					return False
+			return True
+
+
 def getUserDataSuscription():
 	try:
 		with open(CONFIG_PATH, "r") as f:
@@ -1043,6 +1052,13 @@ class IPToSAT(Screen):
 				else:
 					if isPluginInstalled("FastChannelChange"):
 						self.__InfoallowsMultipleRecordings()
+			else:
+				if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
+					if not isRecordable():
+						from Screens.InfoBar import InfoBar  # noqa: E402
+						self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+						InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+						self.__infoRecordingDelected()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1084,6 +1100,11 @@ class IPToSAT(Screen):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
+
+	def __infoRecordingDelected(self):
+		self.container.sendCtrlC()
+		self.Timer.stop()
+		AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordings(self):
 		self.container.sendCtrlC()
