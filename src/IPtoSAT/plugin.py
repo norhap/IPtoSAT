@@ -213,7 +213,7 @@ def getChannelsLists():
 		return None
 
 
-def variousRecordings():
+def allowsMultipleRecordings():
 	if exists(SUSCRIPTION_USER_DATA):
 		with open(SUSCRIPTION_USER_DATA, "r") as line:
 			for userdata in line:
@@ -1038,11 +1038,11 @@ class IPToSAT(Screen):
 				if self.ip_sat:
 					self.container.sendCtrlC()
 					self.ip_sat = False
-				if not variousRecordings():
+				if not allowsMultipleRecordings():
 					self.__recordingInfo()
 				else:
 					if isPluginInstalled("FastChannelChange"):
-						self.__recordingInfovariousRecordings()
+						self.__InfoallowsMultipleRecordings()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1085,7 +1085,7 @@ class IPToSAT(Screen):
 		self.Timer.stop()
 		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __recordingInfovariousRecordings(self):
+	def __InfoallowsMultipleRecordings(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
