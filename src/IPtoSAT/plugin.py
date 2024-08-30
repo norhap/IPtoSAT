@@ -1030,10 +1030,13 @@ class IPToSAT(Screen):
 					self.container.execute(cmd)
 					self.session.nav.playService(lastservice)
 					self.ip_sat = True
+		if not self.session.nav.getRecordings():
+			self.recording = False
 
 	def get_channel(self):
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
+				self.recording = True
 				if isPluginInstalled("FastChannelChange"):
 					if not config.plugins.fccsetup.disableforrec.value:
 						config.plugins.fccsetup.disableforrec.value = True
@@ -1048,17 +1051,17 @@ class IPToSAT(Screen):
 					self.container.sendCtrlC()
 					self.ip_sat = False
 				if not allowsMultipleRecordings():
-					self.__recordingInfo()
+					if config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString():
+						self.__recordingInfo()
 				else:
 					if isPluginInstalled("FastChannelChange"):
 						self.__InfoallowsMultipleRecordings()
-			else:
-				if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
-					if not isRecordable():
-						from Screens.InfoBar import InfoBar  # noqa: E402
-						self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-						InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-						self.__infoRecordingDelected()
+			if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
+				if not isRecordable() and not self.recording:
+					from Screens.InfoBar import InfoBar  # noqa: E402
+					self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+					InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+					self.__infoRecordingDelected()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
