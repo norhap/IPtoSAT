@@ -1053,6 +1053,8 @@ class IPToSAT(Screen):
 				if not allowsMultipleRecordings():
 					if config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString():
 						self.__recordingInfo()
+					if isPluginInstalled("FastChannelChange"):
+						self.__InfoallowsMultipleRecordings()
 				else:
 					if isPluginInstalled("FastChannelChange"):
 						self.__InfoallowsMultipleRecordings()
@@ -1102,12 +1104,12 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __infoRecordingDelected(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordings(self):
 		self.container.sendCtrlC()
