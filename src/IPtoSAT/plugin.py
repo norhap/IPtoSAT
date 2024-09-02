@@ -29,6 +29,7 @@ from Components.SystemInfo import BoxInfo, SystemInfo
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
 from Components.Harddisk import harddiskmanager
+from Screens.InfoBar import InfoBar
 from Screens.Screen import Screen
 from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
@@ -444,14 +445,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if not self.session.nav.getRecordings():
 			if exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")) and exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
 				eConsoleAppContainer().execute('init 4 && sleep 5 && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb") + ' && mv -f ' + resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5") + ' ' + resolveFilename(SCOPE_CONFIG, "lamedb5") + ' && init 3')
-		if isPluginInstalled("FastChannelChange") and fileContains(PLAYLIST_PATH, '"sref": "') and config.plugins.IPToSAT.enable.value and not self.session.nav.getRecordings():
-			if not config.plugins.fccsetup.activate.value:
-				config.plugins.fccsetup.activate.value = True
-				config.plugins.fccsetup.activate.save()
-				config.plugins.fccsetup.maxfcc.value = 2
-				config.plugins.fccsetup.maxfcc.save()
-				config.usage.remote_fallback_enabled.value = False
-				config.usage.remote_fallback_enabled.save()
 
 	def saveConfig(self):
 		if fileExists(CONFIG_PATH):
@@ -1015,6 +1008,13 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
+		if isPluginInstalled("FastChannelChange") and not allowsMultipleRecordings() and not config.plugins.fccsetup.activate.value:
+			config.plugins.fccsetup.activate.value = True
+			config.plugins.fccsetup.activate.save()
+			config.plugins.fccsetup.maxfcc.value = 2
+			config.plugins.fccsetup.maxfcc.save()
+			config.usage.remote_fallback_enabled.value = False
+			config.usage.remote_fallback_enabled.save()
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
@@ -1037,33 +1037,30 @@ class IPToSAT(Screen):
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				self.recording = True
-				if isPluginInstalled("FastChannelChange"):
-					if not config.plugins.fccsetup.disableforrec.value:
-						config.plugins.fccsetup.disableforrec.value = True
-						config.plugins.fccsetup.disableforrec.save()
-					from enigma import eFCCServiceManager  # noqa: E402
-					if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
-						copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
-					if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
-						copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
-					eFCCServiceManager.getInstance().setFCCEnable(0)
 				if self.ip_sat:
 					self.container.sendCtrlC()
 					self.ip_sat = False
 				if not allowsMultipleRecordings():
 					if config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString():
 						self.__recordingInfo()
-					if isPluginInstalled("FastChannelChange"):
-						self.__InfoallowsMultipleRecordings()
 				else:
 					if isPluginInstalled("FastChannelChange"):
-						self.__InfoallowsMultipleRecordings()
+						from enigma import eFCCServiceManager
+						if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
+							copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
+						if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
+							copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
+						eFCCServiceManager.getInstance().setFCCEnable(0)
+						self.__InfoallowsMultipleRecordingsFCC()
 			if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
 				if not isRecordable() and not self.recording:
-					from Screens.InfoBar import InfoBar  # noqa: E402
 					self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
 					InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
 					self.__infoRecordingDelected()
+			if not isRecordable() and self.recording and not allowsMultipleRecordings():
+				self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+				InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+				self.__infoRecordingOneConnetionDelected()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1111,10 +1108,15 @@ class IPToSAT(Screen):
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __InfoallowsMultipleRecordings(self):
+	def __InfoallowsMultipleRecordingsFCC(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
+
+	def __infoRecordingOneConnetionDelected(self):
+		self.container.sendCtrlC()
+		self.Timer.stop()
+		AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
 		self.Timer.stop()
