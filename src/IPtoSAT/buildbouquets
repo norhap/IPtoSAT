@@ -185,18 +185,20 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 				group_title = search(r'group-title\s*=\s*["\'](.*?)["\']', line)
 				if group_title:
 					group_title = group_title.group(1)
-				if "SD" not in channel_name and "ES" in channel_name and "US:" not in channel_name and "WEST" not in channel_name and "GR" not in channel_name:
-					matching_channel_name = find_channel_with_keyword(channel_name, satellite_reference)
-					if matching_channel_name:
-						channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower())
-						if channel_display_name:
-							channel_name = channel_display_name
-						if order is not None:
-							occupied_orders.append(order)
-					else:
-						channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
-						unique_id += 1
-						order = None
+				if "FHD" in channel_name:
+					channel_name = channel_name.upper().replace("ES** | ", "").replace("ES: ", "").replace("FHD", "HD")
+					if "HD" in channel_name and "US:" not in channel_name and "WEST" not in channel_name and "GR" not in channel_name:
+						matching_channel_name = find_channel_with_keyword(channel_name, satellite_reference)
+						if matching_channel_name:
+							channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower())
+							if channel_display_name:
+								channel_name = channel_display_name
+							if order is not None:
+								occupied_orders.append(order)
+						else:
+							channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
+							unique_id += 1
+							order = None
 				else:
 					channel_reference = "4097:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
 					unique_id += 1
