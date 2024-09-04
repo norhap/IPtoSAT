@@ -1146,7 +1146,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,394" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,249" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
-			<widget name="managerlistchannels" position="33,750" size="870,152" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
+			<widget name="managerlistchannels" position="33,735" size="870,182" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="help" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget name="play" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,940" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1198,11 +1198,11 @@ class AssignService(ChannelSelectionBase):
 			<widget name="list2" position="600,42" size="550,200" scrollbarMode="showOnDemand" />
 			<widget name="please" position="600,42" size="540,35" font="Regular;18" zPosition="12" />
 			<widget name="status" position="33,245" size="540,225" font="Regular;18" zPosition="11" />
-			<widget name="description" position="600,245" size="595,320" font="Regular;18" zPosition="6" />
+			<widget name="description" position="600,245" size="595,350" font="Regular;18" zPosition="6" />
 			<widget name="assign" position="33,245" size="540,100" font="Regular;18" zPosition="6" />
 			<widget name="codestatus" position="33,330" size="540,150" font="Regular;18" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,245" size="540,318" font="Regular;17" zPosition="6" />
-			<widget name="managerlistchannels" position="33,450" size="540,100" font="Regular;18" zPosition="10" />
+			<widget name="managerlistchannels" position="33,425" size="540,125" font="Regular;18" zPosition="10" />
 			<widget name="help" position="600,245" size="595,322" font="Regular;17" zPosition="3" />
 			<widget name="play" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,588" zPosition="2" size="110,35" backgroundColor="key_green" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1213,25 +1213,25 @@ class AssignService(ChannelSelectionBase):
 			<widget source="key_yellow" conditional="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="357,588" zPosition="2" size="110,35" backgroundColor="key_yellow" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_epg" render="Label" conditional="key_epg" position="472,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_epg" render="Label" conditional="key_epg" position="472,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_help" render="Label" conditional="key_help" position="587,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_help" render="Label" conditional="key_help" position="587,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_play" render="Label" conditional="key_play" position="702,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_play" render="Label" conditional="key_play" position="702,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="817,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumeup" render="Label" conditional="key_volumeup" position="817,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="932,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_volumedown" render="Label" conditional="key_volumedown" position="932,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_stop" render="Label" conditional="key_stop" position="1047,588" zPosition="4" size="110,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_stop" render="Label" conditional="key_stop" position="1047,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_0" render="Label" conditional="key_0" position="1162,588" zPosition="12" size="35,40" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_0" render="Label" conditional="key_0" position="1162,598" zPosition="12" size="35,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget source="key_tv" conditional="key_tv" render="Label" position="12,560" size="110,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
@@ -2495,12 +2495,12 @@ class AssignService(ChannelSelectionBase):
 			if "null" not in exp_date:
 				if int(time()) < int(exp_date) and "Banned" not in status:
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
+						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
 					else:
 						if int(max_connections) == 2:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
 						else:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
 				elif int(time()) < int(exp_date):
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 				else:
@@ -2508,12 +2508,12 @@ class AssignService(ChannelSelectionBase):
 			else:
 				if "Banned" not in status:
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
+						self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
 					else:
 						if int(max_connections) == 2:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
 						else:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + " " + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "109") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 		except Exception as err:
