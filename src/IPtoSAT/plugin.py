@@ -3205,7 +3205,7 @@ class EditCategories(Screen):
 							with open(CONFIG_PATH_CATEGORIES, "a") as fw:
 								for lines in fr.readlines():
 									lines = lines.replace("]", "],").replace("],,", "],")
-									fw.write(lines)
+									fw.write(lines + "\n" + "}" if not fileContains(WILD_CARD_CATYOURLIST, ",") else lines)
 							with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
 								with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
 									readcategoriesjson = fwildcardread.readlines()
