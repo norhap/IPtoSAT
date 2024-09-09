@@ -1032,6 +1032,8 @@ class IPToSAT(Screen):
 					self.ip_sat = True
 		if not self.session.nav.getRecordings():
 			self.recording = False
+		if not isRecordable() and isPluginInstalled("FastChannelChange") and self.session.nav.getRecordings():
+			self.__InfoallowsMultipleRecordingsFCC()
 
 	def get_channel(self):
 		try:
@@ -1051,7 +1053,6 @@ class IPToSAT(Screen):
 						if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
 							copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
 						eFCCServiceManager.getInstance().setFCCEnable(0)
-						self.__InfoallowsMultipleRecordingsFCC()
 			if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
 				if not isRecordable() and not self.recording:
 					self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
