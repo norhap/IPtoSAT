@@ -1032,36 +1032,49 @@ class IPToSAT(Screen):
 					self.ip_sat = True
 		if not self.session.nav.getRecordings():
 			self.recording = False
-		if not isRecordable() and isPluginInstalled("FastChannelChange") and self.session.nav.getRecordings():
-			self.__InfoallowsMultipleRecordingsFCC()
+			self.recordingASingleConnection = False
+		else:
+			if not allowsMultipleRecordings():
+				self.recordingASingleConnection = True
+		if not isRecordable() and self.session.nav.getRecordings():
+			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange"):
+				self.__resetDataBase()
+				self.__InfoallowsMultipleRecordingsFBC()
+			elif self.recordingASingleConnection:
+				self.__infoRecordingOneConnetionDelected()
 
 	def get_channel(self):
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
-				self.recording = True
+				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
+				if self.recordingASingleConnection and not allowsMultipleRecordings():
+					if recording_same_subscription:
+						self.__recordingASingleConnectionInfo()
+						self.recording = True
+				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings():
+					self.recording = True
+				if allowsMultipleRecordings() and isPluginInstalled("FastChannelChange") and not self.recording:
+					self.recording = True
+					self.__InfoallowsMultipleRecordingsFBC()
 				if self.ip_sat:
 					self.container.sendCtrlC()
 					self.ip_sat = False
-				if not allowsMultipleRecordings():
-					if config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString():
+				if not allowsMultipleRecordings() and not self.recordingASingleConnection:
+					if recording_same_subscription:
 						self.__recordingInfo()
+						self.recordingASingleConnection = True
+						if isPluginInstalled("FastChannelChange"):
+							self.__resetDataBase()
 				else:
-					if isPluginInstalled("FastChannelChange"):
-						from enigma import eFCCServiceManager
-						if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
-							copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
-						if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
-							copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
-						eFCCServiceManager.getInstance().setFCCEnable(0)
-			if BoxInfo.getItem("distro") != ("norhap") and self.session.nav.getRecordings():
-				if not isRecordable() and not self.recording:
-					self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-					InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-					self.__infoRecordingDelected()
-			if not isRecordable() and self.recording and not allowsMultipleRecordings():
-				self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-				InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-				self.__infoRecordingOneConnetionDelected()
+					if not allowsMultipleRecordings():
+						self.__resetDataBase()
+				if isPluginInstalled("FastChannelChange"):
+					from enigma import eFCCServiceManager  # noqa: E402
+					eFCCServiceManager.getInstance().setFCCEnable(0)
+			else:
+				if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
+					if not isRecordable() and not self.recording and not self.recordingASingleConnection:
+						self.__infoRecordingOneConnetionDelected()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1070,7 +1083,7 @@ class IPToSAT(Screen):
 					if FeInfo:
 						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10 or not isRecordable():
+						if isCrypted and SNR > 10 or not isRecordable() and not isPluginInstalled("FastChannelChange"):
 							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 							channel_name = ServiceReference(lastservice).getServiceName()
 							self.current_channel(channel_name, lastservice)
@@ -1102,22 +1115,34 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "220"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __infoRecordingDelected(self):
+	def __InfoallowsMultipleRecordingsFBC(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __InfoallowsMultipleRecordingsFCC(self):
-		self.container.sendCtrlC()
-		self.Timer.stop()
+	def __recordingASingleConnectionInfo(self):
+		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
 		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __infoRecordingOneConnetionDelected(self):
-		self.container.sendCtrlC()
-		self.Timer.stop()
-		AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
+		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+		if BoxInfo.getItem("distro") == ("norhap"):
+			AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
+		else:
+			if not allowsMultipleRecordings():
+				AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+			else:
+				AddPopup(language.get(lang, "219"), type=MessageBox.TYPE_INFO, timeout=0)
+
+	def __resetDataBase(self):
+		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
+			copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
+		if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
+			copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
 
 	def __evEnd(self):
 		self.Timer.stop()
