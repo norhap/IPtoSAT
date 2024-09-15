@@ -1123,20 +1123,30 @@ class IPToSAT(Screen):
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __recordingASingleConnectionInfo(self):
-		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-		AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
+		try:
+			self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+			InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
+		except Exception:
+			self.container.sendCtrlC()
+			self.Timer.stop()
+			AddPopup(language.get(lang, "221"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __infoRecordingOneConnetionDelected(self):
-		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-		if BoxInfo.getItem("distro") == ("norhap"):
-			AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
-		else:
-			if not allowsMultipleRecordings():
-				AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+		try:
+			self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+			InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+			if BoxInfo.getItem("distro") == ("norhap"):
+				AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 			else:
-				AddPopup(language.get(lang, "219"), type=MessageBox.TYPE_INFO, timeout=0)
+				if not allowsMultipleRecordings():
+					AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+				else:
+					AddPopup(language.get(lang, "219"), type=MessageBox.TYPE_INFO, timeout=0)
+		except Exception:
+			self.container.sendCtrlC()
+			self.Timer.stop()
+			AddPopup(language.get(lang, "222"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
