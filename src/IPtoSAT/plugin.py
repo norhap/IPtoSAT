@@ -1174,6 +1174,9 @@ class AssignService(ChannelSelectionBase):
 			<widget source="session.VideoPicture" render="Pig" position="1275,5" size="635,400" zPosition="1" backgroundColor="#df0b1300"/>
 			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="670,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
+			<widget source="global.CurrentTime" render="Label" position="1175,07" size="95,30" font="Regular;24" foregroundColor="#e5e619" backgroundColor="#0023262f" transparent="1" zPosition="10">
+			  <convert type="ClockToText">Default</convert>
+			</widget>
 			<widget name="list" position="23,42" size="613,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="list2" position="658,42" size="612,304" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="680,42" size="590,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
@@ -1230,6 +1233,9 @@ class AssignService(ChannelSelectionBase):
 		<screen name="IPToSAT Service Assign" position="40,65" size="1200,625" title="IPToSAT Service Assign">
 			<widget name="titleChannelsList" position="33,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="600,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
+			<widget source="global.CurrentTime" render="Label" position="1125,07" size="75,25" font="Regular;21" foregroundColor="#e5e619" backgroundColor="#0023262f" transparent="1" zPosition="10">
+			  <convert type="ClockToText">Default</convert>
+			</widget>
 			<widget name="list" position="33,42" size="550,198" scrollbarMode="showOnDemand" />
 			<widget name="list2" position="600,42" size="550,200" scrollbarMode="showOnDemand" />
 			<widget name="please" position="600,42" size="540,35" font="Regular;18" zPosition="12" />
