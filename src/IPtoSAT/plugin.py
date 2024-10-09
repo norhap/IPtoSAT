@@ -1008,7 +1008,7 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
-		if isPluginInstalled("FastChannelChange") and not allowsMultipleRecordings() and not config.plugins.fccsetup.activate.value:
+		if isPluginInstalled("FastChannelChange") and not allowsMultipleRecordings() and not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
 			config.plugins.fccsetup.activate.value = True
 			config.plugins.fccsetup.activate.save()
 			config.plugins.fccsetup.maxfcc.value = 2
