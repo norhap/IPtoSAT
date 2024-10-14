@@ -1040,7 +1040,7 @@ class IPToSAT(Screen):
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
-			elif self.recordingASingleConnection:
+			elif self.recordingASingleConnection and BoxInfo.getItem("distro") != ("norhap"):
 				self.__infoRecordingOneConnetionDelected()
 
 	def get_channel(self):
@@ -1048,9 +1048,7 @@ class IPToSAT(Screen):
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.recordingASingleConnection and not allowsMultipleRecordings():
-					if recording_same_subscription:
-						self.__recordingASingleConnectionInfo()
-						self.recording = True
+					self.recording = True
 				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings():
 					self.recording = True
 				if allowsMultipleRecordings() and isPluginInstalled("FastChannelChange") and not self.recording:
@@ -1063,8 +1061,7 @@ class IPToSAT(Screen):
 					if recording_same_subscription:
 						self.__recordingInfo()
 						self.recordingASingleConnection = True
-						if isPluginInstalled("FastChannelChange"):
-							self.__resetDataBase()
+						self.__resetDataBase()
 				else:
 					if not allowsMultipleRecordings():
 						self.__resetDataBase()
@@ -1115,38 +1112,22 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "220"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordingsFBC(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __recordingASingleConnectionInfo(self):
-		try:
-			self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-			InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
-		except Exception:
-			self.container.sendCtrlC()
-			self.Timer.stop()
-			AddPopup(language.get(lang, "221"), type=MessageBox.TYPE_INFO, timeout=0)
-
 	def __infoRecordingOneConnetionDelected(self):
-		try:
-			self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-			InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
-			if BoxInfo.getItem("distro") == ("norhap"):
-				AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
-			else:
-				if not allowsMultipleRecordings():
-					AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
-				else:
-					AddPopup(language.get(lang, "219"), type=MessageBox.TYPE_INFO, timeout=0)
-		except Exception:
-			self.container.sendCtrlC()
-			self.Timer.stop()
-			AddPopup(language.get(lang, "222"), type=MessageBox.TYPE_INFO, timeout=0)
+		self.container.sendCtrlC()
+		self.Timer.stop()
+		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
+		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
+		if not allowsMultipleRecordings():
+			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
+		else:
+			AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
