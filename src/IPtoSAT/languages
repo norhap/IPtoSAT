@@ -215,8 +215,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 213 = In this mode: Use your subscription card or OSCam server to view satellite channels. Eliminate from your list of assigned channels those that you do not want to view through IPToSAT.
 214 = If you have started recording on a channel of your subscription and you switch to channels of your subscription:\nThe recording will stop (even if you see that you are recording).\n1. Put the receiver in standby or switch to channels that do not belong to your subscription.\n2. When the recording is finished, enter IPToSAT enigma2 needs to be restarted.
 215 = 1. If you are recording do not use IPToSAT channels: It is more stable to use channels from IPTV bouquets.\n2. When the recording is finished, enter IPToSAT enigma2 needs to be restarted.
-216 = Recording has stopped.\n1. Your subscription only allows one connection.\n2. IPToSAT synchronized channels cannot be recorded.\n3. Always record from bouquets created from your IPTV subscription.
-217 = Recording has stopped.\n1. IPToSAT synchronized channels cannot be recorded.\n2. Always record from the bouquets created from your IPTV subscription.
+216 = 1. Your subscription only allows one recording.\n2. IPToSAT synchronized channels cannot be recorded.\n3. Always record from bouquets created from your IPTV subscription.
+217 = IPToSAT synchronized channels cannot be recorded.\nAlways record from bouquets created from your IPTV subscription.
 218 = If you have started recording on a channel of your subscription and you switch to channels of your subscription:\nThe recording will stop.\n1. Put the receiver in standby or switch to channels that do not belong to your subscription.\n2. When this recording is finished, enter IPToSAT and you need to restart enigma2.
 
 [es]
@@ -435,6 +435,6 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 213 = En este modo: Usa su tarjeta de abono o servidor OSCam para visionar los canales satélites. Elimine de su lista de canales asignados aquellos que no desee visionar a través de IPToSAT.
 214 = Si ha comenzado la grabación en un canal de su suscripción y cambia a canales de su suscripción:\nLa grabación se detendrá (aunque vea que está grabando).\n1. Ponga el receptor en standby o cambie a canales que no pertenezcan a su suscripción.\n2. Cuando finalice la grabación, entre en IPToSAT enigma2 necesita ser reiniciado.
 215 = 1. Si está grabando no use canales IPToSAT: Es más estable usar los canales de los bouquets IPTV.\n2. Cuando finalice la grabación, entre en IPToSAT enigma2 necesita ser reiniciado.
-216 = La grabación se ha detenido.\n1. Su suscripción solo permite una conexión.\n2. Los canales sincronizados IPToSAT no pueden ser grabados.\n3. Grabe siempre desde los bouquets creados de su suscripción IPTV.
-217 = La grabación se ha detenido.\n1. Los canales sincronizados IPToSAT no pueden ser grabados.\n2. Grabe siempre desde los bouquets creados de su suscripción IPTV.
+216 = 1. Su suscripción solo permite una grabación.\n2. Los canales sincronizados IPToSAT no pueden ser grabados.\n3. Grabe siempre desde los bouquets creados de su suscripción IPTV.
+217 = Los canales sincronizados IPToSAT no pueden ser grabados.\nGrabe siempre desde los bouquets creados de su suscripción IPTV.
 218 = Si ha comenzado la grabación en un canal de su suscripción y cambia a canales de su suscripción:\nLa grabación se detendrá.\n1. Ponga el receptor en standby o cambie a canales que no pertenezcan a su suscripción.\n2. Cuando finalice esta grabación, entre en IPToSAT es necesario reiniciar enigma2.

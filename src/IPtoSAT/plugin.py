@@ -1041,7 +1041,7 @@ class IPToSAT(Screen):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
 			elif self.recordingASingleConnection and BoxInfo.getItem("distro") != ("norhap"):
-				self.__infoRecordingOneConnetionDelected()
+				self.__infoRecordingOpenSPA()
 
 	def get_channel(self):
 		try:
@@ -1071,7 +1071,7 @@ class IPToSAT(Screen):
 			else:
 				if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
 					if not isRecordable() and not self.recording and not self.recordingASingleConnection:
-						self.__infoRecordingOneConnetionDelected()
+						self.__infoRecordingOpenSPA()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1119,11 +1119,9 @@ class IPToSAT(Screen):
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
-	def __infoRecordingOneConnetionDelected(self):
+	def __infoRecordingOpenSPA(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		self.session.nav.RecordTimer.removeEntry(InfoBar.instance.recording[-1])
-		InfoBar.instance.recording.remove(InfoBar.instance.recording[-1])
 		if not allowsMultipleRecordings():
 			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 		else:
