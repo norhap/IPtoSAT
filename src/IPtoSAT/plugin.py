@@ -29,7 +29,6 @@ from Components.SystemInfo import BoxInfo, SystemInfo
 from Components.Sources.StaticText import StaticText
 from Components.Console import Console
 from Components.Harddisk import harddiskmanager
-from Screens.InfoBar import InfoBar
 from Screens.Screen import Screen
 from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
@@ -1008,7 +1007,7 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
-		if isPluginInstalled("FastChannelChange") and not allowsMultipleRecordings() and not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
+		if isPluginInstalled("FastChannelChange") and allowsMultipleRecordings() is False and not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
 			config.plugins.fccsetup.activate.value = True
 			config.plugins.fccsetup.activate.save()
 			config.plugins.fccsetup.maxfcc.value = 2
@@ -1034,9 +1033,9 @@ class IPToSAT(Screen):
 			self.recording = False
 			self.recordingASingleConnection = False
 		else:
-			if not allowsMultipleRecordings():
+			if allowsMultipleRecordings() is False:
 				self.recordingASingleConnection = True
-		if not isRecordable() and self.session.nav.getRecordings():
+		if isRecordable() is False and self.session.nav.getRecordings():
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
@@ -1047,7 +1046,7 @@ class IPToSAT(Screen):
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
-				if self.recordingASingleConnection and not allowsMultipleRecordings():
+				if self.recordingASingleConnection and allowsMultipleRecordings() is False:
 					self.recording = True
 				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings():
 					self.recording = True
@@ -1057,20 +1056,20 @@ class IPToSAT(Screen):
 				if self.ip_sat:
 					self.container.sendCtrlC()
 					self.ip_sat = False
-				if not allowsMultipleRecordings() and not self.recordingASingleConnection:
+				if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
 					if recording_same_subscription:
 						self.__recordingInfo()
 						self.recordingASingleConnection = True
 						self.__resetDataBase()
 				else:
-					if not allowsMultipleRecordings():
+					if allowsMultipleRecordings() is False:
 						self.__resetDataBase()
 				if isPluginInstalled("FastChannelChange"):
 					from enigma import eFCCServiceManager  # noqa: E402
 					eFCCServiceManager.getInstance().setFCCEnable(0)
 			else:
 				if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
-					if not isRecordable() and not self.recording and not self.recordingASingleConnection:
+					if isRecordable() is False and not self.recording and not self.recordingASingleConnection:
 						self.__infoRecordingOpenSPA()
 			service = self.session.nav.getCurrentService()
 			if service:
@@ -1080,7 +1079,7 @@ class IPToSAT(Screen):
 					if FeInfo:
 						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10 or not isRecordable() and not isPluginInstalled("FastChannelChange"):
+						if isCrypted and SNR > 10 or isRecordable() is False and not isPluginInstalled("FastChannelChange"):
 							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 							channel_name = ServiceReference(lastservice).getServiceName()
 							self.current_channel(channel_name, lastservice)
@@ -1122,7 +1121,7 @@ class IPToSAT(Screen):
 	def __infoRecordingOpenSPA(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		if not allowsMultipleRecordings():
+		if allowsMultipleRecordings() is False:
 			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
 		else:
 			AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
