@@ -218,6 +218,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 216 = 1. Your subscription only allows one recording.\n2. IPToSAT synchronized channels cannot be recorded.\n3. Always record from bouquets created from your IPTV subscription.
 217 = IPToSAT synchronized channels cannot be recorded.\nAlways record from bouquets created from your IPTV subscription.
 218 = If you have started recording on a channel of your subscription and you switch to channels of your subscription:\nThe recording will stop.\n1. Put the receiver in standby or switch to channels that do not belong to your subscription.\n2. When this recording is finished, enter IPToSAT and you need to restart enigma2.
+219 = FCC has been disabled to sync IPToSAT channels.\nEnigma2 needs to restart\nDo you want to do that now?
+220 = When recording is complete:\nRestart Enigma2 to synchronize IPoSAT channels.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -438,3 +440,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 216 = 1. Su suscripción solo permite una grabación.\n2. Los canales sincronizados IPToSAT no pueden ser grabados.\n3. Grabe siempre desde los bouquets creados de su suscripción IPTV.
 217 = Los canales sincronizados IPToSAT no pueden ser grabados.\nGrabe siempre desde los bouquets creados de su suscripción IPTV.
 218 = Si ha comenzado la grabación en un canal de su suscripción y cambia a canales de su suscripción:\nLa grabación se detendrá.\n1. Ponga el receptor en standby o cambie a canales que no pertenezcan a su suscripción.\n2. Cuando finalice esta grabación, entre en IPToSAT es necesario reiniciar enigma2.
+219 = Se ha deshabilitado FCC para sincronizar canales IPToSAT.\nEnigma2 necesita reiniciar.\n¿Desea hacerlo ahora?
+220 = Cuando finalice la grabación:\nReinicie Enigma2 para sincronizar los canales IPoSAT.

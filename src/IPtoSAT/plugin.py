@@ -997,6 +997,7 @@ class IPToSAT(Screen):
 			iPlayableService.evStopped: self.__evEnd,
 		})
 		self.Timer = eTimer()
+		self.setFCCEnable = False
 		try:
 			self.Timer.callback.append(self.get_channel)
 		except Exception:
@@ -1007,11 +1008,7 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
-		if isPluginInstalled("FastChannelChange") and allowsMultipleRecordings() is False and not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
-			config.plugins.fccsetup.activate.value = True
-			config.plugins.fccsetup.activate.save()
-			config.plugins.fccsetup.maxfcc.value = 2
-			config.plugins.fccsetup.maxfcc.save()
+		if isPluginInstalled("FastChannelChange") and config.usage.remote_fallback_enabled.value and config.plugins.IPToSAT.enable.value:
 			config.usage.remote_fallback_enabled.value = False
 			config.usage.remote_fallback_enabled.save()
 		self.container = eConsoleAppContainer()
@@ -1043,14 +1040,23 @@ class IPToSAT(Screen):
 				self.__infoRecordingOpenSPA()
 
 	def get_channel(self):
+		if isPluginInstalled("FastChannelChange"):
+			from enigma import eFCCServiceManager  # noqa: E402
+			if config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
+				config.plugins.fccsetup.activate.value = False
+				config.plugins.fccsetup.activate.save()
+				self.deactivateFCC()
+			if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
+				eFCCServiceManager.getInstance().setFCCEnable(1)
+				self.setFCCEnable = True
 		try:
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.recordingASingleConnection and allowsMultipleRecordings() is False:
 					self.recording = True
-				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings():
+				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings() is True:
 					self.recording = True
-				if allowsMultipleRecordings() and isPluginInstalled("FastChannelChange") and not self.recording:
+				if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
 					self.recording = True
 					self.__InfoallowsMultipleRecordingsFBC()
 				if self.ip_sat:
@@ -1131,6 +1137,27 @@ class IPToSAT(Screen):
 			copy(resolveFilename(SCOPE_CONFIG, "lamedb"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb"))
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb5")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5")):
 			copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
+
+	def deactivateFCC(self):
+		self.container.sendCtrlC()
+		self.Timer.stop()
+
+		def restartDisableFCC(answer=False):
+			if answer:
+				self.session.open(TryQuitMainloop, 3)
+
+		if not self.session.nav.getRecordings():
+			if BoxInfo.getItem("distro") == "norhap":
+				from Screens.Standby import checkTimeshiftRunning  # noqa: E402
+				if not checkTimeshiftRunning():
+					self.session.openWithCallback(restartDisableFCC, MessageBox, language.get(lang, "219"), type=MessageBox.TYPE_YESNO, simple=True)
+			else:
+				from Screens.InfoBar import InfoBar  # noqa: E402
+				inTimeshift = InfoBar and InfoBar.instance and InfoBar.ptsGetTimeshiftStatus(InfoBar.instance)
+				if not inTimeshift:
+					self.session.openWithCallback(restartDisableFCC, MessageBox, language.get(lang, "219"), type=MessageBox.TYPE_YESNO, simple=True)
+		else:
+			AddPopup(language.get(lang, "220"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
 		self.Timer.stop()
