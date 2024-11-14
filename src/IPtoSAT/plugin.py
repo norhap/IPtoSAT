@@ -92,6 +92,7 @@ OSCAM_CARD = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services.card"
 OSCAM_NO_CARD = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services.no.card"
 OSCAM_SERVICES_IPTOSAT = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.no.card")
 OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.card")
+TOKEN_ZEROTIER = "/var/lib/zerotier-one/authtoken.secret"
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
@@ -131,6 +132,23 @@ if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
 		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
 		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((11 * 60) * 60))
+
+
+def getTokenZerotier():
+	with open(TOKEN_ZEROTIER, "r") as token:
+		return token.read()
+
+
+def getDataZerotier(data):
+	network = get("http://127.0.0.1:9993/" + data, headers={'X-ZT1-Auth' : getTokenZerotier(), 'Content-Type': 'application/json'}).text
+	return network
+
+
+def checkZerotierMember():
+	zerotierdata = loads(getDataZerotier("network"))
+	for data in zerotierdata:
+		status = data.get("status")
+		return True if str(status).upper() == "OK" else False
 
 
 def typeselectcategorie():
@@ -509,18 +527,22 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def joinZeroTier(self):
 		if config.plugins.IPToSAT.showuserdata.value:
 			if exists("/usr/sbin/zerotier-one"):
-				from process import ProcessList  # noqa: E402
-				zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
-				zerotier_auto = glob("/etc/rc2.d/S*zerotier")
-				if not zerotier_process:
-					eConsoleAppContainer().execute("/etc/init.d/zerotier start")
-				if not zerotier_auto:
-					eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
-				if config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
-					eConsoleAppContainer().execute('sleep 15; zerotier-cli join {}' .format(config.plugins.IPToSAT.networkidzerotier.value))
-					self.session.open(MessageBox, language.get(lang, "190"), MessageBox.TYPE_INFO, default=False, simple=True, timeout=15)
+				if not exists(TOKEN_ZEROTIER) or BoxInfo.getItem("distro") == "openspa":
+					from process import ProcessList  # noqa: E402
+					zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
+					zerotier_auto = glob("/etc/rc2.d/S*zerotier")
+					if not zerotier_process:
+						eConsoleAppContainer().execute("/etc/init.d/zerotier start")
+					if not zerotier_auto:
+						eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
+					if config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
+						eConsoleAppContainer().execute('sleep 15; zerotier-cli join {}' .format(config.plugins.IPToSAT.networkidzerotier.value))
+						self.session.openWithCallback(self.close, MessageBox, language.get(lang, "190"), MessageBox.TYPE_INFO, simple=True, timeout=15)
+					else:
+						self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
 				else:
-					self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
+					if checkZerotierMember():
+						self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_INFO, simple=True)
 			else:
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
@@ -620,8 +642,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 		if config.plugins.IPToSAT.showuserdata.value:
-			if exists("/usr/sbin/zerotier-one"):
-				self["key_yellow"] = StaticText(language.get(lang, "189"))  # noqa: F821
+			self["key_yellow"] = StaticText(language.get(lang, "189") if exists("/usr/sbin/zerotier-one") else "")  # noqa: F821
+			if exists(TOKEN_ZEROTIER):
+				self["key_yellow"] = StaticText("" if checkZerotierMember() else language.get(lang, "189"))  # noqa: F821
 
 	def deleteBouquetsNorhap(self):
 		with open(CONFIG_PATH_CATEGORIES, 'w') as fw:
