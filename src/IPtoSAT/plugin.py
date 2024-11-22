@@ -1776,7 +1776,7 @@ class AssignService(ChannelSelectionBase):
 							tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 							if tuxboxfiles:
 								remove(tuxboxfiles)
-				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/fstab ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/ ; init 3 ; mount -a')
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/ ; init 3 ; mount -a')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1802,7 +1802,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or x.startswith("wpa_supplicant.wlan")]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					self['managerlistchannels'].show()
@@ -1841,10 +1841,16 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x]:
-					fstab_autonetwork = join("/etc", files)
-					if fstab_autonetwork:
-						copy(fstab_autonetwork, self.backupdirectory)
+				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan")]:
+					fstab_autonetwork_wlan = join("/etc", files)
+					if fstab_autonetwork_wlan:
+						copy(fstab_autonetwork_wlan, self.backupdirectory)
+				for files in [x for x in listdir("/etc/network") if "interfaces" in x]:
+					interfaces = join("/etc/network", files)
+					for file in [x for x in listdir("/sys/class/net") if x.startswith("wlan")]:
+						wlan = join(file)
+						if exists(f"/etc/wpa_supplicant.{wlan}.conf"):
+							copy(interfaces, self.backupdirectory)
 				for fileschannelslist in [x for x in listdir(FILES_TUXBOX) if ".xml" in x and "timezone.xml" not in x]:
 					tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 					if tuxboxfiles:
