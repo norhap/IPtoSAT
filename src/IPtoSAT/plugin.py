@@ -1108,7 +1108,7 @@ class IPToSAT(Screen):
 					if FeInfo:
 						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10 or isRecordable() is False and not isPluginInstalled("FastChannelChange"):
+						if isCrypted and SNR > 10:
 							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 							channel_name = ServiceReference(lastservice).getServiceName()
 							self.current_channel(channel_name, lastservice)
