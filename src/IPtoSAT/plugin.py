@@ -2,6 +2,7 @@ from enigma import iPlayableService, iServiceInformation, iFrontendInformation, 
 from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
 from requests import get
 from urllib.request import urlopen, Request
+from urllib.parse import urlparse
 from twisted.web.client import getPage
 from datetime import datetime
 from json import dump, loads
@@ -34,6 +35,28 @@ from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 import NavigationInstance
+
+
+# HTTPS twisted client
+try:
+    from twisted.internet import ssl
+    from twisted.internet._sslverify import ClientTLSOptions
+    sslverify = True
+except ImportError:
+    sslverify = False
+
+
+if sslverify:
+    class SSLFactory(ssl.ClientContextFactory):
+        def __init__(self, hostname=None):
+            self.hostname = hostname
+
+        def getContext(self):
+            context = self._contextFactory(self.method)
+            if self.hostname:
+                ClientTLSOptions(self.hostname, context)
+            return context
+# END HTTPS twisted client
 
 
 def playersList():
@@ -2499,12 +2522,22 @@ class AssignService(ChannelSelectionBase):
 	def callAPI(self, url, callback):
 		self['list2'].hide()
 		self["please"].show()
+		parsed = urlparse(url)
 		if self.storage:
 			self["please"].setText(language.get(lang, "31"))
-		getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
+		if parsed.scheme == "https" and sslverify:
+			sslfactory = SSLFactory(parsed.hostname)
+			getPage(str.encode(url), sslfactory).addCallback(callback)
+		else:
+			getPage(str.encode(url)).addCallback(callback).addErrback(self.error)
 
 	def suscription(self, url, callback):
-		getPage(str.encode(url)).addCallback(callback)
+		parsed = urlparse(url)
+		if parsed.scheme == "https" and sslverify:
+			sslfactory = SSLFactory(parsed.hostname)
+			getPage(str.encode(url), sslfactory).addCallback(callback)
+		else:
+			getPage(str.encode(url)).addCallback(callback)
 
 	def error(self, error=None):
 		try:
