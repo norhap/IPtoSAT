@@ -469,8 +469,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["config"].list = self.list
 		self["config"].setList(self.list)
 		self.saveConfig()
-		if TimerEntry.StateEnded < int(time()):
-			self.session.nav.PowerTimer.cleanup() if BoxInfo.getItem("distro") != "openspa" else self.session.nav.Scheduler.cleanup()
+		if TimerEntry.StateEnded < int(time()) and BoxInfo.getItem("distro") == "norhap":
+			self.session.nav.PowerTimer.cleanup()
 		if RecordTimerEntry.StateEnded < int(time()):
 			self.session.nav.RecordTimer.cleanup()
 		if config.plugins.IPToSAT.autotimerbouquets.value:
