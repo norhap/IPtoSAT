@@ -60,13 +60,11 @@ if sslverify:
 
 
 def playersList():
-	if fileExists('/var/lib/dpkg/status'):
+	if not fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
-	elif isPluginInstalled("FastChannelChange"):
-		return [("gstplayer", "GstPlayer")]
-	else:
 		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
+	else:
+		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
 
 
 LANGUAGE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/languages")
