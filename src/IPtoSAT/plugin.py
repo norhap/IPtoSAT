@@ -365,7 +365,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				if exists(str(self.path)) and listdir(self.path):
 					self.storage = True
-		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
+		if BoxInfo.getItem("distro") in ("norhap", "openspa") and exists(PLAYLIST_PATH):
 			if not exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and not exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(str(OSCAM_SERVER)):
 				copy(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 				copy(OSCAM_SERVICES_CARD, OSCAM_PATH)
@@ -1781,6 +1781,7 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			tuxboxfiles = ""
 			backupfilestuxbox = ""
+			camfolderspath = FILES_TUXBOX + '/config/'
 			wlan = False
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
@@ -1800,10 +1801,12 @@ class AssignService(ChannelSelectionBase):
 							tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 							if tuxboxfiles:
 								remove(tuxboxfiles)
-				if wlan is False:
-					eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/ ; init 3 ; mount -a')
-				else:
-					eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/ ; init 6')
+				dumped = ' ; init 3 ; mount -a ; mv -f ' + ENIGMA2_PATH_LISTS + '*oscam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*ncam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*wicardd*' + " " + camfolderspath + ' ; chmod -R 644 ' + camfolderspath if wlan is False else ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*oscam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*ncam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*wicardd*' + " " + camfolderspath + ' ; chmod -R 644 ' + camfolderspath + ' ; init 6'
+				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x]:
+					camfolder = join(self.backupdirectory, cam)
+					if camfolder:
+						eConsoleAppContainer().execute('rm -rf ' + camfolderspath + '*oscam*' + " " + camfolderspath + '*ncam*' + " " + camfolderspath + '*wicardd*')
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1829,9 +1832,10 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or x.startswith("wpa_supplicant.wlan")]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan")]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
 					self['managerlistchannels'].show()
 					self.assignWidgetScript("#86dc3d", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
@@ -1860,18 +1864,24 @@ class AssignService(ChannelSelectionBase):
 			enigma2files = ""
 			bouquetiptosatepg = ""
 			tuxboxfiles = ""
+			camfolderspath = FILES_TUXBOX + '/config'
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
 				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan")]:
+				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x]:
 					fstab_autonetwork_wlan = join("/etc", files)
 					if fstab_autonetwork_wlan:
 						copy(fstab_autonetwork_wlan, self.backupdirectory)
+				for camfolders in [x for x in listdir(camfolderspath) if "oscam" in x or "ncam" in x or "wicardd" in x]:
+					camfolder = join(camfolderspath, camfolders)
+					if camfolder:
+						eConsoleAppContainer().execute('cp -rf ' + camfolderspath + "/" + camfolders + ' ' + self.backupdirectory + '/')
 				for files in [x for x in listdir("/etc/network") if "interfaces" in x]:
 					interfaces = join("/etc/network", files)
 					for file in [x for x in listdir("/sys/class/net") if x.startswith("wlan")]:
