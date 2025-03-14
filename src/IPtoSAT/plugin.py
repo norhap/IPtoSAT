@@ -1710,7 +1710,8 @@ class AssignService(ChannelSelectionBase):
 		playlist = getPlaylist()
 		if playlist:
 			if sref.startswith('1') and 'http' not in sref:
-				url = config.plugins.IPToSAT.domain.value + '/' + config.plugins.IPToSAT.username.value + '/' + config.plugins.IPToSAT.password.value + '/' + stream_id
+				urldomain = config.plugins.IPToSAT.domain.value if "https" not in config.plugins.IPToSAT.domain.value else config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value
+				url = urldomain + '/' + config.plugins.IPToSAT.username.value + '/' + config.plugins.IPToSAT.password.value + '/' + stream_id
 				if not fileContains(PLAYLIST_PATH, sref) and "FROM BOUQUET" not in sref:
 					from unicodedata import normalize
 					playlist['playlist'].append({'sref': sref, 'channel': normalize('NFKD', channel_name).encode('ascii', 'ignore').decode(), 'url': url})
