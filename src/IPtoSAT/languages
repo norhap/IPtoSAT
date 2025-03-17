@@ -221,6 +221,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 219 = FCC has been disabled to sync IPToSAT channels.\nEnigma2 needs to restart\nDo you want to do that now?
 220 = When recording is complete:\nRestart Enigma2 to synchronize IPoSAT channels.
 221 = This receiver is joined to the ZeroTier network.
+222 = Recording failed: This IPTV channel is not recordable
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -229,7 +230,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 2 = Pulse OK o VERDE para instalar lista.\nPulse botón AMARILLO para actualizar las listas y archivos XML satellites, terrestrial etc..\nPulse botón AZUL si desea tener el plugin actualizado.
 3 = Funciones que puede realizar sin suscripción activa:\n\n   - Puede hacer uso del botón EPG asignar EPG a canales IPTV.\n   (*) Pulse HELP mostrará detalles de asignación EPG.\n   - Puede realizar una copia de la lista de canales. Pulse botón TV.\n   - Puede instalar la copia de la lista de canales. Pulse botón REC.\n   - Instalar solo bouquet IPToSAT_EPG. Pulse botón ROJO.
 4 = Error HTTP en su solicitud.\nVerifique que tiene Internet y sus datos de acceso son correctos.\nVuelva a intentarlo. Si el problema persiste, contacte con su proveedor.
-5 = Se están creando bouquets por categorías...\nSe mostrarán en FAVORITOS en segundos o minutos dependiendo de su lista.\nHay canales IPTV con EPG.
+5 = Se están creando bouquets por categorías...\nSe mostrarán en FAVORITOS en segundos o minutos dependiendo de su lista.\nExisten canales IPTV con EPG.
 6 = El tiempo de respuesta se ha agotado y no se obtuvieron datos.\nIntente de nuevo, si el problema persiste contacte con su proveedor.
 7 = ¿Está seguro que quiere eliminar la lista completa?\n\nSe eliminarán todos los canales asignados.
 8 = Si está habilitado, usará el reproductor para sincronizar canales.\nLa primera vez que sincronice sus canales satélite, reinicie enigma2 para visionarlos.
@@ -444,3 +445,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 219 = Se ha deshabilitado FCC para sincronizar canales IPToSAT.\nEnigma2 necesita reiniciar.\n¿Desea hacerlo ahora?
 220 = Cuando finalice la grabación:\nReinicie Enigma2 para sincronizar los canales IPoSAT.
 221 = Este receptor está unido a la red ZeroTier.
+222 = Error de grabación: este canal IPTV no se puede grabar

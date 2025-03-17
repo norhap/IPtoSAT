@@ -1094,6 +1094,8 @@ class IPToSAT(Screen):
 				eFCCServiceManager.getInstance().setFCCEnable(1)
 				self.setFCCEnable = True
 		try:
+			if "https" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
+				self.__recordingInfo()
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.recordingASingleConnection and allowsMultipleRecordings() is False:
@@ -1161,7 +1163,13 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+		if "https" not in config.plugins.IPToSAT.domain.value:
+			if not isPluginInstalled("FastChannelChange"):
+				AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0)
+			else:
+				AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+		else:
+			AddPopup(language.get(lang, "222"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordingsFBC(self):
 		self.container.sendCtrlC()
