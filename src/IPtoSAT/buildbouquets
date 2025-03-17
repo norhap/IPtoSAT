@@ -219,7 +219,7 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						enigma2_url = urlunsplit(("https", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
 					else:
 						enigma2_url = urlunsplit(("http", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
-					if "/ts" in enigma2_url and "4097" in channel_reference:
+					if "4097" in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url):
 						channel_reference = channel_reference.replace("4097", "1")
 					if "4097" in channel_reference and "https" in enigma2_url:
 						enigma2_url = enigma2_url.replace(":", "%3a").replace("https", "http").replace(port, "")
