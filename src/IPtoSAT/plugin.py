@@ -1077,7 +1077,7 @@ class IPToSAT(Screen):
 			if allowsMultipleRecordings() is False:
 				self.recordingASingleConnection = True
 		if isRecordable() is False and self.session.nav.getRecordings():
-			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange"):
+			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange") and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
 			elif self.recordingASingleConnection and BoxInfo.getItem("distro") != ("norhap"):
@@ -1107,12 +1107,12 @@ class IPToSAT(Screen):
 					self.container.sendCtrlC()
 					self.ip_sat = False
 				if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
-					if recording_same_subscription:
+					if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 						self.__recordingInfo()
 						self.recordingASingleConnection = True
 						self.__resetDataBase()
 				else:
-					if allowsMultipleRecordings() is False:
+					if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 						self.__resetDataBase()
 				if isPluginInstalled("FastChannelChange"):
 					from enigma import eFCCServiceManager  # noqa: E402
@@ -1991,7 +1991,7 @@ class AssignService(ChannelSelectionBase):
 								eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 							self["helpbouquetepg"].hide()
 							self['managerlistchannels'].show()
-							self.assignWidgetScript("#e5e619", language.get(lang, "5"))
+							self.assignWidgetScript("#e5e619", (language.get(lang, "5") if config.plugins.IPToSAT.typecategories.value in ("all", "live") else language.get(lang, "220")))
 							with open(CATEGORIES_TIMER_OK, "w") as fw:
 								now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 								fw.write(now)
