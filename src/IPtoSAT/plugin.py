@@ -563,7 +563,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 						self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
 				else:
 					if checkZerotierMember():
-						self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_INFO, simple=True)
+						self.session.open(MessageBox, language.get(lang, "121"), MessageBox.TYPE_INFO, simple=True)
 			else:
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
@@ -1201,7 +1201,7 @@ class IPToSAT(Screen):
 				if not inTimeshift:
 					self.session.openWithCallback(restartDisableFCC, MessageBox, language.get(lang, "219"), type=MessageBox.TYPE_YESNO, simple=True)
 		else:
-			AddPopup(language.get(lang, "220"), type=MessageBox.TYPE_INFO, timeout=0)
+			AddPopup(language.get(lang, "120"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
 		self.Timer.stop()
@@ -2618,13 +2618,14 @@ class AssignService(ChannelSelectionBase):
 			self['managerlistchannels'].show()
 			if "null" not in exp_date:
 				if int(time()) < int(exp_date) and "Banned" not in status:
+					recording = language.get(lang, "119")
 					if int(max_connections) == 1:
-						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "119") + " " + max_connections)
+						self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + recording + " " + max_connections)
 					else:
 						if int(max_connections) == 2:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "120") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + recording + " " + max_connections)
 						else:
-							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + language.get(lang, "121") + " " + max_connections)
+							self.assignWidgetScript("#86dc3d", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + status + "\n" + language.get(lang, "118") + " " + active_cons + "\n" + language.get(lang, "107") + " " + max_connections + "\n" + recording + " " + max_connections)
 				elif int(time()) < int(exp_date):
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 				else:

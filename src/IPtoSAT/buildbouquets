@@ -196,7 +196,7 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 							if order is not None:
 								occupied_orders.append(order)
 						else:
-							channel_reference = "1:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
+							channel_reference = "4097:0:1:0:0:0:0:0:0:0:"  # .format(unique_id)
 							unique_id += 1
 							order = None
 				else:
@@ -204,13 +204,23 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 					unique_id += 1
 					order = None
 			if line.startswith("http"):
+				# port = ""
 				if channel_reference is not None:
 					channel_url = line.strip()
 					parsed_url = urlsplit(channel_url)
 					if parsed_url.scheme == "https":
+						# try:
+						# 	with open("/etc/enigma2/iptosat.conf", "r") as f:
+						# 		iptosatconfread = f.read()
+						# 		host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
+						# 		port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
+						# except Exception:
+						# 	pass
 						enigma2_url = urlunsplit(("https", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
 					else:
 						enigma2_url = urlunsplit(("http", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
+					if "4097" not in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url):
+						channel_reference = channel_reference.replace("1:0:1", "4097:0:1")
 					enigma2_url = enigma2_url.replace(":", "%3a")
 					stream_iptv = enigma2_url + ":" + channel_name if "4097:0:1:0:0:0:0:0:0:0:" not in channel_reference else enigma2_url
 					readprefix = group_title
