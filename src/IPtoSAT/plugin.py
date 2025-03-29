@@ -1807,7 +1807,7 @@ class AssignService(ChannelSelectionBase):
 					camfolder = join(self.backupdirectory, cam)
 					if camfolder:
 						eConsoleAppContainer().execute('rm -rf ' + camfolderspath + '*oscam*' + " " + camfolderspath + '*ncam*' + " " + camfolderspath + '*wicardd*')
-				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '* ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '* ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/ ; chmod -R 755 /usr/script ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1836,7 +1836,7 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan")]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*')
 					self['managerlistchannels'].show()
 					self.assignWidgetScript("#86dc3d", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
@@ -1883,6 +1883,9 @@ class AssignService(ChannelSelectionBase):
 					camfolder = join(camfolderspath, camfolders)
 					if camfolder:
 						eConsoleAppContainer().execute('cp -rf ' + camfolderspath + "/" + camfolders + ' ' + self.backupdirectory + '/')
+				for scripts in [x for x in listdir("/usr") if "script" in x]:
+					scriptsfolder = join("/usr", scripts)
+					eConsoleAppContainer().execute('cp -rf ' + scriptsfolder + ' ' + self.backupdirectory + '/')
 				for files in [x for x in listdir("/etc/network") if "interfaces" in x]:
 					interfaces = join("/etc/network", files)
 					for file in [x for x in listdir("/sys/class/net") if x.startswith("wlan")]:
