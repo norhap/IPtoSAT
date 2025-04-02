@@ -1094,33 +1094,34 @@ class IPToSAT(Screen):
 				if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
 					eFCCServiceManager.getInstance().setFCCEnable(1)
 					self.setFCCEnable = True
-			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
-				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
-				if self.recordingASingleConnection and allowsMultipleRecordings() is False:
-					self.recording = True
-				if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings() is True:
-					self.recording = True
-				if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
-					self.recording = True
-					self.__InfoallowsMultipleRecordingsFBC()
-				if self.ip_sat:
-					self.container.sendCtrlC()
-					self.ip_sat = False
-				if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
-					if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
-						self.__recordingInfo()
-						self.recordingASingleConnection = True
-						self.__resetDataBase()
+			if self.session.nav.getCurrentlyPlayingServiceReference():
+				if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
+					recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
+					if self.recordingASingleConnection and allowsMultipleRecordings() is False:
+						self.recording = True
+					if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings() is True:
+						self.recording = True
+					if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
+						self.recording = True
+						self.__InfoallowsMultipleRecordingsFBC()
+					if self.ip_sat:
+						self.container.sendCtrlC()
+						self.ip_sat = False
+					if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
+						if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
+							self.__recordingInfo()
+							self.recordingASingleConnection = True
+							self.__resetDataBase()
+					else:
+						if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
+							self.__resetDataBase()
+					if isPluginInstalled("FastChannelChange"):
+						from enigma import eFCCServiceManager  # noqa: E402
+						eFCCServiceManager.getInstance().setFCCEnable(0)
 				else:
-					if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
-						self.__resetDataBase()
-				if isPluginInstalled("FastChannelChange"):
-					from enigma import eFCCServiceManager  # noqa: E402
-					eFCCServiceManager.getInstance().setFCCEnable(0)
-			else:
-				if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
-					if isRecordable() is False and not self.recording and not self.recordingASingleConnection:
-						self.__infoRecordingOpenSPA()
+					if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
+						if isRecordable() is False and not self.recording and not self.recordingASingleConnection:
+							self.__infoRecordingOpenSPA()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1129,7 +1130,7 @@ class IPToSAT(Screen):
 					if FeInfo:
 						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10:
+						if isCrypted and SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
 							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 							channel_name = ServiceReference(lastservice).getServiceName()
 							self.current_channel(channel_name, lastservice)
