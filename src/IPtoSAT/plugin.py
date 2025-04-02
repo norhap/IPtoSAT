@@ -1084,16 +1084,16 @@ class IPToSAT(Screen):
 				self.__infoRecordingOpenSPA()
 
 	def get_channel(self):
-		if isPluginInstalled("FastChannelChange"):
-			from enigma import eFCCServiceManager  # noqa: E402
-			if config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
-				config.plugins.fccsetup.activate.value = False
-				config.plugins.fccsetup.activate.save()
-				self.deactivateFCC()
-			if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
-				eFCCServiceManager.getInstance().setFCCEnable(1)
-				self.setFCCEnable = True
 		try:
+			if isPluginInstalled("FastChannelChange"):
+				from enigma import eFCCServiceManager  # noqa: E402
+				if config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
+					config.plugins.fccsetup.activate.value = False
+					config.plugins.fccsetup.activate.save()
+					self.deactivateFCC()
+				if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
+					eFCCServiceManager.getInstance().setFCCEnable(1)
+					self.setFCCEnable = True
 			if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 				recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.recordingASingleConnection and allowsMultipleRecordings() is False:
@@ -1138,22 +1138,7 @@ class IPToSAT(Screen):
 								self.container.sendCtrlC()
 								self.ip_sat = False
 		except Exception:
-			service = self.session.nav.getCurrentService()
-			if service:
-				info = service and service.info()
-				if info:
-					FeInfo = service and service.frontendInfo()
-					if FeInfo:
-						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
-						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10:
-							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
-							channel_name = ServiceReference(lastservice).getServiceName()
-							self.current_channel(channel_name, lastservice)
-						else:
-							if self.ip_sat:
-								self.container.sendCtrlC()
-								self.ip_sat = False
+			pass
 
 	def __evStart(self):
 		self.Timer.start(1000)
@@ -1807,7 +1792,7 @@ class AssignService(ChannelSelectionBase):
 					camfolder = join(self.backupdirectory, cam)
 					if camfolder:
 						eConsoleAppContainer().execute('rm -rf ' + camfolderspath + '*oscam*' + " " + camfolderspath + '*ncam*' + " " + camfolderspath + '*wicardd*')
-				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '* ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/ ; chmod -R 755 /usr/script ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '* ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/ ; chmod -R 755 /usr/script ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1833,7 +1818,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan")]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*')
@@ -1875,10 +1860,10 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x]:
-					fstab_autonetwork_wlan = join("/etc", files)
-					if fstab_autonetwork_wlan:
-						copy(fstab_autonetwork_wlan, self.backupdirectory)
+				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x]:
+					etc_files = join("/etc", files)
+					if etc_files:
+						copy(etc_files, self.backupdirectory)
 				for camfolders in [x for x in listdir(camfolderspath) if "oscam" in x or "ncam" in x or "wicardd" in x]:
 					camfolder = join(camfolderspath, camfolders)
 					if camfolder:
