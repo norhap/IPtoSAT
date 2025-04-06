@@ -1989,7 +1989,10 @@ class AssignService(ChannelSelectionBase):
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 			except Exception as err:
-				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
+				if "read operation" not in err:
+					self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
+				else:
+					self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_ERROR, default=False)
 		else:
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
