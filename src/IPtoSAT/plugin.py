@@ -104,13 +104,29 @@ WILD_CARD_BOUQUETSTV = resolveFilename(SCOPE_CONFIG, "wildcardbouquetstv")
 ENIGMA2_PATH = "/etc/enigma2"
 ENIGMA2_PATH_LISTS = resolveFilename(SCOPE_CONFIG)
 FILES_TUXBOX = "/etc/tuxbox"
-FOLDER_OSCAM = "/config/oscam/" if BoxInfo.getItem("distro") == "norhap" else "/config/oscam_1.20/"
-RESTART_OSCAM = "/etc/init.d/softcam.oscam restart" if BoxInfo.getItem("distro") == "norhap" else "/usr/script/Oscam_1.20_cam.sh stop && /usr/script/Oscam_1.20_cam.sh start"
-OSCAM_PATH = FILES_TUXBOX + FOLDER_OSCAM
-OSCAM_SERVER = FILES_TUXBOX + FOLDER_OSCAM + "oscam.server"
-OSCAM_SERVICES = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services"
-OSCAM_CARD = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services.card"
-OSCAM_NO_CARD = FILES_TUXBOX + FOLDER_OSCAM + "oscam.services.no.card"
+FOLDER_OSCAM = ""
+SCRIPT_OSCAM = ""
+FILES_TUXBOX_CONFIG = "/etc/tuxbox/config"
+USR_SCRIPT = "/usr/script"
+ETC_INITD = "/etc/init.d"
+if exists(FILES_TUXBOX_CONFIG):
+	for oscamfolder in [x for x in listdir(FILES_TUXBOX_CONFIG) if "oscam" in x]:
+		FOLDER_OSCAM = FILES_TUXBOX_CONFIG + "/" + oscamfolder
+		continue
+if BoxInfo.getItem("distro") != "openspa":
+	for oscamscript in [x for x in listdir(ETC_INITD) if "softcam.oscam" in x]:
+		SCRIPT_OSCAM = ETC_INITD + "/" + oscamscript
+		continue
+elif exists(USR_SCRIPT):
+	for oscamscript in [x for x in listdir(USR_SCRIPT) if "Oscam" in x]:
+		SCRIPT_OSCAM = USR_SCRIPT + "/" + oscamscript
+		continue
+RESTART_OSCAM = str(SCRIPT_OSCAM) + " stop && " + str(SCRIPT_OSCAM) + " start"
+OSCAM_PATH = FOLDER_OSCAM + "/"
+OSCAM_SERVER = OSCAM_PATH + "oscam.server"
+OSCAM_SERVICES = OSCAM_PATH + "oscam.services"
+OSCAM_CARD = OSCAM_PATH + "oscam.services.card"
+OSCAM_NO_CARD = OSCAM_PATH + "oscam.services.no.card"
 OSCAM_SERVICES_IPTOSAT = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.no.card")
 OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.card")
 TOKEN_ZEROTIER = "/var/lib/zerotier-one/authtoken.secret"
@@ -262,13 +278,15 @@ def allowsMultipleRecordings():
 			return False
 
 
-def isRecordable():
+def isIPToSAT():
 	if PLAYLIST_PATH and config.plugins.IPToSAT.enable.value:
 		with open(PLAYLIST_PATH, "r") as fr:
 			for refiptosat in fr.readlines():
-				if "sref" in refiptosat and NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString() in refiptosat:
-					return False
-			return True
+				currentService = NavigationInstance.instance.getCurrentlyPlayingServiceReference()
+				if currentService:
+					if currentService.toString() in refiptosat:
+						return True
+			return False
 
 
 def getUserDataSuscription():
@@ -1076,7 +1094,7 @@ class IPToSAT(Screen):
 		else:
 			if allowsMultipleRecordings() is False:
 				self.recordingASingleConnection = True
-		if isRecordable() is False and self.session.nav.getRecordings():
+		if isIPToSAT() and self.session.nav.getRecordings():
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange") and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
@@ -1120,7 +1138,7 @@ class IPToSAT(Screen):
 						eFCCServiceManager.getInstance().setFCCEnable(0)
 				else:
 					if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
-						if isRecordable() is False and not self.recording and not self.recordingASingleConnection:
+						if isIPToSAT() and not self.recording and not self.recordingASingleConnection:
 							self.__infoRecordingOpenSPA()
 			service = self.session.nav.getCurrentService()
 			if service:
@@ -1789,11 +1807,12 @@ class AssignService(ChannelSelectionBase):
 							if tuxboxfiles:
 								remove(tuxboxfiles)
 				dumped = ' ; init 3 ; mount -a ; mv -f ' + ENIGMA2_PATH_LISTS + '*oscam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*ncam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*wicardd*' + " " + camfolderspath + ' ; chmod -R 644 ' + camfolderspath if wlan is False else ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*oscam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*ncam*' + " " + camfolderspath + ' ; mv -f ' + ENIGMA2_PATH_LISTS + '*wicardd*' + " " + camfolderspath + ' ; chmod -R 644 ' + camfolderspath + ' ; init 6'
+				scriptfolder = ' ; rm -rf ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/' if exists(USR_SCRIPT) else ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script ' + USR_SCRIPT
 				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x]:
 					camfolder = join(self.backupdirectory, cam)
 					if camfolder:
 						eConsoleAppContainer().execute('rm -rf ' + camfolderspath + '*oscam*' + " " + camfolderspath + '*ncam*' + " " + camfolderspath + '*wicardd*')
-				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/' + '*' + ' ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '* ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/ ; chmod -R 755 /usr/script ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
+				eConsoleAppContainer().execute('init 4 && sleep 5 && cp -a ' + self.backupdirectory + '/* ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '*' + scriptfolder + ' ; chmod -R 755 ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1819,7 +1838,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*')
@@ -1861,7 +1880,7 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x]:
+				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x]:
 					etc_files = join("/etc", files)
 					if etc_files:
 						copy(etc_files, self.backupdirectory)
