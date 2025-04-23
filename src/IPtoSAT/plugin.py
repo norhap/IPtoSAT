@@ -1802,7 +1802,7 @@ class AssignService(ChannelSelectionBase):
 								remove(enigma2files)
 				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x]:
 					camfolder = join(self.backupdirectory, cam)
-					cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if camfolder and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
+					cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
 					backupfilestuxbox = join(self.backupdirectory, filestuxbox)
 					if backupfilestuxbox:
