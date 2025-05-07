@@ -130,6 +130,7 @@ OSCAM_NO_CARD = OSCAM_PATH + "oscam.services.no.card"
 OSCAM_SERVICES_IPTOSAT = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.no.card")
 OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.services.card")
 TOKEN_ZEROTIER = "/var/lib/zerotier-one/authtoken.secret"
+FOLDER_TOKEN_ZEROTIER = "/var/lib/zerotier-one"
 
 default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
@@ -1813,7 +1814,7 @@ class AssignService(ChannelSelectionBase):
 							tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 							if tuxboxfiles:
 								remove(tuxboxfiles)
-				dumped = (' ; rm -rf /var/lib/zerotier-one/*.d ; rm -rf ' + FILES_TUXBOX + '/config/*cam* ; cp -rf ' + ENIGMA2_PATH_LISTS + '/zerotier-one/* /var/lib/zerotier-one/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + '*cam*' + ' ' + FILES_TUXBOX + '/config/ ; chmod -R 644 /var/lib/zerotier-one ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ; init 3 ; mount -a' if camfolder else ' ; init 3 ; mount -a')
+				dumped = (' ; rm -rf ' + FOLDER_TOKEN_ZEROTIER + '/*.d ; rm -rf ' + FILES_TUXBOX + '/config/*cam* ; cp -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one/* ' + FOLDER_TOKEN_ZEROTIER + '/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + '*cam*' + ' ' + FILES_TUXBOX + '/config/ ; chmod -R 644 ' + FOLDER_TOKEN_ZEROTIER + ' ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ; init 3 ; mount -a' if camfolder else ' ; init 3 ; mount -a')
 				scriptfolder = ' ; rm -rf ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/' if exists('/usr/script') else ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script ' + USR_SCRIPT
 				eConsoleAppContainer().execute('init 4 ; ' + cmdinstall + ' ; cp -a ' + self.backupdirectory + '/* ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '*' + scriptfolder + ' ; chmod -R 755 ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
@@ -1906,11 +1907,10 @@ class AssignService(ChannelSelectionBase):
 						copy(tuxboxfiles, self.backupdirectory)
 					if fileContains(CONFIG_PATH, "pass"):
 						self["status"].show()
-				if exists("/var/lib/zerotier-one"):
-					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one')
-					for zerotierone in [x for x in listdir("/var/lib/zerotier-one") if ".secret" in x or ".prom" in x or ".public" in x or "planet" in x or ".pid" in x or ".te" in x or ".port" in x or ".d" in x]:
-						zerotierfiles = join("/var/lib/zerotier-one", zerotierone)
-						eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
+				for zerotierone in [x for x in listdir(FOLDER_TOKEN_ZEROTIER) if ".public" in x or ".secret" in x or ".prom" in x or "planet" in x or ".pid" in x or ".te" in x or ".port" in x or ".d" in x]:
+					zerotierfiles = join(str(FOLDER_TOKEN_ZEROTIER), zerotierone)
+					if zerotierfiles:
+						eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/') if exists(str(self.backupdirectory) + '/zerotier-one') else eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one ; cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
 				self['managerlistchannels'].show()
 				self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				self["key_rec"].setText("REC")
