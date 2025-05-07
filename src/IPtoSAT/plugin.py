@@ -1802,7 +1802,10 @@ class AssignService(ChannelSelectionBase):
 								remove(enigma2files)
 				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x]:
 					camfolder = join(self.backupdirectory, cam)
-					cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
+					if not exists(str(self.backupdirectory) + '/zerotier-one'):
+						cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
+					else:
+						cmdinstall = 'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
 					backupfilestuxbox = join(self.backupdirectory, filestuxbox)
 					if backupfilestuxbox:
@@ -1810,7 +1813,7 @@ class AssignService(ChannelSelectionBase):
 							tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 							if tuxboxfiles:
 								remove(tuxboxfiles)
-				dumped = (' ; rm -rf ' + FILES_TUXBOX + '/config/*cam* ; mv -f ' + ENIGMA2_PATH_LISTS + '*cam*' + ' ' + FILES_TUXBOX + '/config/ ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ; init 3 ; mount -a' if camfolder else ' ; init 3 ; mount -a')
+				dumped = (' ; rm -rf /var/lib/zerotier-one/*.d ; rm -rf ' + FILES_TUXBOX + '/config/*cam* ; cp -rf ' + ENIGMA2_PATH_LISTS + '/zerotier-one/* /var/lib/zerotier-one/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + '*cam*' + ' ' + FILES_TUXBOX + '/config/ ; chmod -R 644 /var/lib/zerotier-one ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ; init 3 ; mount -a' if camfolder else ' ; init 3 ; mount -a')
 				scriptfolder = ' ; rm -rf ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/' if exists('/usr/script') else ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script ' + USR_SCRIPT
 				eConsoleAppContainer().execute('init 4 ; ' + cmdinstall + ' ; cp -a ' + self.backupdirectory + '/* ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '*' + scriptfolder + ' ; chmod -R 755 ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
@@ -1841,7 +1844,7 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*')
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*')
 					self['managerlistchannels'].show()
 					self.assignWidgetScript("#86dc3d", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
@@ -1903,6 +1906,11 @@ class AssignService(ChannelSelectionBase):
 						copy(tuxboxfiles, self.backupdirectory)
 					if fileContains(CONFIG_PATH, "pass"):
 						self["status"].show()
+				if exists("/var/lib/zerotier-one"):
+					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one')
+					for zerotierone in [x for x in listdir("/var/lib/zerotier-one") if ".secret" in x or ".prom" in x or ".public" in x or "planet" in x or ".pid" in x or ".te" in x or ".port" in x or ".d" in x]:
+						zerotierfiles = join("/var/lib/zerotier-one", zerotierone)
+						eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
 				self['managerlistchannels'].show()
 				self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				self["key_rec"].setText("REC")
