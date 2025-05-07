@@ -569,7 +569,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def joinZeroTier(self):
 		if config.plugins.IPToSAT.showuserdata.value:
 			if exists("/usr/sbin/zerotier-one"):
-				if not exists(TOKEN_ZEROTIER) or BoxInfo.getItem("distro") == "openspa":
+				if not exists(TOKEN_ZEROTIER):
 					from process import ProcessList  # noqa: E402
 					zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
 					zerotier_auto = glob("/etc/rc2.d/S*zerotier")
