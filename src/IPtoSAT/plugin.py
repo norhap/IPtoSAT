@@ -39,23 +39,23 @@ import NavigationInstance
 
 # HTTPS twisted client
 try:
-    from twisted.internet import ssl
-    from twisted.internet._sslverify import ClientTLSOptions
-    sslverify = True
+	from twisted.internet import ssl
+	from twisted.internet._sslverify import ClientTLSOptions
+	sslverify = True
 except ImportError:
-    sslverify = False
+	sslverify = False
 
 
 if sslverify:
-    class SSLFactory(ssl.ClientContextFactory):
-        def __init__(self, hostname=None):
-            self.hostname = hostname
+	class SSLFactory(ssl.ClientContextFactory):
+		def __init__(self, hostname=None):
+			self.hostname = hostname
 
-        def getContext(self):
-            context = self._contextFactory(self.method)
-            if self.hostname:
-                ClientTLSOptions(self.hostname, context)
-            return context
+		def getContext(self):
+			context = self._contextFactory(self.method)
+			if self.hostname:
+				ClientTLSOptions(self.hostname, context)
+			return context
 # END HTTPS twisted client
 
 
@@ -1792,6 +1792,8 @@ class AssignService(ChannelSelectionBase):
 			backupfilestuxbox = ""
 			cmdinstall = ""
 			camfolder = ""
+			camfolderspa = ""
+			camdscriptspa = ""
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "77"), MessageBox.TYPE_INFO, simple=True)
 				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or x.startswith("wpa_supplicant")]:
@@ -1803,10 +1805,11 @@ class AssignService(ChannelSelectionBase):
 								remove(enigma2files)
 				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x]:
 					camfolder = join(self.backupdirectory, cam)
+					rmcamfolder = 'sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if camfolder else 'sleep 5'
 					if not exists(str(self.backupdirectory) + '/zerotier-one'):
-						cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
+						cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 					else:
-						cmdinstall = 'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-oscam ; sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*' if cam == "oscam" and not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") == "norhap" else 'sleep 5 ; opkg update'
+						cmdinstall = 'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-oscam ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
 					backupfilestuxbox = join(self.backupdirectory, filestuxbox)
 					if backupfilestuxbox:
@@ -1814,9 +1817,16 @@ class AssignService(ChannelSelectionBase):
 							tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
 							if tuxboxfiles:
 								remove(tuxboxfiles)
-				dumped = (' ; rm -rf ' + FOLDER_TOKEN_ZEROTIER + '/*.d ; rm -rf ' + FILES_TUXBOX + '/config/*cam* ; cp -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one/* ' + FOLDER_TOKEN_ZEROTIER + '/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + '*cam*' + ' ' + FILES_TUXBOX + '/config/ ; chmod -R 644 ' + FOLDER_TOKEN_ZEROTIER + ' ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ; init 3 ; mount -a' if camfolder else ' ; init 3 ; mount -a')
+				for camspa in [x for x in listdir(self.backupdirectory) if "cam_" in x]:
+					camfolderspa = camspa
+				for camd in [x for x in listdir(self.backupdirectory) if "Camd" in x]:
+					camdscriptspa = camd
+				rmcamfolderspa = ' ; mkdir -p ' + FILES_TUXBOX + '/config/' + camfolderspa + ' ; ' if camfolderspa else ' ; '
+				dump = 'init 3 ; mount -a' if BoxInfo.getItem("distro") != "openspa" else 'cp -a ' + self.backupdirectory + '/' + camdscriptspa + ' /etc/ ; cp -f ' + self.backupdirectory + '/.ActiveCamd /etc/ ; init 3 ; mount -a'
+				cambackupfolder = '*cam*' if BoxInfo.getItem("distro") != "openspa" else '*cam_*'
+				dumped = (' ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*oscam* ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dump}' if not exists(str(self.backupdirectory) + '/zerotier-one') else ' ; rm -rf ' + FOLDER_TOKEN_ZEROTIER + '/*.d ; cp -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one/* ' + FOLDER_TOKEN_ZEROTIER + '/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*oscam* ; chmod -R 644 ' + FOLDER_TOKEN_ZEROTIER + ' ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dump}')
 				scriptfolder = ' ; rm -rf ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script /usr/' if exists('/usr/script') else ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'script ' + USR_SCRIPT
-				eConsoleAppContainer().execute('init 4 ; ' + cmdinstall + ' ; cp -a ' + self.backupdirectory + '/* ' + ENIGMA2_PATH_LISTS + ' ; chmod 644 ' + ENIGMA2_PATH_LISTS + '*' + scriptfolder + ' ; chmod -R 755 ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; chmod 644 /etc/network/interfaces ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
+				eConsoleAppContainer().execute('init 4 ; ' + cmdinstall + rmcamfolderspa + 'cp -a ' + self.backupdirectory + '/* ' + ENIGMA2_PATH_LISTS + '; rm -f ' + ENIGMA2_PATH_LISTS + '*Camd* ; chmod 644 ' + ENIGMA2_PATH_LISTS + '*' + scriptfolder + ' ; chmod -R 755 ' + USR_SCRIPT + ' ; mv -f ' + ENIGMA2_PATH_LISTS + 'interfaces /etc/network/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'shadow /etc/ ; chmod 400 /etc/shadow ; mv -f ' + ENIGMA2_PATH_LISTS + 'inadyn.conf /etc/ ; chmod 644 /etc/inadyn.conf ; mv -f ' + ENIGMA2_PATH_LISTS + '*wpa_supplicant.wlan* /etc/ ; chmod 600 /etc/*wpa_supplicant* ; mv -f ' + ENIGMA2_PATH_LISTS + 'auto.network /etc/ ; chmod 644 /etc/auto.network ; mv -f ' + ENIGMA2_PATH_LISTS + 'fstab /etc/ ; chmod 644 /etc/fstab ; mv -f ' + ENIGMA2_PATH_LISTS + 'CCcam.cfg /etc/ ; chmod 644 /etc/CCcam.cfg ; mv ' + ENIGMA2_PATH_LISTS + 'cables.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'atsc.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'terrestrial.xml ' + FILES_TUXBOX + '/ ; mv ' + ENIGMA2_PATH_LISTS + 'satellites.xml ' + FILES_TUXBOX + '/' + f'{dumped}')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
@@ -1842,10 +1852,10 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*')
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*' + " " + self.backupdirectory + '/*binary-spa*')
 					self['managerlistchannels'].show()
 					self.assignWidgetScript("#86dc3d", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
@@ -1876,6 +1886,8 @@ class AssignService(ChannelSelectionBase):
 			tuxboxfiles = ""
 			camfolderspath = FILES_TUXBOX + '/config'
 			if answer:
+				if BoxInfo.getItem("distro") == "openspa":
+					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/binary-spa ; cp -f /usr/bin/*oscam*' + ' ' + self.backupdirectory + '/binary-spa/')
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
@@ -1884,7 +1896,7 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x]:
+				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					etc_files = join("/etc", files)
 					if etc_files:
 						copy(etc_files, self.backupdirectory)
