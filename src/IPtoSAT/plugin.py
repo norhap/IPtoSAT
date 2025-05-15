@@ -1794,6 +1794,7 @@ class AssignService(ChannelSelectionBase):
 			camfolder = ""
 			camfolderspa = ""
 			camdscriptspa = ""
+			cams = False
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "222"), MessageBox.TYPE_INFO, simple=True)
 				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or x.startswith("wpa_supplicant")]:
@@ -1803,15 +1804,16 @@ class AssignService(ChannelSelectionBase):
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
-				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x]:
+				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x or "zerotier-one" in x]:
 					camfolder = join(self.backupdirectory, cam)
 					rmcamfolder = 'sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*'
-					if camfolder:
+					if "cam" in cam or "cardd" in cam:
+						cams = True
 						if not exists(str(self.backupdirectory) + '/zerotier-one'):
-							cmdinstall = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
+							cmdinstall = f'opkg update ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 						else:
-							cmdinstall = 'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-oscam ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
-					else:
+							cmdinstall = f'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
+					if cam == "zerotier-one" and cams is False:
 						cmdinstall = 'opkg update ; opkg install zerotier ; sleep 5' if exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
 					backupfilestuxbox = join(self.backupdirectory, filestuxbox)
