@@ -392,10 +392,13 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				copy(PLAYLIST_PATH, ENIGMA2_PATH_LISTS + "iptosatjsoncard")
 				copy(OSCAM_SERVICES_CARD, OSCAM_PATH)
 				copy(OSCAM_SERVICES_IPTOSAT, OSCAM_SERVICES)
-			if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(str(OSCAM_SERVER)):
-				self["key_blue"].setText(language.get(lang, "195"))  # noqa: F821
-			elif exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and exists(str(OSCAM_SERVER)):
-				self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
+			if exists(str(OSCAM_SERVER)):
+				if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and config.usage.remote_fallback_enabled.value:
+					self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
+				elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
+					self["key_blue"].setText(language.get(lang, "195"))  # noqa: F821
+				elif exists(ENIGMA2_PATH_LISTS + "iptosatjsonall"):
+					self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
 		self.createSetup()
 
 	def layoutFinished(self):
