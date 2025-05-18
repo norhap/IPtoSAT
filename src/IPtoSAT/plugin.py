@@ -3659,7 +3659,7 @@ class InstallChannelsLists(Screen):
 		from zipfile import ZipFile
 		channelslists = self["list"].getCurrent()
 		if answer:
-			self.session.open(MessageBox, language.get(lang, "77") + str(channelslists), MessageBox.TYPE_INFO, simple=True)
+			self.session.open(MessageBox, language.get(lang, "77") + " " + str(channelslists), MessageBox.TYPE_INFO, simple=True)
 			dirpath = ""
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
