@@ -1799,7 +1799,7 @@ class AssignService(ChannelSelectionBase):
 			camdscriptspa = ""
 			cams = False
 			if answer:
-				self.session.open(MessageBox, language.get(lang, "222"), MessageBox.TYPE_INFO, simple=True)
+				self.session.open(MessageBox, language.get(lang, "69"), MessageBox.TYPE_INFO, simple=True)
 				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or x.startswith("wpa_supplicant")]:
 					backupfilesenigma = join(self.backupdirectory, filesenigma2)
 					if backupfilesenigma:
