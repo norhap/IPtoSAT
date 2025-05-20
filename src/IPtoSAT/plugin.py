@@ -3433,6 +3433,7 @@ class InstallChannelsLists(Screen):
 	skin = """
 	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,701" title="IPToSAT - Install Channels Lists">
 		<widget name="list" itemHeight="40" position="18,22" size="1364,520" font="Regular;25" scrollbarMode="showOnDemand"/>
+		<widget source="xmlfiles" render="Label" conditional="xmlfiles" position="7,555" zPosition="12" size="165,55" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text"/>
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,618" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
@@ -3445,7 +3446,6 @@ class InstallChannelsLists(Screen):
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,618" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="description" position="18,550" size="684,40" foregroundColor="#e5e619" font="Regular;24" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="status" position="712,565" size="684,135" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
@@ -3458,16 +3458,16 @@ class InstallChannelsLists(Screen):
 		self.zip_jungle = None
 		self.zip_sorys_vuplusmania = None
 		self.path = None
-		self.tuxboxxml = 'https://github.com/OpenPLi/tuxbox-xml/archive/refs/heads/master.zip'
+		self.tuxboxxml = 'https://github.com/OpenPLi/tuxbox-xml/archive/refs/heads/master.zip'  # TUXBOX FILES UPDATE REPOSITORY OPenPLi
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(language.get(lang, "88"))
 		self['list'] = MenuList([])
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
+		self["xmlfiles"] = StaticText(language.get(lang, "223"))
 		self["key_blue"] = StaticText(language.get(lang, "102"))
 		self["status"] = Label()
-		self["description"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -3477,6 +3477,7 @@ class InstallChannelsLists(Screen):
 			"ok": self.keyGreen,
 			"yellow": self.getListsRepositories,
 			"blue": self.getSourceUpdated,
+			"menu": self.getinstallXMLUpdated,
 			"left": self.goLeft,
 			"right": self.goRight,
 			"down": self.moveDown,
@@ -3557,24 +3558,12 @@ class InstallChannelsLists(Screen):
 				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
 				junglerepository = get(urljungle, timeout=10)
 				norhaprepository = get(urlnorhap, timeout=10)
-				tuxboxrepository = get(self.tuxboxxml, timeout=10)
 				with open(CHANNELS_LISTS_PATH, 'w') as fw:
 					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
 				with open(str(self.zip_jungle), "wb") as jungle:
 					jungle.write(junglerepository.content)
 				with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
 					norhap.write(norhaprepository.content)
-				with open(str(self.zip_tuxbox_xml), "wb") as xml:
-					xml.write(tuxboxrepository.content)
-				if exists(str(self.zip_tuxbox_xml)):
-					with ZipFile(self.zip_tuxbox_xml, 'r') as zipfile:
-						zipfile.extractall(self.folderlistchannels)
-				# TUXBOX FILES UPDATE REPOSITORY OPenPLi
-				eConsoleAppContainer().execute('cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/')
-				sleep(1)
-				readsatellitesxml = eDVBDB.getInstance().readSatellites(self.satList, self.satellites, self.transponders)
-				if readsatellitesxml:
-					self["description"].setText(language.get(lang, "222"))
 				# JUNGLE TEAM
 				if exists(str(self.zip_jungle)):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
@@ -3638,6 +3627,36 @@ class InstallChannelsLists(Screen):
 				self.iniMenu()
 			except Exception as err:
 				print("ERROR: %s" % str(err))
+
+	def getinstallXMLUpdated(self):
+
+		def restarGUI(answer):
+			if answer:
+				self.session.open(TryQuitMainloop, 3)
+
+		def doinstallXMLRepositorie(answer):
+			if answer:
+				self.satList = []
+				self.satellites = {}
+				self.transponders = {}
+				from zipfile import ZipFile
+				try:
+					tuxboxrepository = get(self.tuxboxxml, timeout=10)
+					with open(str(self.zip_tuxbox_xml), "wb") as xml:
+						xml.write(tuxboxrepository.content)
+					if exists(str(self.zip_tuxbox_xml)):
+						with ZipFile(self.zip_tuxbox_xml, 'r') as zipfile:
+							zipfile.extractall(self.folderlistchannels)
+					eConsoleAppContainer().execute('cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/')
+					sleep(1)
+					readsatellitesxml = eDVBDB.getInstance().readSatellites(self.satList, self.satellites, self.transponders)
+					if readsatellitesxml:
+						self.session.openWithCallback(restarGUI, MessageBox, language.get(lang, "222"), MessageBox.TYPE_YESNO)
+				except Exception as err:
+					print("ERROR: %s" % str(err))
+
+		if self.storage:
+			self.session.openWithCallback(doinstallXMLRepositorie, MessageBox, language.get(lang, "224"), MessageBox.TYPE_YESNO)
 
 	def getListsRepositories(self):
 		if self.storage:
