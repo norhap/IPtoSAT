@@ -221,6 +221,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 219 = FCC has been disabled to sync IPToSAT channels.\nEnigma2 needs to restart\nDo you want to do that now?
 220 = Bouquets are being created by categories...\nThey will be shown in FAVORITES in seconds or minutes depending on your list.
 221 = Response timed out without results.
+222 = The new satellites.xml has been read successfully.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -444,3 +445,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 219 = Se ha deshabilitado FCC para sincronizar canales IPToSAT.\nEnigma2 necesita reiniciar.\n¿Desea hacerlo ahora?
 220 = Se están creando bouquets por categorías...\nSe mostrarán en FAVORITOS en segundos o minutos dependiendo de su lista.
 221 = Se agotó el tiempo de respuesta sin obtener resultados.
+222 = Se ha leído el nuevo satellites.xml correctamente.

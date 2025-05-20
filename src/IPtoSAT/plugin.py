@@ -3445,6 +3445,7 @@ class InstallChannelsLists(Screen):
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,618" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
+		<widget name="description" position="18,550" size="684,40" foregroundColor="#e5e619" font="Regular;24" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="status" position="712,565" size="684,135" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
@@ -3466,6 +3467,7 @@ class InstallChannelsLists(Screen):
 		self["key_yellow"] = StaticText("")
 		self["key_blue"] = StaticText(language.get(lang, "102"))
 		self["status"] = Label()
+		self["description"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
 		{
 			"back": self.close,
@@ -3545,6 +3547,9 @@ class InstallChannelsLists(Screen):
 		self.close(True)
 
 	def doindexListsRepositories(self, answer):
+		self.satList = []
+		self.satellites = {}
+		self.transponders = {}
 		from zipfile import ZipFile
 		if answer:
 			try:
@@ -3566,6 +3571,10 @@ class InstallChannelsLists(Screen):
 						zipfile.extractall(self.folderlistchannels)
 				# TUXBOX FILES UPDATE REPOSITORY OPenPLi
 				eConsoleAppContainer().execute('cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/')
+				sleep(1)
+				readsatellitesxml = eDVBDB.getInstance().readSatellites(self.satList, self.satellites, self.transponders)
+				if readsatellitesxml:
+					self["description"].setText(language.get(lang, "222"))
 				# JUNGLE TEAM
 				if exists(str(self.zip_jungle)):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
