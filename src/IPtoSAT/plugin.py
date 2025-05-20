@@ -3580,14 +3580,15 @@ class InstallChannelsLists(Screen):
 					with ZipFile(self.zip_jungle, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				junglerepo = self.folderlistchannels + '/*/*Jungle-*'
-				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
+				# jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
 				junglelists = ""
-				index = ""
-				for file in glob(jungleupdatefile, recursive=True):
-					with open(file, 'r') as fr:
-						update = fr.readlines()
-						for index in update:
-							index = index.replace("[", "")
+				now = datetime.now().strftime("%d-%m-%Y")  # jungle not file update actualizacion.
+				index = now
+				# for file in glob(jungleupdatefile, recursive=True):
+				# with open(file, 'r') as fr:
+				# update = fr.readlines()
+				# for index in update:
+				# index = index.replace("[", "")
 				for folders in glob(junglerepo, recursive=True):
 					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources = getChannelsLists()
