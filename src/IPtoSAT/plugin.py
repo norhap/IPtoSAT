@@ -535,7 +535,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
-			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
+			self.timercategories = TimerUpdateCategories()  # category update timer initializer
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -678,9 +678,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			current_day = int(now.tm_wday)
 			if config.plugins.IPToSAT.timerscard.value:
 				if config.plugins.IPToSAT.timecardon[current_day].value:  # ignore timer ON for not current day
-					self.timercardOn = TimerOnCard(self)  # card ON timer start
+					self.timercardOn = TimerOnCard()  # card ON timer start
 				if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
-					self.timercardOff = TimerOffCard(self)  # card OFF timer start
+					self.timercardOff = TimerOffCard()  # card OFF timer start
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
@@ -711,8 +711,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 
 class TimerUpdateCategories:
-	def __init__(self, session):
-		self.session = session
+	def __init__(self):
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
@@ -834,8 +833,7 @@ class TimerUpdateCategories:
 
 
 class TimerOffCard:
-	def __init__(self, session):
-		self.session = session
+	def __init__(self):
 		self.cardofftimer = eTimer()
 		self.cardofftimer.callback.append(self.iptosatCardOffTimer)
 		self.cardpolltimer = eTimer()
@@ -980,8 +978,7 @@ class TimerOffCard:
 
 
 class TimerOnCard:
-	def __init__(self, session):
-		self.session = session
+	def __init__(self):
 		self.cardontimer = eTimer()
 		self.cardontimer.callback.append(self.iptosatCardOnTimer)
 		self.cardpolltimer = eTimer()
@@ -1073,10 +1070,10 @@ class IPToSAT(Screen):
 			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
-				self.timercardOff = TimerOffCard(self)  # card timer initializer off from reboot
-				self.timercardOn = TimerOnCard(self)  # card timer initializer on from reboot
+				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
+				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timercategories = TimerUpdateCategories(self)  # category update timer initializer
+			self.timercategories = TimerUpdateCategories()  # category update timer initializer
 		if isPluginInstalled("FastChannelChange") and config.usage.remote_fallback_enabled.value and config.plugins.IPToSAT.enable.value:
 			config.usage.remote_fallback_enabled.value = False
 			config.usage.remote_fallback_enabled.save()
@@ -1216,7 +1213,7 @@ class IPToSAT(Screen):
 
 	def __evEnd(self):
 		self.Timer.stop()
-		if self.ip_sat:
+		if hasattr(self, "ip_sat"):
 			self.container.sendCtrlC()
 			self.ip_sat = False
 
