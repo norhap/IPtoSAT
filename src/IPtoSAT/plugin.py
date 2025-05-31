@@ -1103,7 +1103,11 @@ class IPToSAT(Screen):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
 			elif self.recordingASingleConnection and BoxInfo.getItem("distro") != ("norhap"):
-				self.__infoRecordingOpenSPA()
+				if hasattr(self, "returnValue"):
+					self.__infoRecordingOpenSPA()
+				else:
+					self.container.sendCtrlC()
+					self.Timer.stop()
 
 	def get_channel(self):
 		try:
@@ -1143,7 +1147,11 @@ class IPToSAT(Screen):
 				else:
 					if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
 						if isIPToSAT() and not self.recording and not self.recordingASingleConnection:
-							self.__infoRecordingOpenSPA()
+							if hasattr(self, "returnValue"):
+								self.__infoRecordingOpenSPA()
+							else:
+								self.container.sendCtrlC()
+								self.Timer.stop()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
