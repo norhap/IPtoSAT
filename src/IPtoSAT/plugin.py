@@ -1102,12 +1102,6 @@ class IPToSAT(Screen):
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange") and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
-			elif self.recordingASingleConnection and BoxInfo.getItem("distro") != ("norhap"):
-				if hasattr(self, "returnValue"):
-					self.__infoRecordingOpenSPA()
-				else:
-					self.container.sendCtrlC()
-					self.Timer.stop()
 
 	def get_channel(self):
 		try:
@@ -1124,8 +1118,6 @@ class IPToSAT(Screen):
 				if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 					recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
 					if self.recordingASingleConnection and allowsMultipleRecordings() is False:
-						self.recording = True
-					if BoxInfo.getItem("distro") != ("norhap") and allowsMultipleRecordings() is True:
 						self.recording = True
 					if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
 						self.recording = True
@@ -1144,14 +1136,6 @@ class IPToSAT(Screen):
 					if isPluginInstalled("FastChannelChange"):
 						from enigma import eFCCServiceManager  # noqa: E402
 						eFCCServiceManager.getInstance().setFCCEnable(0)
-				else:
-					if self.session.nav.getRecordings() and BoxInfo.getItem("distro") != ("norhap"):
-						if isIPToSAT() and not self.recording and not self.recordingASingleConnection:
-							if hasattr(self, "returnValue"):
-								self.__infoRecordingOpenSPA()
-							else:
-								self.container.sendCtrlC()
-								self.Timer.stop()
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1183,14 +1167,6 @@ class IPToSAT(Screen):
 		self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
-
-	def __infoRecordingOpenSPA(self):
-		self.container.sendCtrlC()
-		self.Timer.stop()
-		if allowsMultipleRecordings() is False:
-			AddPopup(language.get(lang, "216"), type=MessageBox.TYPE_INFO, timeout=0)
-		else:
-			AddPopup(language.get(lang, "217"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
@@ -3470,7 +3446,7 @@ class InstallChannelsLists(Screen):
 		self["key_red"] = StaticText("")
 		self["key_green"] = StaticText("")
 		self["key_yellow"] = StaticText("")
-		self["xmlfiles"] = StaticText(language.get(lang, "223"))
+		self["xmlfiles"] = StaticText(language.get(lang, "216"))
 		self["key_blue"] = StaticText(language.get(lang, "102"))
 		self["status"] = Label()
 		self["iptosatactions"] = ActionMap(["IPToSATActions"],
@@ -3660,7 +3636,7 @@ class InstallChannelsLists(Screen):
 					print("ERROR: %s" % str(err))
 
 		if self.storage:
-			self.session.openWithCallback(doinstallXMLRepositorie, MessageBox, language.get(lang, "224"), MessageBox.TYPE_YESNO)
+			self.session.openWithCallback(doinstallXMLRepositorie, MessageBox, language.get(lang, "217"), MessageBox.TYPE_YESNO)
 
 	def getListsRepositories(self):
 		if self.storage:
