@@ -393,7 +393,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				copy(OSCAM_SERVICES_CARD, OSCAM_PATH)
 				copy(OSCAM_SERVICES_IPTOSAT, OSCAM_SERVICES)
 			if exists(str(OSCAM_SERVER)):
-				if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(ENIGMA2_PATH_LISTS + "iptosatjsonall")  and exists(str(OSCAM_CARD)):
+				if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(ENIGMA2_PATH_LISTS + "iptosatjsonall")  and exists(str(OSCAM_NO_CARD)):
 					self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
 				elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
 					self["key_blue"].setText(language.get(lang, "195"))  # noqa: F821
