@@ -1875,6 +1875,7 @@ class AssignService(ChannelSelectionBase):
 			tuxboxfiles = ""
 			camfolderspath = FILES_TUXBOX + '/config'
 			if answer:
+				self['managerlistchannels'].hide()
 				if BoxInfo.getItem("distro") == "openspa":
 					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/binary-spa ; cp -f /usr/bin/*oscam*' + ' ' + self.backupdirectory + '/binary-spa/')
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
@@ -1885,6 +1886,8 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
+						self['managerlistchannels'].show()
+						self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					etc_files = join("/etc", files)
 					if etc_files:
@@ -1912,8 +1915,6 @@ class AssignService(ChannelSelectionBase):
 					zerotierfiles = join(str(FOLDER_TOKEN_ZEROTIER), zerotierone)
 					if zerotierfiles:
 						eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/') if exists(str(self.backupdirectory) + '/zerotier-one') else eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one ; cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
-				self['managerlistchannels'].show()
-				self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				self["key_rec"].setText("REC")
 				self["key_audio"].setText("AUDIO")
 				bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
