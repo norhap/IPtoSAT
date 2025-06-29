@@ -3554,15 +3554,15 @@ class InstallChannelsLists(Screen):
 				junglerepo = self.folderlistchannels + '/*/*Jungle-*'
 				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
 				junglelists = ""
-				index = ""
+				indexdate = ""
+				indexlistssources = getChannelsLists()
 				for file in glob(jungleupdatefile, recursive=True):
 					with open(file, 'r') as fr:
 						update = fr.readlines()
-						for index in update:
-							index = index.replace("[", "")
+						for indexdate in update:
+							indexdate = indexdate.replace("[", "")
 				for folders in glob(junglerepo, recursive=True):
-					junglelists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
-					indexlistssources = getChannelsLists()
+					junglelists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources['channelslists'].append({'listtype': junglelists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
@@ -3573,30 +3573,37 @@ class InstallChannelsLists(Screen):
 				sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
 				sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
 				soryslists = ""
-				index = ""
+				indexdatecomunitarias = ""
 				for file in glob(sorysupdatefile, recursive=True):
-					with open(file, 'r') as fr:
-						update = fr.readlines()
-						for index in update:
-							index = index.replace("[", "")
+					if "comunitarias" not in file:
+						with open(file, 'r') as fr:
+							update = fr.readlines()
+							for indexdate in update:
+								indexdate = indexdate.replace("[", "")
+					else:
+						with open(file, 'r') as fr:
+							update = fr.readlines()
+							for indexdatecomunitarias in update:
+								indexdatecomunitarias = indexdatecomunitarias.replace("[", "")
 				for folders in glob(sorysrepository, recursive=True):
-					soryslists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
-					indexlistssources = getChannelsLists()
-					indexlistssources['channelslists'].append({'listtype': soryslists})
+					if "Comunitarias" not in folders:
+						soryslists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
+						indexlistssources['channelslists'].append({'listtype': soryslists})
+					else:
+						soryslists = str([folders.split('main/')[1], indexdatecomunitarias])[1:-1].replace('\'', '').replace(',', '   ')
+						indexlistssources['channelslists'].append({'listtype': soryslists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
 				vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
 				vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
 				vuplusmanialists = ""
-				index = ""
 				for file in glob(vuplusmaniaupdatefile, recursive=True):
 					with open(file, 'r') as fr:
 						update = fr.readlines()
-						for index in update:
-							index = index.replace("[", "")
+						for indexdate in update:
+							indexdate = indexdate.replace("[", "")
 				for folders in glob(vuplusmaniarepository, recursive=True):
-					vuplusmanialists = str([folders.split('main/')[1], index])[1:-1].replace('\'', '').replace(',', '   ')
-					indexlistssources = getChannelsLists()
+					vuplusmanialists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
 					indexlistssources['channelslists'].append({'listtype': vuplusmanialists})
 					with open(CHANNELS_LISTS_PATH, 'w') as f:
 						dump(indexlistssources, f, indent=4)
