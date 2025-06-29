@@ -1615,14 +1615,17 @@ class AssignService(ChannelSelectionBase):
 			self["codestatus"].hide()
 		if fileExists(CONFIG_PATH):
 			try:
-				with open(CONFIG_PATH, "r") as fr:
-					xtream = fr.read()
-					self.host = xtream.split()[1].split('Host=')[1]
-					self.user = xtream.split()[2].split('User=')[1]
-					self.password = xtream.split()[3].split('Pass=')[1]
-					self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
-					self.getCategories(self.url)
-					self.getUserSuscription(self.url)
+				if config.plugins.IPToSAT.domain.value != config.plugins.IPToSAT.domain.default:
+					with open(CONFIG_PATH, "r") as fr:
+						xtream = fr.read()
+						self.host = xtream.split()[1].split('Host=')[1]
+						self.user = xtream.split()[2].split('User=')[1]
+						self.password = xtream.split()[3].split('Pass=')[1]
+						self.url = '{}/player_api.php?username={}&password={}'.format(self.host, self.user, self.password)
+						self.getCategories(self.url)
+						self.getUserSuscription(self.url)
+				else:
+					self.error(error=True)
 			except Exception:
 				trace_error()
 				self.errortimer.start(200, True)
@@ -2570,7 +2573,7 @@ class AssignService(ChannelSelectionBase):
 		else:
 			getPage(str.encode(url)).addCallback(callback)
 
-	def error(self, error=None):
+	def error(self, error=False):
 		try:
 			if error:
 				log(error)
