@@ -1979,7 +1979,11 @@ class AssignService(ChannelSelectionBase):
 						except Exception:
 							pass
 					if response:
-						m3u = response.read()
+						try:
+							m3u = response.read()
+						except TimeoutError:
+							self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_ERROR, default=False)
+							return
 						if config.plugins.IPToSAT.deletecategories.value and m3u:
 							for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
 								with open(BOUQUETS_TV, "r") as fr:
@@ -2022,10 +2026,7 @@ class AssignService(ChannelSelectionBase):
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 			except Exception as err:
-				if "read operation" not in err:
-					self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
-				else:
-					self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_ERROR, default=False)
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 		else:
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
