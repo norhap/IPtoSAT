@@ -132,7 +132,7 @@ OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.s
 TOKEN_ZEROTIER = "/var/lib/zerotier-one/authtoken.secret"
 FOLDER_TOKEN_ZEROTIER = "/var/lib/zerotier-one"
 
-default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') or not isPluginInstalled("FastChannelChange") else "gstplayer"
+default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
@@ -1065,18 +1065,15 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		self.setFCCEnable = False
 		try:
-			self.Timer.callback.append(self.get_channel)
+			self.Timer.callback.append((self.get_channel if not config.usage.remote_fallback_enabled.value and BoxInfo.getItem("distro") == "norhap" else self.get_channel_not_info_recordings))
 		except Exception:
-			self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
+			self.Timer_conn = self.Timer.timeout.connect((self.get_channel if not config.usage.remote_fallback_enabled.value and BoxInfo.getItem("distro") == "norhap" else self.get_channel_not_info_recordings))
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
 				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories()  # category update timer initializer
-		if isPluginInstalled("FastChannelChange") and config.usage.remote_fallback_enabled.value and config.plugins.IPToSAT.enable.value:
-			config.usage.remote_fallback_enabled.value = False
-			config.usage.remote_fallback_enabled.save()
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
@@ -1102,6 +1099,24 @@ class IPToSAT(Screen):
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange") and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
+
+	def get_channel_not_info_recordings(self):
+		service = self.session.nav.getCurrentService()
+		if service:
+			info = service and service.info()
+			if info:
+				FeInfo = service and service.frontendInfo()
+				if FeInfo:
+					SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
+					isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
+					if isCrypted and SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
+						lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
+						channel_name = ServiceReference(lastservice).getServiceName()
+						self.current_channel(channel_name, lastservice)
+					else:
+						if self.ip_sat:
+							self.container.sendCtrlC()
+							self.ip_sat = False
 
 	def get_channel(self):
 		try:
