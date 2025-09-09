@@ -62,7 +62,7 @@ if sslverify:
 def playersList():
 	if not fileExists('/var/lib/dpkg/status'):
 		# Fixed DreamOS by. audi06_19 , gst-play-1.0
-		return [("gstplayer", "GstPlayer"), ("exteplayer3", "ExtEplayer3"),]
+		return [("exteplayer3", "ExtEplayer3"), ("gstplayer", "GstPlayer"),]
 	else:
 		return [("gst-play-1.0", "OE-2.5 Player"), ("exteplayer3", "ExtEplayer3"),]
 
@@ -132,7 +132,6 @@ OSCAM_SERVICES_CARD = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/oscam.s
 TOKEN_ZEROTIER = "/var/lib/zerotier-one/authtoken.secret"
 FOLDER_TOKEN_ZEROTIER = "/var/lib/zerotier-one"
 
-default_player = "exteplayer3" if fileExists('/var/lib/dpkg/status') else "gstplayer"
 config.plugins.IPToSAT = ConfigSubsection()
 config.plugins.IPToSAT.enable = ConfigYesNo(default=True) if fileContains(PLAYLIST_PATH, '"sref": "') else ConfigYesNo(default=False)
 config.plugins.IPToSAT.mainmenu = ConfigYesNo(default=False)
@@ -140,7 +139,7 @@ config.plugins.IPToSAT.showuserdata = ConfigYesNo(default=True)
 config.plugins.IPToSAT.usercategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.deletecategories = ConfigYesNo(default=False)
 config.plugins.IPToSAT.autotimerbouquets = ConfigYesNo(default=False)
-config.plugins.IPToSAT.player = ConfigSelection(default=default_player, choices=playersList())
+config.plugins.IPToSAT.player = ConfigSelection(default="exteplayer3", choices=playersList())
 config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.typecategories = ConfigSelection(choices=[("live", language.get(lang, "148")), ("vod", language.get(lang, "149")), ("series", language.get(lang, "150")), ("all", language.get(lang, "157")), ("none", language.get(lang, "158"))], default="live")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
@@ -1065,9 +1064,9 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		self.setFCCEnable = False
 		try:
-			self.Timer.callback.append((self.get_channel if not config.usage.remote_fallback_enabled.value and BoxInfo.getItem("distro") == "norhap" else self.get_channel_not_info_recordings))
-		except Exception:
-			self.Timer_conn = self.Timer.timeout.connect((self.get_channel if not config.usage.remote_fallback_enabled.value and BoxInfo.getItem("distro") == "norhap" else self.get_channel_not_info_recordings))
+			self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+		except:
+			self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
@@ -1099,24 +1098,6 @@ class IPToSAT(Screen):
 			if not self.recordingASingleConnection and isPluginInstalled("FastChannelChange") and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 				self.__resetDataBase()
 				self.__InfoallowsMultipleRecordingsFBC()
-
-	def get_channel_not_info_recordings(self):
-		service = self.session.nav.getCurrentService()
-		if service:
-			info = service and service.info()
-			if info:
-				FeInfo = service and service.frontendInfo()
-				if FeInfo:
-					SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
-					isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-					if isCrypted and SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
-						lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
-						channel_name = ServiceReference(lastservice).getServiceName()
-						self.current_channel(channel_name, lastservice)
-					else:
-						if self.ip_sat:
-							self.container.sendCtrlC()
-							self.ip_sat = False
 
 	def get_channel(self):
 		try:
@@ -1167,7 +1148,7 @@ class IPToSAT(Screen):
 							if self.ip_sat:
 								self.container.sendCtrlC()
 								self.ip_sat = False
-		except Exception:
+		except:
 			pass
 
 	def __evStart(self):
