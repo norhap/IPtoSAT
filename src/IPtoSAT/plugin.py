@@ -36,6 +36,7 @@ from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 import NavigationInstance
 
+refSat = None
 
 # HTTPS twisted client
 try:
@@ -1310,7 +1311,7 @@ class AssignService(ChannelSelectionBase):
 			<widget source="key_stop" render="Label" conditional="key_stop" position="1047,598" zPosition="4" size="110,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
-			<widget source="key_0" render="Label" conditional="key_0" position="1162,598" zPosition="12" size="35,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
+			<widget source="key_1" render="Label" conditional="key_1" position="1162,598" zPosition="12" size="35,25" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 				<convert type="ConditionalShowHide"/>
 			</widget>
 			<widget source="key_tv" conditional="key_tv" render="Label" position="12,560" size="110,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
@@ -1364,7 +1365,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_tv"] = StaticText("")
 		self["key_rec"] = StaticText("")
 		self["key_audio"] = StaticText("")
-		self["key_0"] = StaticText("")
+		self["key_1"] = StaticText("")
 		self.checkStorageDevice()
 		self["ChannelSelectBaseActions"] = ActionMap(["IPToSATAsignActions"],
 		{
@@ -1391,7 +1392,8 @@ class AssignService(ChannelSelectionBase):
 			"audio": self.deleteChannelsList,
 			"rec": self.installChannelsList,
 			"red": self.installBouquetIPToSATEPG,
-			"0": self.searchBouquetIPTV,
+			"1": self.searchBouquetIPTV,
+			"0": self.getRefSat,
 		}, -2)
 		self.errortimer = eTimer()
 		if not fileContains(CONFIG_PATH, "pass") and not fileContains(CONFIG_PATH, "domain"):
@@ -1473,7 +1475,7 @@ class AssignService(ChannelSelectionBase):
 			self["key_volumedown"] = StaticText("")
 			self["key_stop"] = StaticText("")
 		self['managerlistchannels'].hide()
-		self["key_0"].setText("")
+		self["key_1"].setText("")
 		self["description"].hide()
 		self["help"].hide()
 		self["helpbouquetepg"].hide()
@@ -1486,7 +1488,7 @@ class AssignService(ChannelSelectionBase):
 		epghelp = language.get(lang, "9")
 		#  helpbouquetepg = language.get(lang, "74")
 		self["description"].hide()
-		#  self["key_0"].setText("0")
+		#  self["key_1"].setText("0")
 		self["play"].hide()
 		self["help"].setText(epghelp)
 		self["help"].show()
@@ -1568,7 +1570,7 @@ class AssignService(ChannelSelectionBase):
 		self["help"].hide()
 		self["key_volumeup"].setText("")
 		self["key_volumedown"].setText("")
-		self["key_0"].setText("")
+		self["key_1"].setText("")
 		self["key_stop"].setText("")
 		self["helpbouquetepg"].hide()
 		self['managerlistchannels'].hide()
@@ -1588,13 +1590,23 @@ class AssignService(ChannelSelectionBase):
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveDown)
-		self.resetWidget()
+		if self.getRefSatCheck() is not None and self.selectedList == self["list"]:
+			text = language.get(lang, "223")
+			self.assignWidgetScript("#e5e619", text)
+		else:
+			text = ""
+			self.assignWidgetScript("#e5e619", text)
 
 	def moveUp(self):
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveUp)
-		self.resetWidget()
+		if self.getRefSatCheck() is not None and self.selectedList == self["list"]:
+			text = language.get(lang, "223")
+			self.assignWidgetScript("#e5e619", text)
+		else:
+			text = ""
+			self.assignWidgetScript("#e5e619", text)
 
 	def getUserData(self):
 		listsuscription = join(str(self.alternatefolder), "iptosat_LIST1.conf")
@@ -1958,7 +1970,7 @@ class AssignService(ChannelSelectionBase):
 					with open(REFERENCES_FILE, "a") as updatefile:
 						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 							channel_name = channel_name.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
-						if "iptosat" not in channel_name and not fileContains(REFERENCES_FILE, str(channel_name).lower()):
+						if "iptosat" not in channel_name and not fileContains(REFERENCES_FILE, str(channel_name).lower()) and "ORDER BY bouquet" not in str(sref):
 							if fileContains(REFERENCES_FILE, ":"):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref) + "-->1")
 							else:
@@ -2056,13 +2068,26 @@ class AssignService(ChannelSelectionBase):
 			self.assignWidgetScript("#00ff2525", text)
 		self.showFavourites()
 
+	def getRefSat(self):
+		global refSat
+		refSat = self.getCurrentSelection().toString()
+		text = language.get(lang, "224")
+		self.assignWidgetScript("#e5e619", text)
+
+	def getRefSatCheck(self):
+		refSat = self.getCurrentSelection().toString()
+		if refSat and "4097" not in refSat and "FROM BOUQUET" not in refSat:
+			return refSat
+		return None
+
 	def addEPGChannel(self, channel_name, sref, bouquetname):
+		global refSat
 		ref = self.getCurrentSelection()
 		if (ref.flags & 7) == 7:  # this is bouquet selection no channel!!
 			self.session.open(MessageBox, language.get(lang, "84"), MessageBox.TYPE_ERROR, simple=True, timeout=5)
 		else:
 			try:
-				epg_channel_name = channel_name.upper()
+				epg_channel_name = channel_name
 				characterascii = [epg_channel_name]
 				satreferencename = ""
 				bouquetnamemsgbox = ""
@@ -2074,7 +2099,7 @@ class AssignService(ChannelSelectionBase):
 							epg_channel_name = epg_channel_name.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("Ñ", "N").encode('ascii', 'ignore').decode()
 							break
 					break
-					if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()) or search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # remove old channel with sref old
+					if exists(IPToSAT_EPG_PATH) and fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) or search(r'[ÁÉÍÓÚÑ]', character) and not fileContains(IPToSAT_EPG_PATH, sref):  # remove old channel with sref old
 						with open(IPToSAT_EPG_PATH, "r") as iptosat_epg_read:
 							bouquetiptosatepg = iptosat_epg_read.readlines()
 						with open(IPToSAT_EPG_PATH, "w") as iptosat_epg_write:
@@ -2088,7 +2113,7 @@ class AssignService(ChannelSelectionBase):
 								else:
 									if epg_channel_name not in channel and "%3a " not in channel or epg_channel_name + " " + "HD" not in channel and "%3a " not in channel or "#DESCRIPTION " + epg_channel_name not in channel and "#SERVICE" in channel:
 										iptosat_epg_write.write(channel)
-						if fileContains(IPToSAT_EPG_PATH, sref.upper()):
+						if fileContains(IPToSAT_EPG_PATH, sref):
 							self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
 				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
 					bouquetiptv = join(filelist)
@@ -2108,21 +2133,28 @@ class AssignService(ChannelSelectionBase):
 										namebouquet = line
 									if ":" + epg_channel_name in line and "http" in line:
 										sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + epg_channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
-										satreferencename = sat_reference_name
+										if refSat is not None:
+											reference = sat_reference_name.split("http")[0].split("SERVICE ")[1]
+											satreferencename = sat_reference_name.replace(reference, refSat).replace("#SERVICE 1:", "#SERVICE 4097:")
+											sref = satreferencename
+										else:
+											satreferencename = sat_reference_name
 						if "http" in str(satreferencename):
 							with open(ENIGMA2_PATH_LISTS + bouquetiptv, "w") as fw:
 								with open(WILD_CARD_EPG_FILE, "r") as fr:
 									lineNAME = fr.readlines()
 									for line in lineNAME:
 										fw.write(line)
-							if not fileContains(IPToSAT_EPG_PATH, sref.upper()):
+							if not fileContains(IPToSAT_EPG_PATH, sref):
 								with open(ENIGMA2_PATH_LISTS + bouquetiptv, "w") as fw:
 									fw.write(namebouquet + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 								with open(IPToSAT_EPG_PATH, "a") as fw:
 									if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
-										fw.write('#NAME IPToSAT_EPG' + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+										if not fileContains(IPToSAT_EPG_PATH, satreferencename):
+											fw.write('#NAME IPToSAT_EPG' + "\n" + satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 									else:
-										fw.write(satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
+										if not fileContains(IPToSAT_EPG_PATH, satreferencename):
+											fw.write(satreferencename + "\n" + "#DESCRIPTION " + epg_channel_name + "\n")
 							with open(WILD_CARD_EPG_FILE, "r") as fr:
 								with open(ENIGMA2_PATH_LISTS + bouquetiptv, "w") as fw:
 									read_bouquetiptv = fr.readlines()
@@ -2150,7 +2182,7 @@ class AssignService(ChannelSelectionBase):
 								move(WILD_CARD_BOUQUETSTV, BOUQUETS_TV)
 							eDVBDB.getInstance().reloadBouquets()
 							eDVBDB.getInstance().reloadServicelist()
-						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE") and fileContains(IPToSAT_EPG_PATH, sref.upper()):
+						if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name) and not fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, epg_channel_name + "#SERVICE") and fileContains(IPToSAT_EPG_PATH, sref):
 							self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper() + "\n\n" + bouquetnamemsgbox, MessageBox.TYPE_INFO, simple=True)
 							break
 				if exists(WILD_CARD_EPG_FILE):
@@ -2207,7 +2239,7 @@ class AssignService(ChannelSelectionBase):
 										line = replacement
 								if sref in line and "http" in line:
 									stream_iptv = line
-				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref.upper()):  # add stream IPTV with EPG to IPToSAT_EPG
+				if stream_iptv and not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):  # add stream IPTV with EPG to IPToSAT_EPG
 					if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
 						with open(IPToSAT_EPG_PATH, "w") as fw:
 							fw.write('#NAME IPToSAT_EPG' + "\n")
@@ -2242,15 +2274,16 @@ class AssignService(ChannelSelectionBase):
 			self.resultEditionBouquets(epg_channel_name, sref, bouquetname)
 
 	def resultEditionBouquets(self, channel_name, sref, bouquetname):
+		global refSat
 		try:
-			sref_update = sref.upper()
+			sref_update = sref.replace("#SERVICE 4097:", "4097:")
 			characterascii = [channel_name]
-			epg_channel_name = channel_name.upper()
+			epg_channel_name = channel_name
 			try:
 				for character in characterascii:
 					if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
-					if not fileContains(REFERENCES_FILE, channel_name.lower()):
+					if not fileContains(REFERENCES_FILE, channel_name.lower()) and "ORDER BY bouquet" not in str(sref):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
 				with open(REFERENCES_FILE, "r") as file:  # clear old services references
@@ -2288,6 +2321,8 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+			refSat = None
+		refSat = None
 
 	def purge(self):
 		if self.storage:
@@ -2712,7 +2747,7 @@ class AssignService(ChannelSelectionBase):
 		js = loads(data)
 		if js != []:
 			for match in js:
-				if str(channel_satellite[0:6].upper()) in str(match['name'][0:12].upper()):
+				if str(channel_satellite[0:6]) in str(match['name'][0:12]):
 					list.append((str(match['name']), str(match['stream_id'])))
 			if list == []:
 				for match in js:

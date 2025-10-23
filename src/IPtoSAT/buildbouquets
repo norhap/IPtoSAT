@@ -219,10 +219,10 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						enigma2_url = urlunsplit(("https", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
 					else:
 						enigma2_url = urlunsplit(("http", parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
-					if "4097" not in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url):
+					if "4097" not in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url or "_-/ts" in enigma2_url):
 						channel_reference = channel_reference.replace("1:0:1", "4097:0:1")
 					enigma2_url = enigma2_url.replace(":", "%3a")
-					stream_iptv = enigma2_url + ":" + channel_name if "4097:0:1:0:0:0:0:0:0:0:" not in channel_reference else enigma2_url
+					stream_iptv = enigma2_url + ":" + channel_name
 					readprefix = group_title
 					added_to_favorites = False
 					for categorie, prefixes in CATEGORIES.items():

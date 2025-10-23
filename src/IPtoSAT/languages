@@ -222,6 +222,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 220 = Bouquets are being created by categories...\nThey will be shown in FAVORITES in seconds or minutes depending on your list.
 221 = The response timed out without obtaining any results.\nPlease try again.
 222 = The new satellites.xml has been read successfully.\nEnigma2 needs to be restarted.\n\nDo you want to restart now?
+223 = Actions in the Receiver Channel List.\nIf a channel in your IPTV list doesn't have an EPG:\n1. Press "0" on the satellite channel that corresponds to the IPTV without an EPG.\n2. Follow the on-screen instructions.
+224 = Now select the IPTV channel without an EPG and press the "EPG" button.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -446,3 +448,5 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 220 = Se están creando bouquets por categorías...\nSe mostrarán en FAVORITOS en segundos o minutos dependiendo de su lista.
 221 = Se agotó el tiempo de respuesta sin obtener resultados.\nIntente de nuevo.
 222 = Se ha leído el nuevo satellites.xml correctamente.\nEs necesario reiniciar enigma2.\n\n¿Quiere reiniciar ahora?
+223 = Acciones en la Lista de Canales del Receptor.\nSi un canal de su lista IPTV no tiene EPG:\n1. Pulse "0" sobre el canal satélite correspondiente al del IPTV sin EPG.\n2. Siga las instrucciones en pantalla.
+224 = Ahora seleccione el canal IPTV sin EPG y pulse botón "EPG".
