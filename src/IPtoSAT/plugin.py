@@ -2293,6 +2293,13 @@ class AssignService(ChannelSelectionBase):
 								if str(channel_name).lower() in line and str(sref_update) not in line and "http" not in line:
 									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
 									line = line.replace(olderef, str(sref_update))
+									finalfile.write(line.replace("\n", ""))
+									break
+								if str(channel_name).lower() not in line and str(sref_update) in line and "-->1:" in line:
+									oldchannel_name = line.split("-->1:")[0]
+									line = line.replace(oldchannel_name, str(channel_name).lower())
+									finalfile.write(line.replace("\n", ""))
+									break
 								if "#SERVICE" in line and "http" in line:
 									refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
 									line = str(channel_name).lower() + "-->" + refiptv
