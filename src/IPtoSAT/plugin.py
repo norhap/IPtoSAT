@@ -2127,12 +2127,11 @@ class AssignService(ChannelSelectionBase):
 							with open(ENIGMA2_PATH_LISTS + bouquetiptv, "r") as file:
 								for line in file:
 									line = line.strip()
-									ref = line.split('http')[0].replace("#SERVICE ", "")
 									if "#NAME" in line:
 										bouquetnamemsgbox = line.replace("#NAME ", "")
 										namebouquet = line
 									if ":" + epg_channel_name in line and "http" in line:
-										sat_reference_name = line.replace(ref, self.getSref()).replace("::", ":").replace("0:" + epg_channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
+										sat_reference_name = line.replace("::", ":").replace("0:" + epg_channel_name, "0").replace("C00000:0:0:0:00000:0:0:0", "C00000:0:0:0").replace("#DESCRIPT" + sref, "").replace("C00000:0:0:0:0000:0:0:0:0000:0:0:0:0000:0:0:0", "C00000:0:0:0").replace(":0000:0:0:0", "")
 										if refSat is not None:
 											reference = sat_reference_name.split("http")[0].split("SERVICE ")[1]
 											satreferencename = sat_reference_name.replace(reference, refSat).replace("#SERVICE 1:", "#SERVICE 4097:")
@@ -2290,9 +2289,16 @@ class AssignService(ChannelSelectionBase):
 					filereference = file.readlines()
 					with open(REFERENCES_FILE, "w") as finalfile:
 						for line in filereference:
-							if ":" in line and "FROM BOUQUET" not in line:
-								if str(channel_name).lower() + "." in line and str(sref_update) in line or str(channel_name).lower() in line and str(sref_update) in line or str(channel_name).lower() not in line and str(sref_update) not in line:
-									finalfile.write(line)
+							if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
+								if str(channel_name).lower() in line and str(sref_update) not in line and "http" not in line:
+									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
+									line = line.replace(olderef, str(sref_update))
+								if "#SERVICE" in line and "http" in line:
+									refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
+									line = str(channel_name).lower() + "-->" + refiptv
+								if "http" in line:
+									line = line.split("http")[0] + "-->1"
+								finalfile.write(line)
 			except Exception:
 				pass
 			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
