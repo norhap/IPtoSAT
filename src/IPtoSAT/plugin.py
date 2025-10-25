@@ -2046,6 +2046,13 @@ class AssignService(ChannelSelectionBase):
 		self['managerlistchannels'].hide()
 		sref = str(self.getSref())
 		channel_name = str(ServiceReference(sref).getServiceName())
+		iptvchannel = channel_name.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("Ñ", "N").encode('ascii', 'ignore').decode()
+		if sref.startswith("1:"):
+			refiptv = sref.split("1:")[1]
+		elif sref.startswith("4097:"):
+			refiptv = sref.replace("4097:", "")
+		if fileContains(IPToSAT_EPG_PATH, 'SERVICE 4097:' + refiptv) and fileContains(IPToSAT_EPG_PATH, '#DESCRIPTION ' + iptvchannel) and fileContains(IPToSAT_EPG_PATH, 'NAME IPToSAT_EPG'):
+			return self.session.open(MessageBox, language.get(lang, "24") + channel_name + "\n\n" + language.get(lang, "75") + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
 		if self.selectedList == self["list"]:
 			self.addEPGChannel(channel_name, sref, bouquetname)
 
