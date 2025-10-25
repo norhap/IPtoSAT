@@ -2292,26 +2292,30 @@ class AssignService(ChannelSelectionBase):
 					if not fileContains(REFERENCES_FILE, channel_name.lower()) and "ORDER BY bouquet" not in str(sref):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-				with open(REFERENCES_FILE, "r") as file:  # clear old services references
-					filereference = file.readlines()
-					with open(REFERENCES_FILE, "w") as finalfile:
-						for line in filereference:
-							if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
-								if str(channel_name).lower() in line and str(sref_update) not in line and "http" not in line:
-									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-									line = line.replace(olderef, str(sref_update))
-									finalfile.write(line.replace("\n", ""))
-									break
-								if str(channel_name).lower() not in line and str(sref_update) in line and "-->1:" in line:
-									oldchannel_name = line.split("-->1:")[0]
-									line = line.replace(oldchannel_name, str(channel_name).lower())
-									finalfile.write(line.replace("\n", ""))
-									break
-								if "#SERVICE" in line and "http" in line:
-									refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
-									line = str(channel_name).lower() + "-->" + refiptv
-								if "http" in line:
-									line = line.split("http")[0] + "-->1"
+				if "4097" not in refSat:
+					with open(REFERENCES_FILE, "r") as file:  # clear old services references
+						filereference = file.readlines()
+						with open(REFERENCES_FILE, "w") as finalfile:
+							for line in filereference:
+								if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
+									if str(channel_name).lower() in line and str(sref_update) not in line:
+										olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
+										line = line.replace(olderef, str(sref_update)).replace("\n", "")
+									if str(channel_name).lower() not in line and str(sref_update) in line or str(channel_name).lower() not in line and refSat in line:
+										oldchannel_name = line.split("-->1:")[0]
+										line = line.replace(oldchannel_name, str(channel_name).lower()).replace(refSat, str(sref_update))
+									if "#SERVICE" in line and "http" in line:
+										refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
+										line = str(channel_name).lower() + "-->" + refiptv
+									if "http" in line:
+										line = line.split("http")[0] + "-->1" + "\n"
+									finalfile.write(line)
+					with open(REFERENCES_FILE, "r") as file:  # clear http references
+						filereference = file.readlines()
+						with open(REFERENCES_FILE, "w") as finalfile:
+							for line in filereference:
+								if "http" in line and str(channel_name).lower() not in line and str(sref_update) not in line:
+									line = line.replace("\n", "").split("http")[0] + "-->1"
 								finalfile.write(line)
 			except Exception:
 				pass
