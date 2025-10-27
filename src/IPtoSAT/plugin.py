@@ -2355,11 +2355,11 @@ class AssignService(ChannelSelectionBase):
 			if exists(BOUQUET_IPTV_NORHAP) and not fileContains(CONFIG_PATH, "pass") and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
 				if not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref) and bouquetname:
 					self['managerlistchannels'].show()
-					text = language.get(lang, "83")
+					text = language.get(lang, "153" if "%3a//" in self.getCurrentSelection().toString() else "83")
 					self.assignWidgetScript("#00ff2525", text)
 				elif not fileContains(IPToSAT_EPG_PATH, epg_channel_name) and not fileContains(IPToSAT_EPG_PATH, sref):
 					self['managerlistchannels'].show()
-					text = language.get(lang, "83")
+					text = language.get(lang, "153" if "%3a//" in self.getCurrentSelection().toString() else "83")
 					self.assignWidgetScript("#00ff2525", text)
 			else:
 				if not fileContains(IPToSAT_EPG_PATH, ":" + epg_channel_name) and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
