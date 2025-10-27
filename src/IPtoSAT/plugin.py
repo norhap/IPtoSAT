@@ -1590,23 +1590,17 @@ class AssignService(ChannelSelectionBase):
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveDown)
-		if self.getRefSatCheck() is not None and self.selectedList == self["list"]:
-			text = language.get(lang, "223")
-			self.assignWidgetScript("#e5e619", text)
-		else:
-			text = ""
-			self.assignWidgetScript("#e5e619", text)
+			if (self.getCurrentSelection().flags & 7) == 7:
+				text = ""
+				self.assignWidgetScript("#e5e619", text)
 
 	def moveUp(self):
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveUp)
-		if self.getRefSatCheck() is not None and self.selectedList == self["list"]:
-			text = language.get(lang, "223")
-			self.assignWidgetScript("#e5e619", text)
-		else:
-			text = ""
-			self.assignWidgetScript("#e5e619", text)
+			if (self.getCurrentSelection().flags & 7) == 7:
+				text = ""
+				self.assignWidgetScript("#e5e619", text)
 
 	def getUserData(self):
 		listsuscription = join(str(self.alternatefolder), "iptosat_LIST1.conf")
@@ -1655,6 +1649,8 @@ class AssignService(ChannelSelectionBase):
 		self.suscription(url, self.getSuscriptionData)
 
 	def channelSelected(self):
+		text = language.get(lang, "223")
+		self.assignWidgetScript("#e5e619", text)
 		if config.plugins.IPToSAT.typecategories.value in ("vod", "series"):
 			self['managerlistchannels'].show()
 			self.assignWidgetScript("#00ff2525", config.plugins.IPToSAT.typecategories.value.upper() + "  " + language.get(lang, "154"))
@@ -2327,7 +2323,7 @@ class AssignService(ChannelSelectionBase):
 											line = line.replace(oldchannel_name, str(channel_name).lower()).replace(refSat, str(sref_update))
 										if "#SERVICE" in line and "http" in line:
 											refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
-											line = str(channel_name).lower() + "-->" + refiptv
+											line = str(channel_name).lower() + "-->" + refiptv.replace("\n", "")
 											reference_from_refSat = line
 										if "http" in line:
 											line = line.split("http")[0] + "-->1".replace("\n", "")
@@ -2338,7 +2334,7 @@ class AssignService(ChannelSelectionBase):
 							filereference = file.readlines()
 							if reference_from_refSat and reference_from_refSat not in file.readlines():
 								with open(REFERENCES_FILE, "a") as finalfile:
-									finalfile.write(reference_from_refSat.replace("4097:", "1:") + "\n")
+									finalfile.write("\n" + reference_from_refSat.replace("4097:", "1:"))
 						if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(sref_update)):
 							with open(REFERENCES_FILE, "a") as updatefile:
 								if "http" not in str(sref_update):
