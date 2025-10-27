@@ -2370,7 +2370,9 @@ class AssignService(ChannelSelectionBase):
 						if not fileContains(IPToSAT_EPG_PATH, '#NAME IPToSAT_EPG'):
 							with open(IPToSAT_EPG_PATH, "w") as fw:
 								fw.write('#NAME IPToSAT_EPG' + "\n")
-						self.session.open(MessageBox, language.get(lang, "132"), MessageBox.TYPE_ERROR, simple=True)
+						self['managerlistchannels'].show()
+						text = language.get(lang, "132")
+						self.assignWidgetScript("#00ff2525", text)
 					else:
 						self.session.open(MessageBox, language.get(lang, "131"), MessageBox.TYPE_ERROR, simple=True)
 			if epg_channel_name == ".":  # it is not a valid channel
