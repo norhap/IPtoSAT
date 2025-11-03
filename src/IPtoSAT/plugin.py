@@ -1158,7 +1158,7 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.sendCtrlC()
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214"), type=MessageBox.TYPE_INFO, timeout=0) if not isPluginInstalled("FastChannelChange") else AddPopup(language.get(lang, "218"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "214" if not isPluginInstalled("FastChannelChange") else "218", type=MessageBox.TYPE_INFO, timeout=0))
 
 	def __InfoallowsMultipleRecordingsFBC(self):
 		self.container.sendCtrlC()
