@@ -222,6 +222,16 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 					if "4097" not in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url or "_-/ts" in enigma2_url):
 						channel_reference = channel_reference.replace("1:0:1", "4097:0:1")
 					enigma2_url = enigma2_url.replace(":", "%3a")
+					# EPG JEDIXTREAM ESTAS REFERENCIAS SE DEBEN PONER EN iptosat.channels.xml #######################################
+					if "AMC " in channel_name and "SELEKT" not in channel_name.upper():
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AB:44A:1:C00000:0:0:0:")	# Equiv-> CANAL VOD 12263 V 27500 3/4
+					if "HOLLYWOOD HD" in channel_name:
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AC:44A:1:C00000:0:0:0:")	# Equiv-> ESPACE CLIENTE 12263 V 27500 3/4
+					if "AMC " in channel_name and "SELEKT" in channel_name.upper():
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:40:001:C00000:0:0:0:")	# AMC SELECKT canales no satelite tv por internet.
+					if "AXN M" in channel_name:
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:41:002:C00000:0:0:0:")	# AXM MOVIES canales no satelite tv por internet.
+					# ###############################################################################################################
 					stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
 					stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)
 					readprefix = group_title

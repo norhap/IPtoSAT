@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<channels>
+<channel id="Hollywood.es">4097:0:C9:23AC:44A:1:C00000:0:0:0:http%3a//</channel> <!-- HOLLYWOOD HD References created in buildbouquets -->
+<channel id="AMC.es">4097:0:C9:23AB:44A:1:C00000:0:0:0:http%3a//</channel> <!-- AMC HD References created in buildbouquets -->
+<channel id="Amc.Selekt.es">4097:0:1:7000:40:001:C00000:0:0:0:http%3a//</channel> <!-- AMC SELEKT HD References created in buildbouquets -->
+<channel id="AXN.Movies.es">4097:0:1:7000:41:002:C00000:0:0:0:http%3a//</channel> <!-- AXN MOVIES HD References created in buildbouquets -->
+<!-- CANALES CODIFICADOS PARA USAR SU EPG -> FRECUENCIA 12363 V 27500 3/4 -->
+</channels>

@@ -79,6 +79,10 @@ CHANNELS_LISTS_PATH = resolveFilename(SCOPE_CONFIG, "iptosatchlist.json")
 SUSCRIPTION_USER_DATA = resolveFilename(SCOPE_CONFIG, "suscriptiondata")
 BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
 BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
+EPG_CHANNELS_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.channels.xml")
+EPG_SOURCES_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.sources.xml")
+EPG_CONFIG = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/epgimport.conf")
+FOLDER_EPGIMPORT = "/etc/epgimport/"
 REFERENCES_FILE = resolveFilename(SCOPE_CONFIG, "iptosatreferences")
 CONFIG_PATH_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategories.json")
 WILD_CARD_ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcatall")
@@ -1068,6 +1072,8 @@ class IPToSAT(Screen):
 			self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
 		except:
 			self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+		if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml"):
+			eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
@@ -1082,7 +1088,7 @@ class IPToSAT(Screen):
 		player = config.plugins.IPToSAT.player.value
 		if channel and playlist and not self.ip_sat:
 			for ch in playlist['playlist']:
-				iptosat = ch['sref'] if 'sref' in ch else ch['channel'].strip()
+				iptosat = ch['sref'] if 'sref' in ch['sref'] else ch['channel'].strip()
 				if channel == iptosat or iptosat == str(ServiceReference(lastservice)):
 					self.session.nav.stopService()
 					cmd = '{} "{}"'.format(player, ch['url'])
@@ -1141,10 +1147,11 @@ class IPToSAT(Screen):
 					if FeInfo:
 						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted and SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
-							lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
-							channel_name = ServiceReference(lastservice).getServiceName()
-							self.current_channel(channel_name, lastservice)
+						if isCrypted or isIPToSAT():
+							if SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
+								lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
+								channel_name = ServiceReference(lastservice).getServiceName()
+								self.current_channel(channel_name, lastservice)
 						else:
 							if self.ip_sat:
 								self.container.sendCtrlC()
@@ -3762,7 +3769,7 @@ class InstallChannelsLists(Screen):
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
 					source.write(norhaprepository.content)
-				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + SOURCE_PATH + "buildbouquets" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
+				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + EPG_CONFIG + " " + EPG_SOURCES_XML + " " + EPG_CHANNELS_XML + " " + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + SOURCE_PATH + "buildbouquets" + " " + LANGUAGE_PATH + " " + VERSION_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
