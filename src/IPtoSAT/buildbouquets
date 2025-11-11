@@ -230,6 +230,14 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AC:44A:1:C00000:0:0:0:")	# Equiv-> ESPACE CLIENTE 12363 V 27500 3/4
 						if "DARK " in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:C0:23B3:44A:1:C00000:0:0:0:")	# Equiv-> DOWNLOAD G10 HUMAX 12363 V 27500 3/4
+						if "SHOWTIME" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:C:23B0:44A:1:C00000:0:0:0:")	# Equiv-> PUSH VOD COLLECTIVITES 12363 V 27500 3/4
+						if "START+ CHANNEL" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:C0:23B2:44A:1:C00000:0:0:0:")	# Equiv-> DOWNLOAD G10 SAGEM 12363 V 27500 3/4
+						if "XTRM" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:C0:23B1:44A:1:C00000:0:0:0:")	# Equiv-> DOWNLOAD G9 9200 12363 V 27500 3/4
+						if "COSMO" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:C0:23B9:44A:1:C00000:0:0:0:")	# Equiv-> DOWNLOAD CPRO V3 9145 12363 V 27500 3/4
 						if "AMC SELEKT" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:41:001:C00000:0:0:0:")	# AMC SELECKT canales no satelite tv por internet.
 						if "AMC BREAK" in channel_name.upper():
@@ -238,6 +246,8 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:43:003:C00000:0:0:0:")	# AMC CRIME canales no satelite tv por internet.
 						if "AXN MOVIES" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:44:004:C00000:0:0:0:")	# AXM MOVIES canales no satelite tv por internet.
+						if "SOMOS" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:45:005:C00000:0:0:0:")	# SOMOS canales no satelite tv por internet.
 						# ###############################################################################################################
 					stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
 					stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)
