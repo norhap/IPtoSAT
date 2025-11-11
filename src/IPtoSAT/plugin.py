@@ -1072,7 +1072,7 @@ class IPToSAT(Screen):
 			self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
 		except:
 			self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
-		if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml"):
+		if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml") and lang == "es":
 			eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
