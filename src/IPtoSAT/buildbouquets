@@ -224,9 +224,11 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 					enigma2_url = enigma2_url.replace(":", "%3a")
 					# EPG JEDIXTREAM ESTAS REFERENCIAS SE DEBEN PONER EN iptosat.channels.xml #######################################
 					if "AMC " in channel_name and "SELEKT" not in channel_name.upper():
-						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AB:44A:1:C00000:0:0:0:")	# Equiv-> CANAL VOD 12263 V 27500 3/4
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AB:44A:1:C00000:0:0:0:")	# Equiv-> CANAL VOD 12363 V 27500 3/4
 					if "HOLLYWOOD HD" in channel_name:
-						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AC:44A:1:C00000:0:0:0:")	# Equiv-> ESPACE CLIENTE 12263 V 27500 3/4
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:C9:23AC:44A:1:C00000:0:0:0:")	# Equiv-> ESPACE CLIENTE 12363 V 27500 3/4
+					if "DARK " in channel_name:
+						channel_reference = channel_reference.replace(channel_reference, "4097:0:C0:23B3:44A:1:C00000:0:0:0:")	# Equiv-> DOWNLOAD G10 HUMAX 12363 V 27500 3/4
 					if "AMC " in channel_name and "SELEKT" in channel_name.upper():
 						channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:40:001:C00000:0:0:0:")	# AMC SELECKT canales no satelite tv por internet.
 					if "AXN M" in channel_name:
