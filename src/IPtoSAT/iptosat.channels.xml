@@ -7,10 +7,14 @@
 <channel id="Star.es">4097:0:C0:23B2:44A:1:C00000:0:0:0:http%3a//</channel> <!-- START+ CHANNEL HD References created in buildbouquets es IPToSAT -->
 <channel id="XTRM.es">4097:0:C0:23B1:44A:1:C00000:0:0:0:http%3a//</channel> <!-- XTRM HD References created in buildbouquets es IPToSAT -->
 <channel id="Cosmopolitan.es">4097:0:C0:23B9:44A:1:C00000:0:0:0:http%3a//</channel> <!-- COSMO HD References created in buildbouquets es IPToSAT -->
+<channel id="Sundance.Channel.es">4097:0:C0:23BB:44A:1:C00000:0:0:0:http%3a//</channel> <!-- SUNDANCE TV HD References created in buildbouquets es IPToSAT -->
+<channel id="Paramount.Network.es">4097:0:C0:23BF:44A:1:C00000:0:0:0:http%3a//</channel> <!-- PARAMOUNT NETWORK References created in buildbouquets es IPToSAT -->
 <channel id="Somos.es">4097:0:C0:23BA:44A:1:C00000:0:0:0:http%3a//</channel> <!-- SOMOS HD References created in buildbouquets es IPToSAT -->
 <channel id="SELEKT.es">4097:0:1:7000:41:001:C00000:0:0:0:http%3a//</channel> <!-- AMC SELEKT References created in buildbouquets -->
 <channel id="AMC.Break.es">4097:0:1:7000:42:002:C00000:0:0:0:http%3a//</channel> <!-- AMC BREAK References created in buildbouquets -->
 <channel id="AMC.Crime.es">4097:0:1:7000:43:003:C00000:0:0:0:http%3a//</channel> <!-- AMC CRIME References created in buildbouquets -->
 <channel id="AXN.Movies.es">4097:0:1:7000:44:004:C00000:0:0:0:http%3a//</channel> <!-- AXN MOVIES References created in buildbouquets -->
+<channel id="AXN.es">4097:0:1:7000:45:005:C00000:0:0:0:http%3a//</channel> <!-- AXN References created in buildbouquets -->
+<channel id="M+.Documentales.es">4097:0:1:7000:46:006:C00000:0:0:0:http%3a//</channel> <!-- M+ DOCUMENTALES References created in buildbouquets -->
 <!-- CANALES CODIFICADOS PARA USAR SU EPG -> FRECUENCIA 12363 V 27500 3/4 -->
 </channels>
