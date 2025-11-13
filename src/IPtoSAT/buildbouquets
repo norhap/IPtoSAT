@@ -274,9 +274,9 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:54:014:C00000:0:0:0:")	# TORO canales no satelite tv por internet.
 						if "DISCOVERY" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:55:015:C00000:0:0:0:")	# DISCOVERY canales no satelite tv por internet.
-						if "NAT GEOGRAPH" in channel_name.upper() and "WILD" not in channel_name.upper():
+						if "GEOGRAPH" in channel_name.upper() and "WILD" not in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:56:016:C00000:0:0:0:")	# NAT GEOGRAPH canales no satelite tv por internet.
-						if "GEOGRAPH WILD" in channel_name.upper():
+						if "WILD" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:57:017:C00000:0:0:0:")	# GEOGRAPH WILD canales no satelite tv por internet.
 						# ###############################################################################################################
 					stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
