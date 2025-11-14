@@ -7,8 +7,8 @@ from twisted.web.client import getPage
 from datetime import datetime
 from json import dump, loads
 from glob import glob
-from os import listdir, makedirs, remove
-from os.path import join, exists, normpath
+from os import listdir, makedirs, remove, unlink, symlink
+from os.path import join, exists, normpath, islink
 from configparser import ConfigParser
 from time import sleep, localtime, mktime, time
 from shutil import move, copy
@@ -83,6 +83,9 @@ EPG_CHANNELS_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.ch
 EPG_SOURCES_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.sources.xml")
 EPG_CONFIG = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/epgimport.conf")
 FOLDER_EPGIMPORT = "/etc/epgimport/"
+ENIGMA2_PATH = "/etc/enigma2"
+EPG_IMPORT_CONFIG = ENIGMA2_PATH + "/epgimport.conf"
+EPG_IMPORT_CONFIG_BACK = ENIGMA2_PATH + "/epgimport.conf.back"
 REFERENCES_FILE = resolveFilename(SCOPE_CONFIG, "iptosatreferences")
 CONFIG_PATH_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategories.json")
 WILD_CARD_ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcatall")
@@ -106,7 +109,6 @@ BOUQUETS_TV = resolveFilename(SCOPE_CONFIG, "bouquets.tv")
 BOUQUET_IPTV_NORHAP = resolveFilename(SCOPE_CONFIG, "userbouquet.iptosat_norhap.tv")
 WILD_CARD_EPG_FILE = resolveFilename(SCOPE_CONFIG, "wildcardepg")
 WILD_CARD_BOUQUETSTV = resolveFilename(SCOPE_CONFIG, "wildcardbouquetstv")
-ENIGMA2_PATH = "/etc/enigma2"
 ENIGMA2_PATH_LISTS = resolveFilename(SCOPE_CONFIG)
 FILES_TUXBOX = "/etc/tuxbox"
 FOLDER_OSCAM = ""
@@ -720,6 +722,7 @@ class TimerUpdateCategories:
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
 		self.iptosatpolltimer.timeout.get().append(self.iptosatPollTimer)
+		self.clearCacheEPG = False
 		self.refreshScheduler()
 
 	def iptosatPollTimer(self):
@@ -747,6 +750,8 @@ class TimerUpdateCategories:
 		return downloadtime
 
 	def iptosatDownloadTimer(self):
+		self.Console = Console()
+		self.clearCacheEPG = False
 		self.categoriestimer.stop()
 		now = int(time())
 		wake = self.getTimeDownloadCategories()
@@ -813,6 +818,12 @@ class TimerUpdateCategories:
 						now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 						fw.write(now)
 					eConsoleAppContainer().execute('python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+					if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
+						if config.plugins.epgimport.clear_oldepg.value:
+							config.plugins.epgimport.clear_oldepg.value = False
+							config.plugins.epgimport.clear_oldepg.save()
+							self.clearCacheEPG = True
+						self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 				else:
@@ -822,6 +833,27 @@ class TimerUpdateCategories:
 			except Exception as err:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
+
+	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
+			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
+		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
+			symlink(EPG_CONFIG, EPG_IMPORT_CONFIG)
+		if islink(EPG_IMPORT_CONFIG):
+			self.Console = Console()
+			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
+			autoStartTimer.runImport()
+			self.finishedEPGIMPORT()
+
+	def finishedEPGIMPORT(self):
+		sleep(2)
+		if self.clearCacheEPG is True:
+			config.plugins.epgimport.clear_oldepg.value = True
+			config.plugins.epgimport.clear_oldepg.save()
+			self.clearCacheEPG = False
+		if exists(EPG_IMPORT_CONFIG_BACK):
+			unlink(EPG_IMPORT_CONFIG)
+			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
 
 	def refreshScheduler(self):
 		now = int(time())
@@ -1340,6 +1372,7 @@ class AssignService(ChannelSelectionBase):
 		self.secondSuscription = False
 		self.storage = False
 		self.Console = Console()
+		self.clearCacheEPG = False
 		self.backupChannelsListStorage = False
 		self.backupdirectory = None
 		self.alternatefolder = None
@@ -1956,6 +1989,8 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def createBouquetIPTV(self):
+		self.Console = Console()
+		self.clearCacheEPG = False
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
@@ -2032,6 +2067,12 @@ class AssignService(ChannelSelectionBase):
 							with open(CATEGORIES_TIMER_OK, "w") as fw:
 								now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 								fw.write(now)
+							if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
+								if config.plugins.epgimport.clear_oldepg.value:
+									config.plugins.epgimport.clear_oldepg.value = False
+									config.plugins.epgimport.clear_oldepg.save()
+									self.clearCacheEPG = True
+								self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
 					else:
 						self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
@@ -2040,6 +2081,26 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 		else:
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
+
+	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
+			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
+		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
+			symlink(EPG_CONFIG, EPG_IMPORT_CONFIG)
+		if islink(EPG_IMPORT_CONFIG):
+			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
+			autoStartTimer.runImport()
+			self.Console = Console()
+			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
+
+	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		if self.clearCacheEPG is True:
+			config.plugins.epgimport.clear_oldepg.value = True
+			config.plugins.epgimport.clear_oldepg.save()
+			self.clearCacheEPG = False
+		if exists(EPG_IMPORT_CONFIG_BACK):
+			unlink(EPG_IMPORT_CONFIG)
+			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
 
 	def setEPGChannel(self):
 		bouquetname = BOUQUET_IPTV_NORHAP
