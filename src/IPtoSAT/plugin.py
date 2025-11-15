@@ -37,6 +37,7 @@ from Screens.Standby import TryQuitMainloop
 import NavigationInstance
 
 refSat = None
+notresetchannels = False
 
 # HTTPS twisted client
 try:
@@ -536,12 +537,14 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			x()
 
 	def keySave(self):
+		global notresetchannels
 		if config.plugins.IPToSAT.typecategories.value == "none":
 			self.deleteBouquetsNorhap()
 		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
-			self.timercategories = TimerUpdateCategories()  # category update timer initializer
+			notresetchannels = True
+			IPToSAT(self.session) # category update timer initializer
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -717,7 +720,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 
 class TimerUpdateCategories:
-	def __init__(self):
+	def __init__(self, session):
+		self.session = session
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
@@ -840,13 +844,12 @@ class TimerUpdateCategories:
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
 			symlink(EPG_CONFIG, EPG_IMPORT_CONFIG)
 		if islink(EPG_IMPORT_CONFIG):
-			self.Console = Console()
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
-			self.finishedEPGIMPORT()
+			self.Console = Console()
+			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
-	def finishedEPGIMPORT(self):
-		sleep(2)
+	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		if self.clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
@@ -1090,6 +1093,7 @@ class TimerOnCard:
 
 class IPToSAT(Screen):
 	def __init__(self, session):
+		global notresetchannels
 		Screen.__init__(self, session)
 		self.session = session
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
@@ -1100,10 +1104,13 @@ class IPToSAT(Screen):
 		})
 		self.Timer = eTimer()
 		self.setFCCEnable = False
-		try:
-			self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
-		except:
-			self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+		if notresetchannels is False:
+			try:
+				self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+			except:
+				self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+		else:
+			notresetchannels = False
 		if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml") and lang == "es":
 			eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
@@ -1111,7 +1118,8 @@ class IPToSAT(Screen):
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
 				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timercategories = TimerUpdateCategories()  # category update timer initializer
+			self.timercategories = TimerUpdateCategories(self.session)  # category update timer initializer
+			self.timercategories.refreshScheduler()
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
