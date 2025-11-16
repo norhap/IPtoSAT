@@ -38,6 +38,7 @@ import NavigationInstance
 
 refSat = None
 notresetchannels = False
+clearCacheEPG = False
 
 # HTTPS twisted client
 try:
@@ -544,7 +545,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
 			notresetchannels = True
-			IPToSAT(self.session) # category update timer initializer
+			IPToSAT(self.session)  # update category timer initializer.
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -726,7 +727,6 @@ class TimerUpdateCategories:
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
 		self.iptosatpolltimer.timeout.get().append(self.iptosatPollTimer)
-		self.clearCacheEPG = False
 		self.refreshScheduler()
 
 	def iptosatPollTimer(self):
@@ -754,8 +754,8 @@ class TimerUpdateCategories:
 		return downloadtime
 
 	def iptosatDownloadTimer(self):
+		global clearCacheEPG
 		self.Console = Console()
-		self.clearCacheEPG = False
 		self.categoriestimer.stop()
 		now = int(time())
 		wake = self.getTimeDownloadCategories()
@@ -826,7 +826,7 @@ class TimerUpdateCategories:
 						if config.plugins.epgimport.clear_oldepg.value:
 							config.plugins.epgimport.clear_oldepg.value = False
 							config.plugins.epgimport.clear_oldepg.save()
-							self.clearCacheEPG = True
+							clearCacheEPG = True
 						self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
@@ -850,10 +850,11 @@ class TimerUpdateCategories:
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG is True:
+		global clearCacheEPG
+		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
-			self.clearCacheEPG = False
+			clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
@@ -1380,7 +1381,6 @@ class AssignService(ChannelSelectionBase):
 		self.secondSuscription = False
 		self.storage = False
 		self.Console = Console()
-		self.clearCacheEPG = False
 		self.backupChannelsListStorage = False
 		self.backupdirectory = None
 		self.alternatefolder = None
@@ -1997,8 +1997,8 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def createBouquetIPTV(self):
+		global clearCacheEPG
 		self.Console = Console()
-		self.clearCacheEPG = False
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
@@ -2079,7 +2079,7 @@ class AssignService(ChannelSelectionBase):
 								if config.plugins.epgimport.clear_oldepg.value:
 									config.plugins.epgimport.clear_oldepg.value = False
 									config.plugins.epgimport.clear_oldepg.save()
-									self.clearCacheEPG = True
+									clearCacheEPG = True
 								self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
 					else:
 						self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
@@ -2102,10 +2102,11 @@ class AssignService(ChannelSelectionBase):
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG is True:
+		global clearCacheEPG
+		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
-			self.clearCacheEPG = False
+			clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
