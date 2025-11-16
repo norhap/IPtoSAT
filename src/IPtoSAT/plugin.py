@@ -850,10 +850,11 @@ class TimerUpdateCategories:
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG is True:
-			config.plugins.epgimport.clear_oldepg.value = True
-			config.plugins.epgimport.clear_oldepg.save()
-			self.clearCacheEPG = False
+		if hasattr(self, "clearCacheEPG"):
+			if self.clearCacheEPG is True:
+				config.plugins.epgimport.clear_oldepg.value = True
+				config.plugins.epgimport.clear_oldepg.save()
+				self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
@@ -2102,10 +2103,11 @@ class AssignService(ChannelSelectionBase):
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG is True:
-			config.plugins.epgimport.clear_oldepg.value = True
-			config.plugins.epgimport.clear_oldepg.save()
-			self.clearCacheEPG = False
+		if hasattr(self, "clearCacheEPG"):
+			if self.clearCacheEPG is True:
+				config.plugins.epgimport.clear_oldepg.value = True
+				config.plugins.epgimport.clear_oldepg.save()
+				self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
