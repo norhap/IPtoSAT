@@ -118,6 +118,7 @@ SCRIPT_OSCAM = ""
 FILES_TUXBOX_CONFIG = "/etc/tuxbox/config"
 USR_SCRIPT = "/usr/script"
 ETC_INITD = "/etc/init.d"
+
 if exists(FILES_TUXBOX_CONFIG):
 	for oscamfolder in [x for x in listdir(FILES_TUXBOX_CONFIG) if "oscam" in x]:
 		FOLDER_OSCAM = FILES_TUXBOX_CONFIG + "/" + oscamfolder
@@ -839,6 +840,7 @@ class TimerUpdateCategories:
 					fw.write(str(err))
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		global notresetchannels
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -846,6 +848,9 @@ class TimerUpdateCategories:
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
+			if notresetchannels is False:
+				notresetchannels = True
+				IPToSAT(self.session)  # initializer update for Console in def finishedEPGIMPORT.
 			self.Console = Console()
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
@@ -2091,6 +2096,7 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		global notresetchannels
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -2098,6 +2104,9 @@ class AssignService(ChannelSelectionBase):
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
+			if notresetchannels is False:
+				notresetchannels = True
+				IPToSAT(self.session)  # initializer update for Console in def finishedEPGIMPORT.
 			self.Console = Console()
 			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
 
