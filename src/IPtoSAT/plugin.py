@@ -119,6 +119,9 @@ FILES_TUXBOX_CONFIG = "/etc/tuxbox/config"
 USR_SCRIPT = "/usr/script"
 ETC_INITD = "/etc/init.d"
 
+if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml") and lang == "es":
+	eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
+
 if exists(FILES_TUXBOX_CONFIG):
 	for oscamfolder in [x for x in listdir(FILES_TUXBOX_CONFIG) if "oscam" in x]:
 		FOLDER_OSCAM = FILES_TUXBOX_CONFIG + "/" + oscamfolder
@@ -131,6 +134,7 @@ elif exists(USR_SCRIPT):
 	for oscamscript in [x for x in listdir(USR_SCRIPT) if "Oscam" in x]:
 		SCRIPT_OSCAM = USR_SCRIPT + "/" + oscamscript
 		continue
+
 RESTART_OSCAM = str(SCRIPT_OSCAM) + " stop && " + str(SCRIPT_OSCAM) + " start"
 OSCAM_PATH = FOLDER_OSCAM + "/"
 OSCAM_SERVER = OSCAM_PATH + "oscam.server"
@@ -1117,8 +1121,6 @@ class IPToSAT(Screen):
 				self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
 		else:
 			notresetchannels = False
-		if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml") and lang == "es":
-			eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
