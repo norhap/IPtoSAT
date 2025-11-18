@@ -38,7 +38,6 @@ import NavigationInstance
 
 refSat = None
 notresetchannels = False
-clearCacheEPG = False
 
 # HTTPS twisted client
 try:
@@ -728,6 +727,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 class TimerUpdateCategories:
 	def __init__(self, session):
 		self.session = session
+		self.clearCacheEPG = False
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
@@ -759,7 +759,6 @@ class TimerUpdateCategories:
 		return downloadtime
 
 	def iptosatDownloadTimer(self):
-		global clearCacheEPG
 		self.Console = Console()
 		self.categoriestimer.stop()
 		now = int(time())
@@ -828,11 +827,7 @@ class TimerUpdateCategories:
 						fw.write(now)
 					eConsoleAppContainer().execute('python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 					if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
-						if config.plugins.epgimport.clear_oldepg.value:
-							config.plugins.epgimport.clear_oldepg.value = False
-							config.plugins.epgimport.clear_oldepg.save()
-							clearCacheEPG = True
-						self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
+						self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 				else:
@@ -844,7 +839,12 @@ class TimerUpdateCategories:
 					fw.write(str(err))
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global notresetchannels
+		if config.plugins.epgimport.clear_oldepg.value:
+			self.clearCacheEPG = True
+			config.plugins.epgimport.clear_oldepg.value = False
+			config.plugins.epgimport.clear_oldepg.save()
+		else:
+			self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -852,18 +852,13 @@ class TimerUpdateCategories:
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
-			if notresetchannels is False:
-				notresetchannels = True
-				IPToSAT(self.session)  # initializer update for Console in def finishedEPGIMPORT.
 			self.Console = Console()
-			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
+			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
-		if clearCacheEPG is True:
+		if self.clearCacheEPG:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
-			clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
@@ -1470,6 +1465,7 @@ class AssignService(ChannelSelectionBase):
 		self.in_bouquets = False
 		self.in_channels = False
 		self.url = None
+		self.clearCacheEPG = False
 		self.channels = []
 		self.categories = []
 		self['list2'] = MenuList([])
@@ -2004,7 +2000,6 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def createBouquetIPTV(self):
-		global clearCacheEPG
 		self.Console = Console()
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
@@ -2083,11 +2078,7 @@ class AssignService(ChannelSelectionBase):
 								now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 								fw.write(now)
 							if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
-								if config.plugins.epgimport.clear_oldepg.value:
-									config.plugins.epgimport.clear_oldepg.value = False
-									config.plugins.epgimport.clear_oldepg.save()
-									clearCacheEPG = True
-								self.Console.ePopen(['sleep 60'], self.runEPGIMPORT)
+								self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
 					else:
 						self.assignWidgetScript("#00ff2525", language.get(lang, "6"))
 				else:
@@ -2098,7 +2089,12 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global notresetchannels
+		if config.plugins.epgimport.clear_oldepg.value:
+			self.clearCacheEPG = True
+			config.plugins.epgimport.clear_oldepg.value = False
+			config.plugins.epgimport.clear_oldepg.save()
+		else:
+			self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -2106,18 +2102,13 @@ class AssignService(ChannelSelectionBase):
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
-			if notresetchannels is False:
-				notresetchannels = True
-				IPToSAT(self.session)  # initializer update for Console in def finishedEPGIMPORT.
 			self.Console = Console()
-			self.Console.ePopen(['sleep 30'], self.finishedEPGIMPORT)
+			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
-		if clearCacheEPG is True:
+		if self.clearCacheEPG:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
-			clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
