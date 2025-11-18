@@ -38,6 +38,7 @@ import NavigationInstance
 
 refSat = None
 notresetchannels = False
+clearCacheEPG = False
 
 # HTTPS twisted client
 try:
@@ -727,7 +728,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 class TimerUpdateCategories:
 	def __init__(self, session):
 		self.session = session
-		self.clearCacheEPG = False
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
@@ -839,12 +839,11 @@ class TimerUpdateCategories:
 					fw.write(str(err))
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		global clearCacheEPG
 		if config.plugins.epgimport.clear_oldepg.value:
-			self.clearCacheEPG = True
+			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
 			config.plugins.epgimport.clear_oldepg.save()
-		else:
-			self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -856,7 +855,8 @@ class TimerUpdateCategories:
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG:
+		global clearCacheEPG
+		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
 		if exists(EPG_IMPORT_CONFIG_BACK):
@@ -1465,7 +1465,6 @@ class AssignService(ChannelSelectionBase):
 		self.in_bouquets = False
 		self.in_channels = False
 		self.url = None
-		self.clearCacheEPG = False
 		self.channels = []
 		self.categories = []
 		self['list2'] = MenuList([])
@@ -2089,12 +2088,11 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		global clearCacheEPG
 		if config.plugins.epgimport.clear_oldepg.value:
-			self.clearCacheEPG = True
+			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
 			config.plugins.epgimport.clear_oldepg.save()
-		else:
-			self.clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
 			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
 		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
@@ -2106,7 +2104,8 @@ class AssignService(ChannelSelectionBase):
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		if self.clearCacheEPG:
+		global clearCacheEPG
+		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
 		if exists(EPG_IMPORT_CONFIG_BACK):
