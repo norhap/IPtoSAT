@@ -498,7 +498,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							config.plugins.IPToSAT.timecardon[day]))
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
-		self.list.append(getConfigListEntry(language.get(lang, "17"), config.plugins.IPToSAT.player))
+		self.list.append(getConfigListEntry(language.get(lang, "17"),
+			config.plugins.IPToSAT.player, language.get(lang, "38")))
 		self.list.append(getConfigListEntry(language.get(lang, "98"),
 			config.plugins.IPToSAT.mainmenu, language.get(lang, "38")))
 		self.list.append(getConfigListEntry(language.get(lang, "116"), config.plugins.IPToSAT.showuserdata))
