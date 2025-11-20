@@ -1170,7 +1170,7 @@ class IPToSAT(Screen):
 						self.recording = True
 						self.__InfoallowsMultipleRecordingsFBC()
 					if self.ip_sat:
-						self.container.sendCtrlC()
+						self.container.write("q\n", 2)
 						self.ip_sat = False
 					if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
 						if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
@@ -1198,7 +1198,7 @@ class IPToSAT(Screen):
 								self.current_channel(channel_name, lastservice)
 						else:
 							if self.ip_sat:
-								self.container.sendCtrlC()
+								self.container.write("q\n", 2)
 								self.ip_sat = False
 		except:
 			pass
@@ -1207,12 +1207,12 @@ class IPToSAT(Screen):
 		self.Timer.start(1000)
 
 	def __recordingInfo(self):
-		self.container.sendCtrlC()
+		self.container.write("q\n", 2)
 		self.Timer.stop()
 		AddPopup(language.get(lang, "214" if not isPluginInstalled("FastChannelChange") else "218", type=MessageBox.TYPE_INFO, timeout=0))
 
 	def __InfoallowsMultipleRecordingsFBC(self):
-		self.container.sendCtrlC()
+		self.container.write("q\n", 2)
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
 
@@ -1223,7 +1223,7 @@ class IPToSAT(Screen):
 			copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
 
 	def deactivateFCC(self):
-		self.container.sendCtrlC()
+		self.container.write("q\n", 2)
 		self.Timer.stop()
 
 		def restartDisableFCC(answer=False):
@@ -1246,7 +1246,7 @@ class IPToSAT(Screen):
 	def __evEnd(self):
 		self.Timer.stop()
 		if hasattr(self, "ip_sat"):
-			self.container.sendCtrlC()
+			self.container.write("q\n", 2)
 			self.ip_sat = False
 
 
