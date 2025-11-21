@@ -326,6 +326,16 @@ def getUserDataSuscription():
 		print("ERROR: %s" % str(err))
 
 
+def killActivePlayer():
+	from process import ProcessList  # noqa: E402
+	exteplayer3 = str(ProcessList().named("exteplayer3")).strip("[]")
+	gstplayer = str(ProcessList().named("gstplayer")).strip("[]")
+	if exteplayer3:
+		Console().ePopen(f'kill -9 {exteplayer3}')
+	elif gstplayer:
+		Console().ePopen(f'kill -9 {gstplayer}')
+
+
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
@@ -3925,6 +3935,7 @@ def startMainMenu(menuid, **kwargs):
 def autostart(reason, **kwargs):
 	if reason == 0:
 		if config.plugins.IPToSAT.enable.value:
+			killActivePlayer()
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
 				IPToSAT(kwargs["session"])
 			else:
