@@ -1142,8 +1142,8 @@ class IPToSAT(Screen):
 		player = config.plugins.IPToSAT.player.value
 		if channel and playlist and not self.ip_sat:
 			for ch in playlist['playlist']:
-				iptosat = ch['sref'] if 'sref' in ch['sref'] else ch['channel'].strip()
-				if channel == iptosat or iptosat == str(ServiceReference(lastservice)):
+				iptosat = ch['sref']
+				if iptosat == str(ServiceReference(lastservice)):
 					self.session.nav.stopService()
 					cmd = '{} "{}"'.format(player, ch['url'])
 					self.container.execute(cmd)
