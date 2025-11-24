@@ -1142,13 +1142,12 @@ class IPToSAT(Screen):
 		player = config.plugins.IPToSAT.player.value
 		if channel and playlist and not self.ip_sat:
 			for ch in playlist['playlist']:
-				iptosat = ch['sref']
-				if iptosat == str(ServiceReference(lastservice)):
+				if ch['sref'] == str(ServiceReference(lastservice)):
 					self.session.nav.stopService()
-					cmd = '{} "{}"'.format(player, ch['url'])
-					self.container.execute(cmd)
+					self.container.execute(f"{player} {ch['url']}")
 					self.session.nav.playService(lastservice)
 					self.ip_sat = True
+					break
 		if not self.session.nav.getRecordings():
 			self.recording = False
 			self.recordingASingleConnection = False
