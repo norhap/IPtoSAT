@@ -1493,7 +1493,8 @@ class AssignService(ChannelSelectionBase):
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(str(self.path)) and listdir(self.path):
 						self.storage = True
-						self.backupdirectory = join(self.path, f"IPToSAT/{MODEL}/BackupChannelsList")
+						backupfolder = "BackupChannelsList" if BoxInfo.getItem("distro") != "openspa" else "BackupChannelsListSPA"
+						self.backupdirectory = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
 						self.alternatefolder = join(self.path, f"IPToSAT/{MODEL}/AlternateList")
 						self.changefolder = join(self.path, f"IPToSAT/{MODEL}/ChangeSuscriptionList")
 						self.m3ufolder = join(self.path, f"IPToSAT/{MODEL}/M3U")
@@ -1515,14 +1516,20 @@ class AssignService(ChannelSelectionBase):
 						bouquetiptosatepg = ""
 						if exists(str(BUILDBOUQUETS_SOURCE)):
 							move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
-						for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
-							backupfiles = join(self.backupdirectory, files)
-							bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
-							if backupfiles:
-								self["key_audio"].setText("AUDIO")
-								self.backupChannelsListStorage = True
-							if exists(str(bouquetiptosatepg)):
-								self["key_red"].setText(language.get(lang, "18"))
+						# ###################REMOVE IN A FEW MONTHS ###################
+						if BoxInfo.getItem("distro") == "openspa" and not exists(str(self.backupdirectory)):
+							if not fileContains(str(self.backupdirectory).replace("SPA", "") + "/shadow", "ntp") and exists(str(self.backupdirectory).replace("SPA", "")):
+								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("SPA", "") + " " + str(self.backupdirectory))
+						# ################### END ###################
+						if exists(str(self.backupdirectory)):
+							for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
+								backupfiles = join(self.backupdirectory, files)
+								bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
+								if backupfiles:
+									self["key_audio"].setText("AUDIO")
+									self.backupChannelsListStorage = True
+								if exists(str(bouquetiptosatepg)):
+									self["key_red"].setText(language.get(lang, "18"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
@@ -3180,7 +3187,8 @@ class EditCategories(Screen):
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
-				self.folderBackupCategories = join(self.path, f"IPToSAT/{MODEL}/BackupChannelsList")
+				backupfolder = "BackupChannelsList" if BoxInfo.getItem("distro") != "openspa" else "BackupChannelsListSPA"
+				self.folderBackupCategories = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
 				self.backup_categories = join(self.folderBackupCategories, BACKUP_CATEGORIES)
 
 	def iniMenu(self):
