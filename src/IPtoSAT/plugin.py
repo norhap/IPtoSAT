@@ -101,7 +101,6 @@ CATEGORIES_TIMER_ERROR = "/tmp/timercatiptosat_error.log"
 TIMER_ERROR = ""
 USER_LIST_CATEGORIE_CHOSEN = ""
 USER_EDIT_CATEGORIE = ""
-READ_M3U = resolveFilename(SCOPE_CONFIG, "readm3u.txt")
 CONFIG_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.conf")
 SOURCE_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT")
 VERSION_PATH = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/version")
@@ -788,14 +787,14 @@ class TimerUpdateCategories:
 		urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=ts'
 		header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
 		request = Request(urlm3u, headers=header)
-		try:
-			response = urlopen(request, timeout=5)
-		except Exception:
+		count = 0
+		while not response and count < 2:
 			try:
-				response = urlopen(request, timeout=75)
+				response = urlopen(request, timeout=5)
 			except Exception as err:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
+				count += 1
 		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
@@ -817,26 +816,23 @@ class TimerUpdateCategories:
 							remove(enigma2files)
 				AssignService.checkStorageDevice(self)
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
-					with open(READ_M3U, "wb") as m3ufile:
+					with open(str(self.m3ufile), "wb") as m3ufile:
 						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with get
-					with open(READ_M3U, "r") as m3uread:
+					with open(str(self.m3ufile), "r") as m3uread:
 						charactertoreplace = m3uread.readlines()
-						sleep(3)
-						with open(READ_M3U, "w") as m3uw:
+						with open(str(self.m3ufile), "w") as m3uw:
 							for line in charactertoreplace:
 								if '[' in line and ']' in line and '|' in line:
 									line = line.replace('[', '').replace(']', '|')
 								if '|  ' in line:
 									line = line.replace('|  ', '| ')
 								m3uw.write(line)
-					move(READ_M3U, str(self.m3ufile))
 					if exists(str(BUILDBOUQUETS_FILE)):
 						move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-					sleep(3)
 					with open(CATEGORIES_TIMER_OK, "w") as fw:
 						now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
 						fw.write(now)
-					eConsoleAppContainer().execute('python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+					eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 					if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 						self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
 					if self.storage:
@@ -2048,13 +2044,12 @@ class AssignService(ChannelSelectionBase):
 					urlm3u = str(hostport) + '/get.php?username=' + str(config.plugins.IPToSAT.username.value) + '&password=' + str(config.plugins.IPToSAT.password.value) + '&type=m3u_plus&output=ts'
 					header = {"User-Agent": "Enigma2 - IPToSAT Plugin"}
 					request = Request(urlm3u, headers=header)
-					try:
-						response = urlopen(request, timeout=5)
-					except Exception:
+					count = 0
+					while not response and count < 2:
 						try:
-							response = urlopen(request, timeout=75)
+							response = urlopen(request, timeout=5)
 						except Exception:
-							pass
+							count += 1
 					if response:
 						try:
 							m3u = response.read()
@@ -2073,23 +2068,20 @@ class AssignService(ChannelSelectionBase):
 								if enigma2files:
 									remove(enigma2files)
 						if m3u:
-							with open(READ_M3U, "wb") as m3ufile:
-								m3ufile.write(m3u)
-							with open(READ_M3U, "r") as m3uread:
+							with open(str(self.m3ufile), "wb") as m3ufile:
+								m3ufile.write(m3u)  # m3ufile.write(m3u.content) with get
+							with open(str(self.m3ufile), "r") as m3uread:
 								charactertoreplace = m3uread.readlines()
-								sleep(3)
-								with open(READ_M3U, "w") as m3uw:
+								with open(str(self.m3ufile), "w") as m3uw:
 									for line in charactertoreplace:
 										if '[' in line and ']' in line and '|' in line:
 											line = line.replace('[', '').replace(']', '|')
 										if '|  ' in line:
 											line = line.replace('|  ', '| ')
 										m3uw.write(line)
-							move(READ_M3U, str(self.m3ufile))
 							if exists(str(BUILDBOUQUETS_FILE)):
 								move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-							sleep(3)
-							eConsoleAppContainer().execute('python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+							eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 							if self.storage:
 								eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 							self["helpbouquetepg"].hide()
