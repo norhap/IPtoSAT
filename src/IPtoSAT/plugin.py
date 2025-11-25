@@ -191,7 +191,7 @@ def getTokenZerotier():
 
 
 def getDataZerotier(data):
-	network = get("http://127.0.0.1:9993/" + data, headers={'X-ZT1-Auth' : getTokenZerotier(), 'Content-Type': 'application/json'}).text
+	network = get("http://127.0.0.1:9993/" + data, headers={'X-ZT1-Auth': getTokenZerotier(), 'Content-Type': 'application/json'}).text
 	return network
 
 
@@ -416,7 +416,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				copy(OSCAM_SERVICES_CARD, OSCAM_PATH)
 				copy(OSCAM_SERVICES_IPTOSAT, OSCAM_SERVICES)
 			if exists(str(OSCAM_SERVER)):
-				if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(ENIGMA2_PATH_LISTS + "iptosatjsonall")  and exists(str(OSCAM_NO_CARD)):
+				if exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard") and exists(ENIGMA2_PATH_LISTS + "iptosatjsonall") and exists(str(OSCAM_NO_CARD)):
 					self["key_blue"].setText(language.get(lang, "194"))  # noqa: F821
 				elif exists(ENIGMA2_PATH_LISTS + "iptosatjsoncard"):
 					self["key_blue"].setText(language.get(lang, "195"))  # noqa: F821
@@ -1273,7 +1273,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="titleChannelsList" position="3,05" size="665,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="670,05" size="500,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" backgroundColor="#0023262f" zPosition="2" font="Regular;25" />
 			<widget source="global.CurrentTime" render="Label" position="1175,07" size="95,30" font="Regular;24" foregroundColor="#e5e619" backgroundColor="#0023262f" transparent="1" zPosition="10">
-			  <convert type="ClockToText">Default</convert>
+				<convert type="ClockToText">Default</convert>
 			</widget>
 			<widget name="list" position="23,42" size="613,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="list2" position="658,42" size="612,304" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
@@ -1332,7 +1332,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="titleChannelsList" position="33,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget name="titleSuscriptionList" position="600,05" size="550,35" horizontalAlignment="center" verticalAlignment="center" foregroundColor="yellow" zPosition="2" font="Regular;25" />
 			<widget source="global.CurrentTime" render="Label" position="1125,07" size="75,25" font="Regular;21" foregroundColor="#e5e619" backgroundColor="#0023262f" transparent="1" zPosition="10">
-			  <convert type="ClockToText">Default</convert>
+				<convert type="ClockToText">Default</convert>
 			</widget>
 			<widget name="list" position="33,42" size="550,198" scrollbarMode="showOnDemand" />
 			<widget name="list2" position="600,42" size="550,200" scrollbarMode="showOnDemand" />
@@ -1890,7 +1890,7 @@ class AssignService(ChannelSelectionBase):
 						script = scriptsh
 				initscriptsh = "sh " + USR_SCRIPT + '/' + script + ' start'
 				createfoldercam = ' ; mkdir -p ' + FILES_TUXBOX + '/config/' + foldercam + ' ; ' if foldercam else ' ; '
-				command = 'init 3 ; mount -a'  if BoxInfo.getItem("socfamily") != "hisi3798mv200" and not exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else initscriptsh + ' ; init 3'
+				command = 'init 3 ; mount -a' if BoxInfo.getItem("socfamily") != "hisi3798mv200" and not exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else initscriptsh + ' ; init 3'
 				dumpcommand = f'{command}' if BoxInfo.getItem("distro") != "openspa" else 'cp -a ' + self.backupdirectory + '/' + camdscriptspa + ' /etc/ ; cp -f ' + self.backupdirectory + '/.ActiveCamd /etc/ ; ' + f'{command}'
 				cambackupfolder = '*cam*'
 				dumped = (' ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*cam* ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dumpcommand}' if not exists(str(self.backupdirectory) + '/zerotier-one') else ' ; rm -rf ' + FOLDER_TOKEN_ZEROTIER + '/*.d ; cp -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one/* ' + FOLDER_TOKEN_ZEROTIER + '/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*cam* ; chmod -R 644 ' + FOLDER_TOKEN_ZEROTIER + ' ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dumpcommand}')
@@ -2444,7 +2444,7 @@ class AssignService(ChannelSelectionBase):
 					else:
 						with open(REFERENCES_FILE, "w") as updatefile:
 							updatefile.write(str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-				  # END write file iptosatreferences updated.
+					# END write file iptosatreferences updated.
 			except Exception:
 				pass
 			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
