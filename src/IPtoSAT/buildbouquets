@@ -150,9 +150,11 @@ def add_to_bouquets_tv(favorite_name):
 
 def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 	enigma2_file = open(splitext(enigma2_file)[0] + ".tv", "w")
+	with open("/etc/enigma2/settings", "r") as settingsload:
+		language = "todos" if "config.osd." not in settingsload.read() else "all"
 	satellite_reference = load_satellite_reference(satellite_reference_file)
 	favorite_name = splitext(basename(input_file))[0]
-	enigma2_file.write(f"#NAME {favorite_name}   (todos)\n")
+	enigma2_file.write(f"#NAME {favorite_name}   ({language})\n")
 	unique_id = 1
 	channel_reference = None
 	channels = []
