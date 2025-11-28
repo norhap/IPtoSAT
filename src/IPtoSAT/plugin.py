@@ -1485,7 +1485,7 @@ class AssignService(ChannelSelectionBase):
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(str(self.path)) and listdir(self.path):
 						self.storage = True
-						backupfolder = "BackupChannelsList" if BoxInfo.getItem("distro") != "openspa" else "BackupChannelsListSPA"
+						backupfolder = ("BackupChannelsListNorhap" if BoxInfo.getItem("distro") == "norhap" else "BackupChannelsListSPA" if BoxInfo.getItem("distro") == "openspa" else "BackupChannelsList")
 						self.backupdirectory = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
 						self.alternatefolder = join(self.path, f"IPToSAT/{MODEL}/AlternateList")
 						self.changefolder = join(self.path, f"IPToSAT/{MODEL}/ChangeSuscriptionList")
@@ -1510,8 +1510,11 @@ class AssignService(ChannelSelectionBase):
 							move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 						# ###################REMOVE IN A FEW MONTHS ###################
 						if BoxInfo.getItem("distro") == "openspa" and not exists(str(self.backupdirectory)):
-							if not fileContains(str(self.backupdirectory).replace("SPA", "") + "/shadow", "ntp") and exists(str(self.backupdirectory).replace("SPA", "")):
+							if exists(str(self.backupdirectory).replace("SPA", "")):
 								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("SPA", "") + " " + str(self.backupdirectory))
+						elif BoxInfo.getItem("distro") == "norhap" and not exists(str(self.backupdirectory)):
+							if exists(str(self.backupdirectory).replace("Norhap", "")):
+								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("Norhap", "") + " " + str(self.backupdirectory))
 						# ################### END ###################
 						if exists(str(self.backupdirectory)):
 							for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
@@ -3177,7 +3180,7 @@ class EditCategories(Screen):
 			self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
-				backupfolder = "BackupChannelsList" if BoxInfo.getItem("distro") != "openspa" else "BackupChannelsListSPA"
+				backupfolder = ("BackupChannelsListNorhap" if BoxInfo.getItem("distro") == "norhap" else "BackupChannelsListSPA" if BoxInfo.getItem("distro") == "openspa" else "BackupChannelsList")
 				self.folderBackupCategories = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
 				self.backup_categories = join(self.folderBackupCategories, BACKUP_CATEGORIES)
 
