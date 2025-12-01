@@ -3611,7 +3611,7 @@ class InstallChannelsLists(Screen):
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,618" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="712,565" size="684,135" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="status" position="712,545" size="684,170" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -3623,6 +3623,8 @@ class InstallChannelsLists(Screen):
 		self.zip_jungle = None
 		self.zip_sorys_vuplusmania = None
 		self.path = None
+		self.backupdirectory = None
+		self.backupChannelList = None
 		self.tuxboxxml = 'https://github.com/OpenPLi/tuxbox-xml/archive/refs/heads/master.zip'  # TUXBOX FILES UPDATE REPOSITORY OPenPLi
 		self.skinName = ["InstallChannelsListsIPToSAT"]
 		self.setTitle(language.get(lang, "88"))
@@ -3649,6 +3651,7 @@ class InstallChannelsLists(Screen):
 			"up": self.moveUp,
 			"pageUp": self.pageUp,
 			"pageDown": self.pageDown,
+			"0": self.restoreBackupChannelsList,
 		}, -2)
 		self.listChannels = getChannelsLists()
 		self.chekScenarioToInstall()
@@ -3663,12 +3666,17 @@ class InstallChannelsLists(Screen):
 				self.zip_jungle = join(self.folderlistchannels, "jungle.zip")
 				self.zip_sorys_vuplusmania = join(self.folderlistchannels, "sorys_vuplusmania.zip")
 				self.zip_tuxbox_xml = join(self.folderlistchannels, "tuxbox-xml-master.zip")
+				backupfolder = ("BackupChannelsListNorhap" if BoxInfo.getItem("distro") == "norhap" else "BackupChannelsListSPA" if BoxInfo.getItem("distro") == "openspa" else "BackupChannelsList")
+				self.backupdirectory = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
 				if not exists(str(self.folderlistchannels)):
 					makedirs(self.folderlistchannels)
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
 					if exists(str(dirfiles)):
 						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
+				if exists(str(self.backupdirectory)):
+					for fileschannelslist in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
+						self.backupChannelList = join(self.backupdirectory, fileschannelslist)
 
 	def iniMenu(self):
 		if not exists(CHANNELS_LISTS_PATH):
@@ -3691,11 +3699,11 @@ class InstallChannelsLists(Screen):
 				self["key_red"].setText(language.get(lang, "89"))
 				self["key_green"].setText(language.get(lang, "90"))
 				self["key_yellow"].setText(language.get(lang, "92"))
-				self["status"].setText(language.get(lang, "2"))
+				self["status"].setText(language.get(lang, "2" if not self.backupChannelList else "226"))
 			else:
 				self["key_red"].setText(language.get(lang, "89"))
 				self["key_yellow"].setText(language.get(lang, "92"))
-				self["status"].setText(language.get(lang, "184"))
+				self["status"].setText(language.get(lang, "184" if not self.backupChannelList else "226"))
 
 	def keyGreen(self):
 		channelslists = self["list"].getCurrent()
@@ -3800,7 +3808,6 @@ class InstallChannelsLists(Screen):
 				print("ERROR: %s" % str(err))
 
 	def getinstallXMLUpdated(self):
-
 		def restarGUI(answer):
 			if answer:
 				self.session.open(TryQuitMainloop, 3)
@@ -3828,6 +3835,32 @@ class InstallChannelsLists(Screen):
 
 		if self.storage:
 			self.session.openWithCallback(doinstallXMLRepositorie, MessageBox, language.get(lang, "217"), MessageBox.TYPE_YESNO)
+
+	def restoreBackupChannelsList(self):
+		def dorestoreBackupChannelsList(answer):
+			try:
+				fileschannelslist = ""
+				tuxboxfiles = ""
+				backupfilestuxbox = ""
+				if answer:
+					self.session.open(MessageBox, language.get(lang, "227"), MessageBox.TYPE_INFO, simple=True)
+					if self.backupChannelList:
+						for enigma2files in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+							fileschannelslist = join(ENIGMA2_PATH, enigma2files)
+							if fileschannelslist:
+								remove(fileschannelslist)
+					for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
+						backupfilestuxbox = filestuxbox
+						if backupfilestuxbox:
+							for filestuxboxlist in [x for x in listdir(FILES_TUXBOX) if ".xml" in x and "timezone.xml" not in x]:
+								tuxboxfiles = join(FILES_TUXBOX, filestuxboxlist)
+								if tuxboxfiles:
+									remove(tuxboxfiles)
+					eConsoleAppContainer().execute('sleep 5 && init 4 && sleep 2 ; cp -a ' + str(self.backupdirectory) + '/*.xml ' + FILES_TUXBOX + '/ ; cp -a ' + str(self.backupdirectory) + '/*.tv ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*.radio ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/whitelist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*alternatives. ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/blacklist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/lamedb ' + ENIGMA2_PATH_LISTS + ' ; init 3')
+			except Exception as err:
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
+		if self.storage and self.backupChannelList:
+			self.session.openWithCallback(dorestoreBackupChannelsList, MessageBox, language.get(lang, "225"), MessageBox.TYPE_YESNO)
 
 	def getListsRepositories(self):
 		if self.storage:
@@ -3888,18 +3921,17 @@ class InstallChannelsLists(Screen):
 					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
 						zipfile.extractall(self.folderlistchannels)
 				for dirnewlist in glob(dirpath, recursive=True):
-					for files in [x for x in listdir(dirnewlist) if x.endswith("actualizacion")]:
-						updatefiles = join(dirnewlist, files)
-						if exists(str(updatefiles)):
-							remove(updatefiles)
-						for installedlist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
-							installedfiles = join(ENIGMA2_PATH, installedlist)
-							if installedfiles:
-								remove(installedfiles)
-					if exists(self.folderlistchannels + '/tuxbox-xml-master'):
-						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ && cp -a ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' && cp -a ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/ && init 3')
-					else:
-						eConsoleAppContainer().execute('init 4 && sleep 10 && mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ && cp -a ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' && init 3')
+					for files in [x for x in listdir(dirnewlist) if x.endswith(".tv")]:
+						newfiles = join(dirnewlist, files)
+						if exists(str(newfiles)):
+							for installedlist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+								installedfiles = join(ENIGMA2_PATH, installedlist)
+								if installedfiles:
+									remove(installedfiles)
+							if exists(self.folderlistchannels + '/tuxbox-xml-master'):
+								eConsoleAppContainer().execute('sleep 2 ; init 4 ; sleep 2 ; mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ ; cp -f ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' ; cp -f ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/ ; rm -f ' + ENIGMA2_PATH_LISTS + 'actualizacion ; init 3')
+							else:
+								eConsoleAppContainer().execute('sleep 2 ; init 4 ; sleep 2 ; mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ ; cp -f ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' ; rm -f ' + ENIGMA2_PATH_LISTS + 'actualizacion ; init 3')
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
 					if exists(str(dirfiles)):
