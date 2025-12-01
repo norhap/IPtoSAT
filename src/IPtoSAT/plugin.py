@@ -1864,9 +1864,9 @@ class AssignService(ChannelSelectionBase):
 					if "cam" in cam or "cardd" in cam:
 						cams = True
 						if not exists(str(self.backupdirectory) + '/zerotier-one'):
-							cmdinstall = f'opkg update ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
+							cmdinstall = f'opkg update ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
 						else:
-							cmdinstall = f'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
+							cmdinstall = f'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
 					if cam == "zerotier-one" and cams is False:
 						cmdinstall = 'opkg update ; opkg install zerotier ; sleep 5' if exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
