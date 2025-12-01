@@ -3893,7 +3893,6 @@ class InstallChannelsLists(Screen):
 		from zipfile import ZipFile
 		channelslists = self["list"].getCurrent()
 		if answer:
-			self.session.open(MessageBox, language.get(lang, "77") + " " + str(channelslists), MessageBox.TYPE_INFO, simple=True)
 			dirpath = ""
 			try:
 				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
@@ -3924,6 +3923,7 @@ class InstallChannelsLists(Screen):
 					for files in [x for x in listdir(dirnewlist) if x.endswith(".tv")]:
 						newfiles = join(dirnewlist, files)
 						if exists(str(newfiles)):
+							self.session.open(MessageBox, language.get(lang, "77") + "   " + str(channelslists), MessageBox.TYPE_INFO, simple=True)
 							for installedlist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "satellites.xml" in x or "atsc.xml" in x or "terrestrial.xml" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
 								installedfiles = join(ENIGMA2_PATH, installedlist)
 								if installedfiles:
@@ -3932,6 +3932,8 @@ class InstallChannelsLists(Screen):
 								eConsoleAppContainer().execute('sleep 2 ; init 4 ; sleep 2 ; mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ ; cp -f ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' ; cp -f ' + self.folderlistchannels + '/tuxbox-xml-master/xml/*.xml ' + FILES_TUXBOX + '/ ; rm -f ' + ENIGMA2_PATH_LISTS + 'actualizacion ; init 3')
 							else:
 								eConsoleAppContainer().execute('sleep 2 ; init 4 ; sleep 2 ; mv -f ' + dirnewlist + '/*.xml' + " " + FILES_TUXBOX + '/ ; cp -f ' + dirnewlist + '/*' + " " + ENIGMA2_PATH_LISTS + ' ; rm -f ' + ENIGMA2_PATH_LISTS + 'actualizacion ; init 3')
+						else:
+							return self.session.open(MessageBox, language.get(lang, "228") + "   " + str(channelslists) + "\n" + language.get(lang, "221"), MessageBox.TYPE_ERROR, simple=True)
 				workdirectory = self.folderlistchannels + '/*'
 				for dirfiles in glob(workdirectory, recursive=True):
 					if exists(str(dirfiles)):
