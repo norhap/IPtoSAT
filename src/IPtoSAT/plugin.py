@@ -1224,7 +1224,8 @@ class IPToSAT(Screen):
 	def __isFallbackTunerEnabled(self):
 		self.container.write("q\n", 2)
 		self.Timer.stop()
-		AddPopup(language.get(lang, "229"), MessageBox.TYPE_INFO, timeout=0)
+		if isIPToSAT():
+			AddPopup(language.get(lang, "229"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):

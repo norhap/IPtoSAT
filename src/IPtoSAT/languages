@@ -228,7 +228,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 226 = Press OK or GREEN to install the list.\nPress the YELLOW button to update the lists.\nPress MENU to update XML files for satellites, terrestrial channels, etc.\nPress the BLUE button if you want to update the plugin.\nPress the "0" button to restore your channel list from the backup.
 227 = Your channel list is being installed...
 228 = The list has not been installed
-229 = It is not compatible to have IPToSAT and the fallback tuner enabled. Enable only the function you wish to use.
+229 = IPToSAT channels will not be viewable with fallback tuner enabled. Enable only the feature you wish to use.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -459,4 +459,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 226 = Pulse OK o VERDE para instalar lista.\nPulse botón AMARILLO para actualizar las listas.\nPulse MENU para actualizar archivos XML satellites, terrestrial etc..\nPulse botón AZUL si desea tener el plugin actualizado.\nPulse botón "0" para restaurar su lista de canales desde la copia.
 227 = Se está instalando su lista de canales...
 228 = No se ha instalado la lista
-229 = No es compatible tener IPToSAT y el tuner de respaldo activados.\nHabilite solo la función que desee utilizar.
+229 = Los canales IPToSAT no se podrán ver con el sintonizador de respaldo activado.\nHabilite solo la función que desee utilizar.
