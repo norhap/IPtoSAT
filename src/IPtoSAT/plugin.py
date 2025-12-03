@@ -1113,10 +1113,11 @@ class IPToSAT(Screen):
 		self.Timer = eTimer()
 		self.setFCCEnable = False
 		if notresetchannels is False:
+			getchannel = self.__isFallbackTunerEnabled if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel
 			try:
-				self.Timer.callback.append((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+				self.Timer.callback.append(getchannel)
 			except:
-				self.Timer_conn = self.Timer.timeout.connect((None if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel))
+				self.Timer_conn = self.Timer.timeout.connect(getchannel)
 		else:
 			notresetchannels = False
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
@@ -1210,12 +1211,20 @@ class IPToSAT(Screen):
 	def __recordingInfo(self):
 		self.container.write("q\n", 2)
 		self.Timer.stop()
-		AddPopup(language.get(lang, "214" if not isPluginInstalled("FastChannelChange") else "218", type=MessageBox.TYPE_INFO, timeout=0))
+		if not isPluginInstalled("FastChannelChange"):
+			AddPopup(language.get(lang, "214"), MessageBox.TYPE_INFO, timeout=0)
+		else:
+			AddPopup(language.get(lang, "218"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordingsFBC(self):
 		self.container.write("q\n", 2)
 		self.Timer.stop()
-		AddPopup(language.get(lang, "215"), type=MessageBox.TYPE_INFO, timeout=0)
+		AddPopup(language.get(lang, "215"), MessageBox.TYPE_INFO, timeout=0)
+
+	def __isFallbackTunerEnabled(self):
+		self.container.write("q\n", 2)
+		self.Timer.stop()
+		AddPopup(language.get(lang, "229"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
