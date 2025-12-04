@@ -1161,7 +1161,7 @@ class IPToSAT(Screen):
 					config.plugins.fccsetup.activate.save()
 					self.deactivateFCC()
 				if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
-					eFCCServiceManager.getInstance().setFCCEnable(1)
+					eFCCServiceManager.getInstance().setFCCEnable(True)
 					self.setFCCEnable = True
 			if self.session.nav.getCurrentlyPlayingServiceReference():
 				if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
@@ -1184,7 +1184,7 @@ class IPToSAT(Screen):
 							self.__resetDataBase()
 					if isPluginInstalled("FastChannelChange"):
 						from enigma import eFCCServiceManager  # noqa: E402
-						eFCCServiceManager.getInstance().setFCCEnable(0)
+						eFCCServiceManager.getInstance().setFCCEnable(False)
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
