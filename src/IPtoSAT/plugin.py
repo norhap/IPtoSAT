@@ -1111,13 +1111,11 @@ class IPToSAT(Screen):
 			iPlayableService.evStopped: self.__evEnd,
 		})
 		self.Timer = eTimer()
-		self.setFCCEnable = False
 		if notresetchannels is False:
-			getchannel = self.__isFallbackTunerEnabled if config.usage.remote_fallback_enabled.value and isPluginInstalled("FastChannelChange") else self.get_channel
 			try:
-				self.Timer.callback.append(getchannel)
+				self.Timer.callback.append(self.get_channel)
 			except:
-				self.Timer_conn = self.Timer.timeout.connect(getchannel)
+				self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		else:
 			notresetchannels = False
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
@@ -1131,11 +1129,18 @@ class IPToSAT(Screen):
 		self.ip_sat = False
 
 	def current_channel(self, channel, lastservice):
+		if isPluginInstalled("FastChannelChange"):
+			from enigma import eFCCServiceManager  # noqa: E402
+			if config.usage.remote_fallback_enabled.value:
+				eFCCServiceManager.getInstance().setFCCEnable(False)
 		playlist = getPlaylist()
 		player = config.plugins.IPToSAT.player.value
 		if channel and playlist and not self.ip_sat:
 			for ch in playlist['playlist']:
 				if ch['sref'] == str(ServiceReference(lastservice)):
+					if isPluginInstalled("FastChannelChange"):
+						if not config.plugins.fccsetup.activate.value:
+							eFCCServiceManager.getInstance().setFCCEnable(True)
 					self.session.nav.stopService()
 					self.container.execute(f"{player} {ch['url']}")
 					self.session.nav.playService(lastservice)
@@ -1155,14 +1160,10 @@ class IPToSAT(Screen):
 	def get_channel(self):
 		try:
 			if isPluginInstalled("FastChannelChange"):
-				from enigma import eFCCServiceManager  # noqa: E402
-				if config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value:
+				if config.plugins.fccsetup.activate.value:
 					config.plugins.fccsetup.activate.value = False
 					config.plugins.fccsetup.activate.save()
 					self.deactivateFCC()
-				if not config.plugins.fccsetup.activate.value and config.plugins.IPToSAT.enable.value and not self.setFCCEnable:
-					eFCCServiceManager.getInstance().setFCCEnable(True)
-					self.setFCCEnable = True
 			if self.session.nav.getCurrentlyPlayingServiceReference():
 				if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 					recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
@@ -1206,7 +1207,8 @@ class IPToSAT(Screen):
 			pass
 
 	def __evStart(self):
-		self.Timer.start(1000)
+		initializetime = 1000 if not isPluginInstalled("FastChannelChange") and not config.usage.remote_fallback_enabled.value else 2000
+		self.Timer.start(initializetime)
 
 	def __recordingInfo(self):
 		self.container.write("q\n", 2)
@@ -1220,12 +1222,6 @@ class IPToSAT(Screen):
 		self.container.write("q\n", 2)
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), MessageBox.TYPE_INFO, timeout=0)
-
-	def __isFallbackTunerEnabled(self):
-		self.container.write("q\n", 2)
-		self.Timer.stop()
-		if isIPToSAT():
-			AddPopup(language.get(lang, "229"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __resetDataBase(self):
 		if exists(resolveFilename(SCOPE_CONFIG, "lamedb")) and not exists(resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb")):
