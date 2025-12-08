@@ -190,12 +190,17 @@ def getTokenZerotier():
 
 
 def getDataZerotier(data):
-	network = get("http://127.0.0.1:9993/" + data, headers={'X-ZT1-Auth': getTokenZerotier(), 'Content-Type': 'application/json'}).text
-	return network
-
+	try:
+		network = get("http://127.0.0.1:9993/" + data, headers={'X-ZT1-Auth': getTokenZerotier(), 'Content-Type': 'application/json'}).text
+		return network
+	except Exception:
+		return None
 
 def checkZerotierMember():
-	zerotierdata = loads(getDataZerotier("network"))
+	try:
+		zerotierdata = loads(getDataZerotier("network"))
+	except Exception:
+		return False
 	for data in zerotierdata:
 		status = data.get("status")
 		return True if str(status).upper() == "OK" else False
@@ -597,23 +602,35 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def joinZeroTier(self):
 		if config.plugins.IPToSAT.showuserdata.value:
+			from process import ProcessList  # noqa: E402
+			zerotierscript = ""
+			zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
+			zerotier_auto = glob("/etc/rc2.d/S*zerotier")
 			if exists("/usr/sbin/zerotier-one"):
+				if exists("/etc/init.d/zerotier"):
+					zerotierscript = "zerotier"
+				elif exists("/etc/init.d/zerotier-one"):
+					zerotierscript = "zerotier-one"
 				if not exists(TOKEN_ZEROTIER):
-					from process import ProcessList  # noqa: E402
-					zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
-					zerotier_auto = glob("/etc/rc2.d/S*zerotier")
 					if not zerotier_process:
-						eConsoleAppContainer().execute("/etc/init.d/zerotier start")
+						eConsoleAppContainer().execute("/etc/init.d/" + f"{zerotierscript}" + " start")
 					if not zerotier_auto:
 						eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
 					if config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
-						eConsoleAppContainer().execute('sleep 15; zerotier-cli join {}' .format(config.plugins.IPToSAT.networkidzerotier.value))
+						eConsoleAppContainer().execute('sleep 15; zerotier-cli join 'f"{config.plugins.IPToSAT.networkidzerotier.value}")
 						self.session.openWithCallback(self.close, MessageBox, language.get(lang, "190"), MessageBox.TYPE_INFO, simple=True, timeout=15)
 					else:
 						self.session.open(MessageBox, language.get(lang, "192"), MessageBox.TYPE_ERROR, simple=True)
 				else:
 					if checkZerotierMember():
 						self.session.open(MessageBox, language.get(lang, "121"), MessageBox.TYPE_INFO, simple=True)
+					elif config.plugins.IPToSAT.networkidzerotier.value != config.plugins.IPToSAT.networkidzerotier.default:
+						if not zerotier_process:
+							eConsoleAppContainer().execute("/etc/init.d/" + f"{zerotierscript}" + " start")
+						if not zerotier_auto:
+							eConsoleAppContainer().execute("update-rc.d -f zerotier defaults")
+						eConsoleAppContainer().execute('sleep 15; zerotier-cli join 'f"{config.plugins.IPToSAT.networkidzerotier.value}")
+						self.session.openWithCallback(self.close, MessageBox, language.get(lang, "190"), MessageBox.TYPE_INFO, simple=True, timeout=15)
 			else:
 				self.session.open(MessageBox, language.get(lang, "193"), MessageBox.TYPE_ERROR, simple=True)
 
