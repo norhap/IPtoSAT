@@ -1162,9 +1162,8 @@ class IPToSAT(Screen):
 					self.container.execute(f"{player} {ch['url']}")
 					self.session.nav.playService(lastservice)
 					self.ip_sat = True
-					break
-				if isIPToSAT() is False and isPluginInstalled("FastChannelChange"):
-					eFCCServiceManager.getInstance().setFCCEnable(False)
+					if isPluginInstalled("FastChannelChange"):
+						eFCCServiceManager.getInstance().setFCCEnable(False)
 		if not self.session.nav.getRecordings():
 			self.recording = False
 			self.recordingASingleConnection = False
@@ -1202,9 +1201,6 @@ class IPToSAT(Screen):
 					else:
 						if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 							self.__resetDataBase()
-					if isPluginInstalled("FastChannelChange"):
-						from enigma import eFCCServiceManager  # noqa: E402
-						eFCCServiceManager.getInstance().setFCCEnable(False)
 			service = self.session.nav.getCurrentService()
 			if service:
 				info = service and service.info()
@@ -1226,7 +1222,7 @@ class IPToSAT(Screen):
 			pass
 
 	def __evStart(self):
-		initializetime = 1000 if not isPluginInstalled("FastChannelChange") and not config.usage.remote_fallback_enabled.value else 2000
+		initializetime = 1000 if not isPluginInstalled("FastChannelChange") else 2000
 		self.Timer.start(initializetime)
 
 	def __recordingInfo(self):
