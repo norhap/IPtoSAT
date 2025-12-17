@@ -673,7 +673,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							if self.currentservice:
 								if "http" not in self.currentservice:
 									self.session.nav.stopService()
-									eConsoleAppContainer().execute('sleep 1 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+									eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
 									return
 						else:
 							move(OSCAM_SERVICES, OSCAM_CARD)
