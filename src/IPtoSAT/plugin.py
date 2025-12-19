@@ -649,8 +649,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							if self.currentservice:
 								if "http" not in self.currentservice:
 									self.session.nav.stopService()
-									eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
-									return
+									eConsoleAppContainer().execute(f'sleep 3 && {RESTART_OSCAM} && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+							return
 						else:
 							move(OSCAM_SERVICES, OSCAM_NO_CARD)
 							move(OSCAM_CARD, OSCAM_SERVICES)
@@ -661,7 +661,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 								move(OSCAM_NO_CARD, OSCAM_SERVICES)
 								self["key_blue"].setText(language.get(lang, "195"))
 								eConsoleAppContainer().execute("sleep 1 && " + RESTART_OSCAM)
-								return
+							return
 					elif exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")):
 						if exists(str(OSCAM_CARD)):
 							self["footnote"].setText(language.get(lang, "213"))
@@ -673,8 +673,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							if self.currentservice:
 								if "http" not in self.currentservice:
 									self.session.nav.stopService()
-									eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
-									return
+									eConsoleAppContainer().execute(f'sleep 1 && {RESTART_OSCAM} && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={self.currentservice}')
+							return
 						else:
 							move(OSCAM_SERVICES, OSCAM_CARD)
 							move(OSCAM_NO_CARD, OSCAM_SERVICES)
@@ -1006,7 +1006,7 @@ class TimerOffCard:
 							if currentservice:
 								if "http" not in currentservice:
 									NavigationInstance.instance.stopService()
-									eConsoleAppContainer().execute('sleep 3 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+									eConsoleAppContainer().execute(f'sleep 3 && {RESTART_OSCAM} && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 								if BoxInfo.getItem("distro") == "norhap":
 									if config.plugins.IPToSAT.sequencetimers.value and SystemInfo["FbcTunerPowerAlwaysOn"]:
 										self.sequencetimers(currentservice)
@@ -1092,7 +1092,7 @@ class TimerOnCard:
 					if currentservice:
 						if "http" not in currentservice:
 							NavigationInstance.instance.stopService()
-							eConsoleAppContainer().execute('sleep 1 && ' + RESTART_OSCAM + f' && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
+							eConsoleAppContainer().execute(f'sleep 1 && {RESTART_OSCAM} && wget -O /dev/null -q http://127.0.0.1/web/zap?sRef={currentservice}')
 			elif not exists(str(ENIGMA2_PATH_LISTS + "iptosatjsoncard")) and exists(str(OSCAM_CARD)):
 				move(OSCAM_SERVICES, OSCAM_NO_CARD)
 				move(OSCAM_CARD, OSCAM_SERVICES)
