@@ -1164,6 +1164,7 @@ class IPToSAT(Screen):
 					self.ip_sat = True
 					if isPluginInstalled("FastChannelChange"):
 						eFCCServiceManager.getInstance().setFCCEnable(False)
+					break
 		if not self.session.nav.getRecordings():
 			self.recording = False
 			self.recordingASingleConnection = False
