@@ -1870,13 +1870,14 @@ class AssignService(ChannelSelectionBase):
 			foldercam = ""
 			camdscriptspa = ""
 			script = ""
+			softcams_package = ""
 			cams = False
 			if answer:
 				self.session.open(MessageBox, language.get(lang, "69"), MessageBox.TYPE_INFO, simple=True)
-				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or x.startswith("wpa_supplicant")]:
+				for filesenigma2 in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "whitelist_streamrelay" in x or x.startswith("wpa_supplicant")]:
 					backupfilesenigma = join(self.backupdirectory, filesenigma2)
 					if backupfilesenigma:
-						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "automounts.xml" in x or "epgimport.conf" in x]:
+						for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.startswith("iptosat.conf") or x.startswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.startswith("iptosatcategories.json") or x.startswith("iptosatreferences") or "iptosatyourcatall" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "whitelist_streamrelay" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 							enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 							if enigma2files:
 								remove(enigma2files)
@@ -1884,11 +1885,15 @@ class AssignService(ChannelSelectionBase):
 					camfolder = join(self.backupdirectory, cam)
 					rmcamfolder = 'sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*'
 					if "cam" in cam or "cardd" in cam:
+						if exists(str(self.backupdirectory) + '/oscam'):
+							softcams_package = 'opkg update ; opkg install enigma2-plugin-softcams-oscam ; '
+						else:
+							softcams_package = f'opkg update ; opkg install enigma2-plugin-softcams-{cam} ; '
 						cams = True
 						if not exists(str(self.backupdirectory) + '/zerotier-one'):
-							cmdinstall = f'opkg update ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
+							cmdinstall = softcams_package + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
 						else:
-							cmdinstall = f'opkg update ; opkg install zerotier ; opkg install enigma2-plugin-softcams-{cam} ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
+							cmdinstall = softcams_package + 'opkg install zerotier ; ' + rmcamfolder if not exists("/usr/bin/oscam") and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update ; opkg install enigma2-plugin-extensions-epgimport'
 					if cam == "zerotier-one" and cams is False:
 						cmdinstall = 'opkg update ; opkg install zerotier ; sleep 5' if exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else 'sleep 5 ; opkg update'
 				for filestuxbox in [x for x in listdir(self.backupdirectory) if ".xml" in x]:
@@ -1938,7 +1943,7 @@ class AssignService(ChannelSelectionBase):
 		try:
 			backupfiles = ""
 			if answer:
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "whitelist_streamrelay" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*' + " " + self.backupdirectory + '/*binary-spa*')
@@ -1974,12 +1979,12 @@ class AssignService(ChannelSelectionBase):
 			if answer:
 				self['managerlistchannels'].hide()
 				if BoxInfo.getItem("distro") == "openspa":
-					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/binary-spa ; cp -f /usr/bin/*oscam*' + ' ' + self.backupdirectory + '/binary-spa/')
-				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
+					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/binary-spa ; cp -f /usr/bin/*cam*' + ' ' + self.backupdirectory + '/binary-spa/')
+				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or "whitelist" in x or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "whitelist_streamrelay" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
 					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
-				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
+				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "whitelist_streamrelay" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
@@ -3867,7 +3872,7 @@ class InstallChannelsLists(Screen):
 				if answer:
 					self.session.open(MessageBox, language.get(lang, "227"), MessageBox.TYPE_INFO, simple=True)
 					if self.backupChannelList:
-						for enigma2files in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".radio" in x or ".tv" in x or "blacklist" in x]:
+						for enigma2files in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or "whitelist" in x or "lamedb" in x or ".radio" in x or ".tv" in x or "blacklist" in x or "whitelist_streamrelay" in x]:
 							fileschannelslist = join(ENIGMA2_PATH, enigma2files)
 							if fileschannelslist:
 								remove(fileschannelslist)
@@ -3878,7 +3883,7 @@ class InstallChannelsLists(Screen):
 								tuxboxfiles = join(FILES_TUXBOX, filestuxboxlist)
 								if tuxboxfiles:
 									remove(tuxboxfiles)
-					eConsoleAppContainer().execute('sleep 5 && init 4 && sleep 2 ; cp -a ' + str(self.backupdirectory) + '/*.xml ' + FILES_TUXBOX + '/ ; cp -a ' + str(self.backupdirectory) + '/*.tv ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*.radio ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/whitelist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*alternatives. ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/blacklist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/lamedb ' + ENIGMA2_PATH_LISTS + ' ; init 3')
+					eConsoleAppContainer().execute('sleep 5 && init 4 && sleep 2 ; cp -a ' + str(self.backupdirectory) + '/*.xml ' + FILES_TUXBOX + '/ ; cp -a ' + str(self.backupdirectory) + '/*.tv ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*.radio ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/whitelist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/whitelist_streamrelay ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*alternatives. ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/blacklist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/lamedb ' + ENIGMA2_PATH_LISTS + ' ; init 3')
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		if self.storage and self.backupChannelList:
