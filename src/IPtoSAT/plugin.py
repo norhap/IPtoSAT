@@ -3712,7 +3712,7 @@ class InstallChannelsLists(Screen):
 				if exists(CHANNELS_LISTS_PATH):
 					self["key_yellow"].setText(language.get(lang, "92"))
 					self["key_red"].setText(language.get(lang, "89"))
-					self["status"].setText(language.get(lang, "184"))
+					self["status"].setText(language.get(lang, "184" if not self.backupChannelList else "226"))
 		if self.listChannels:
 			list = []
 			for listtype in self.listChannels['channelslists']:
