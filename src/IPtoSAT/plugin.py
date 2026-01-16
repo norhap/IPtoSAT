@@ -3682,7 +3682,6 @@ class InstallChannelsLists(Screen):
 		}, -2)
 		self.listChannels = getChannelsLists()
 		self.chekScenarioToInstall()
-		self.iniMenu()
 
 	def chekScenarioToInstall(self):
 		for partition in harddiskmanager.getMountedPartitions():
@@ -3704,6 +3703,7 @@ class InstallChannelsLists(Screen):
 				if exists(str(self.backupdirectory)):
 					for fileschannelslist in [x for x in listdir(self.backupdirectory) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x]:
 						self.backupChannelList = join(self.backupdirectory, fileschannelslist)
+		self.iniMenu()
 
 	def iniMenu(self):
 		if not exists(CHANNELS_LISTS_PATH):
