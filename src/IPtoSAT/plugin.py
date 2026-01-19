@@ -556,6 +556,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
+		if isinstance(self["config"].getCurrent()[1], (ConfigYesNo, ConfigSelection)):
+			self.createSetup()
 
 	def keySave(self):
 		global notresetchannels
@@ -704,13 +706,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
-		self.createSetup()
 		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyRight(self):
 		ConfigListScreen.keyRight(self)
-		self.createSetup()
 		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
