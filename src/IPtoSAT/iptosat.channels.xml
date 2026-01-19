@@ -28,5 +28,7 @@
 <channel id="National.Geographic.es">4097:0:1:7000:56:016:C00000:0:0:0:http%3a//</channel> <!-- NAT GEOGRAPHIC References created in buildbouquets -->
 <channel id="National.Geographic.Wild.HD.es">4097:0:1:7000:57:017:C00000:0:0:0:http%3a//</channel> <!-- NAT GEOGRAPHIC WILD References created in buildbouquets -->
 <channel id="Comedy.Central.es">4097:0:1:7000:58:018:C00000:0:0:0:http%3a//</channel> <!-- COMEDY CENTRAL References created in buildbouquets -->
+<channel id="ES:.Pelis.Top.-.Rakuten.TV.be">4097:0:1:7000:59:019:C00000:0:0:0:http%3a//</channel> <!-- RAKUTEN TOP MOVIES References created in buildbouquets -->
+<channel id="ES:.Cine.Español.-.Rakuten.TV.be">4097:0:1:7000:60:020:C00000:0:0:0:http%3a//</channel> <!-- RAKUTEN FAMILY CINE ESPAÑOL References created in buildbouquets -->
 <!-- CANALES CODIFICADOS PARA USAR SU EPG -> FRECUENCIA 12363 V 27500 3/4 -->
 </channels>

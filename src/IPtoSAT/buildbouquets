@@ -281,7 +281,11 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						if "WILD" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:57:017:C00000:0:0:0:")  # GEOGRAPH WILD canales no satelite tv por internet.
 						if "COMEDY CENTRAL" in channel_name.upper():
-							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:58:018:C00000:0:0:0:")  # GEOGRAPH WILD canales no satelite tv por internet.
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:58:018:C00000:0:0:0:")  # COMEDY CENTRAL canales no satelite tv por internet.
+						if "RAKUTEN TV TOP" in channel_name.upper() and "2" not in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:59:019:C00000:0:0:0:")  # RAKUTEN TV TOP canales no satelite tv por internet.
+						if "RAKUTEN TV FAMILY" in channel_name.upper():
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:60:020:C00000:0:0:0:")  # RAKUTEN TV FAMILY canales no satelite tv por internet.
 						# ###############################################################################################################
 					stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
 					stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)

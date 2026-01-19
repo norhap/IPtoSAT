@@ -6,4 +6,10 @@
 <url><![CDATA[https://epgshare01.online/epgshare01/epg_ripper_ES1.xml.gz]]></url>
 </source>
 </sourcecat>
+<sourcecat sourcecatname="IPToSAT RAKUTEN EPG">
+<source type="gen_xmltv" nocheck="1" channels="/etc/epgimport/iptosat.channels.xml">
+<description>epgshare01-Spain</description>
+<url><![CDATA[https://epgshare01.online/epgshare01/epg_ripper_RAKUTEN1.xml.gz]]></url>
+</source>
+</sourcecat>
 </sources>
