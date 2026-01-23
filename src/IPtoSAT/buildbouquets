@@ -255,7 +255,7 @@ def convert_m3u_to_enigma2(input_file, enigma2_file, satellite_reference_file):
 						if "AMC CRIME" in channel_name.upper() and "NAT" not in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:43:003:C00000:0:0:0:")  # AMC CRIME canales no satelite tv por internet.
 						if "AXN " in channel_name.upper() and "AXN MOVIES" not in channel_name.upper():
-							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:45:005:C00000:0:0:0:")  # AXN canales no satelite tv por internet.
+							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7477:3F0:1:C00000:0:0:0:")  # AXN canal satelite.
 						if "DOCUMENTALES" in channel_name.upper():
 							channel_reference = channel_reference.replace(channel_reference, "4097:0:1:7000:46:006:C00000:0:0:0:")  # M+ DOCUMENTALES canales no satelite tv por internet.
 						if "DECASA" in channel_name.upper():
