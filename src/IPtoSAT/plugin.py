@@ -2186,7 +2186,7 @@ class AssignService(ChannelSelectionBase):
 			self.assignWidgetScript("#00ff2525", text)
 		self.showFavourites()
 
-	def getRefSat(self):
+	def getRefSat(self):  # Key "0".
 		global refSat
 		refSat = self.getCurrentSelection().toString()
 		channel_name = str(ServiceReference(refSat).getServiceName())
@@ -2223,7 +2223,7 @@ class AssignService(ChannelSelectionBase):
 			else:
 				with open(REFERENCES_FILE, "w") as updatefile:
 					updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
-			if refSat and "4097" not in refSat:  # from Key "0".
+			if refSat and "4097" not in refSat:
 				if fileContains(REFERENCES_FILE, ":"):
 					reference_from_refSat = ""
 					with open(REFERENCES_FILE, "r") as file:  # clear old services references
@@ -2231,12 +2231,12 @@ class AssignService(ChannelSelectionBase):
 						with open(REFERENCES_FILE, "w") as finalfile:
 							for line in filereference:
 								if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
-									if str(channel_name).lower() in line and str(refSat) not in line:
+									if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
 										olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-										line = line.replace(olderef, str(refSat)).replace("\n", "")
-									if str(channel_name).lower() not in line and str(refSat) in line or str(channel_name).lower() not in line and refSat in line:
-										oldchannel_name = line.split("-->1:")[0]
-										line = line.replace(oldchannel_name, str(channel_name).lower()).replace(refSat, str(refSat))
+										line = line.replace(olderef, str(refSat))
+									if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
+										oldchannel_name = line.split("-->")[0]
+										line = line.replace(oldchannel_name, str(channel_name).lower())
 									if "#SERVICE" in line and "http" in line:
 										refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
 										line = str(channel_name).lower() + "-->" + refiptv.replace("\n", "")
@@ -2251,7 +2251,7 @@ class AssignService(ChannelSelectionBase):
 						if reference_from_refSat and reference_from_refSat not in file.readlines():
 							with open(REFERENCES_FILE, "a") as finalfile:
 								finalfile.write("\n" + reference_from_refSat.replace("4097:", "1:"))
-					if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(refSat)):
+					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							if "http" not in str(refSat):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
@@ -2305,7 +2305,7 @@ class AssignService(ChannelSelectionBase):
 										iptosat_epg_write.write(channel)
 						if fileContains(IPToSAT_EPG_PATH, sref):
 							self.session.open(MessageBox, language.get(lang, "76") + " " + epg_channel_name, MessageBox.TYPE_INFO, simple=True)
-				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
+				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") and "iptosat_norhap.tv" not in x or x.endswith(".radio")]:
 					bouquetiptv = join(filelist)
 					if fileContains(ENIGMA2_PATH_LISTS + bouquetiptv, ":" + epg_channel_name):
 						with open(ENIGMA2_PATH_LISTS + bouquetiptv, "r") as fr:
@@ -2376,7 +2376,7 @@ class AssignService(ChannelSelectionBase):
 							break
 				if exists(WILD_CARD_EPG_FILE):
 					self.Console.ePopen("rm -f " + WILD_CARD_EPG_FILE)
-				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") or x.endswith(".radio")]:
+				for filelist in [x for x in listdir(ENIGMA2_PATH) if x.endswith(".tv") and "iptosat_norhap.tv" not in x or x.endswith(".radio")]:
 					bouquets_categories = join(filelist)
 					with open(ENIGMA2_PATH_LISTS + bouquets_categories, "r") as file:
 						lines = file.readlines()
@@ -2463,77 +2463,77 @@ class AssignService(ChannelSelectionBase):
 			self.resultEditionBouquets(epg_channel_name, sref, bouquetname)
 
 	def resultEditionBouquets(self, channel_name, sref, bouquetname):
-		global refSat
-		try:
-			sref_update = sref.replace("#SERVICE 4097:", "4097:")
-			characterascii = [channel_name]
-			epg_channel_name = channel_name
-			try:  # write file iptosatreferences updated.
-				for character in characterascii:
-					if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
-						channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
+		refSat = self.getCurrentSelection().toString()
+		channel_name = str(ServiceReference(refSat).getServiceName())
+		characterascii = [channel_name]
+		for data in [refSat]:
+			if "::" in data:
+				refSat = data.split("::")[0] + ":"
+				break
+		try:  # write file iptosatreferences updated.
+			for character in characterascii:
+				if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
+					channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
+			if fileContains(REFERENCES_FILE, ":"):
+				if refSat is None and "4097" not in str(refSat):
+					with open(REFERENCES_FILE, "r") as file:  # clear old services references from direct EPG key
+						filereference = file.readlines()
+						with open(REFERENCES_FILE, "w") as finalfile:
+							for line in filereference:
+								if str(channel_name).lower() in line and str(refSat) not in line:
+									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
+									line = line.replace(olderef, str(refSat))
+								if str(channel_name).lower() not in line and str(refSat) in line:
+									oldchannel_name = line.split("-->1:")[0]
+									line = line.replace(oldchannel_name, str(channel_name).lower())
+								finalfile.write(line)
+					if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(refSat)):
+						with open(REFERENCES_FILE, "a") as updatefile:
+							if "http" not in str(refSat):
+								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
+							else:
+								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat).split("http")[0].replace("4097:", "1:") + "-->1")
+			else:
+				with open(REFERENCES_FILE, "w") as updatefile:
+					updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
+			if refSat and "4097" not in refSat:
 				if fileContains(REFERENCES_FILE, ":"):
-					if refSat is None and "4097" not in str(sref_update):
-						with open(REFERENCES_FILE, "r") as file:  # clear old services references from direct EPG key
-							filereference = file.readlines()
-							with open(REFERENCES_FILE, "w") as finalfile:
-								for line in filereference:
-									if str(channel_name).lower() in line and str(sref_update) not in line:
+					reference_from_refSat = ""
+					with open(REFERENCES_FILE, "r") as file:  # clear old services references
+						filereference = file.readlines()
+						with open(REFERENCES_FILE, "w") as finalfile:
+							for line in filereference:
+								if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
+									if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
 										olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-										line = line.replace(olderef, str(sref_update))
-									if str(channel_name).lower() not in line and str(sref_update) in line:
-										oldchannel_name = line.split("-->1:")[0]
+										line = line.replace(olderef, str(refSat))
+									if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
+										oldchannel_name = line.split("-->")[0]
 										line = line.replace(oldchannel_name, str(channel_name).lower())
-									finalfile.write(line)
-						if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(sref_update)):
-							with open(REFERENCES_FILE, "a") as updatefile:
-								if "http" not in str(sref_update):
-									updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-								else:
-									updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update).split("http")[0].replace("4097:", "1:") + "-->1")
+									if "#SERVICE" in line and "http" in line:
+										refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
+										line = str(channel_name).lower() + "-->" + refiptv.replace("\n", "")
+										reference_from_refSat = line
+									if "http" in line:
+										line = line.split("http")[0] + "-->1".replace("\n", "")
+										reference_from_refSat = line
+									if "4097" not in line:
+										finalfile.write(line)
+					with open(REFERENCES_FILE, "r") as file:  # Add IPTV reference.
+						filereference = file.readlines()
+						if reference_from_refSat and reference_from_refSat not in file.readlines():
+							with open(REFERENCES_FILE, "a") as finalfile:
+								finalfile.write("\n" + reference_from_refSat.replace("4097:", "1:"))
+					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
+						with open(REFERENCES_FILE, "a") as updatefile:
+							if "http" not in str(refSat):
+								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
+							else:
+								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat).split("http")[0].replace("4097:", "1:") + "-->1")
 				else:
 					with open(REFERENCES_FILE, "w") as updatefile:
-						updatefile.write(str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-				if refSat and "4097" not in refSat:  # from Key "0".
-					if fileContains(REFERENCES_FILE, ":"):
-						reference_from_refSat = ""
-						with open(REFERENCES_FILE, "r") as file:  # clear old services references
-							filereference = file.readlines()
-							with open(REFERENCES_FILE, "w") as finalfile:
-								for line in filereference:
-									if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
-										if str(channel_name).lower() in line and str(sref_update) not in line:
-											olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-											line = line.replace(olderef, str(sref_update)).replace("\n", "")
-										if str(channel_name).lower() not in line and str(sref_update) in line or str(channel_name).lower() not in line and refSat in line:
-											oldchannel_name = line.split("-->1:")[0]
-											line = line.replace(oldchannel_name, str(channel_name).lower()).replace(refSat, str(sref_update))
-										if "#SERVICE" in line and "http" in line:
-											refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
-											line = str(channel_name).lower() + "-->" + refiptv.replace("\n", "")
-											reference_from_refSat = line
-										if "http" in line:
-											line = line.split("http")[0] + "-->1".replace("\n", "")
-											reference_from_refSat = line
-										if "4097" not in line:
-											finalfile.write(line)
-						with open(REFERENCES_FILE, "r") as file:  # Add IPTV reference.
-							filereference = file.readlines()
-							if reference_from_refSat and reference_from_refSat not in file.readlines():
-								with open(REFERENCES_FILE, "a") as finalfile:
-									finalfile.write("\n" + reference_from_refSat.replace("4097:", "1:"))
-						if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(sref_update)):
-							with open(REFERENCES_FILE, "a") as updatefile:
-								if "http" not in str(sref_update):
-									updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
-								else:
-									updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref_update).split("http")[0].replace("4097:", "1:") + "-->1")
-					else:
-						with open(REFERENCES_FILE, "w") as updatefile:
-							updatefile.write(str(channel_name).lower() + "-->" + str(sref_update) + "-->1")
+						updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
 					# END write file iptosatreferences updated.
-			except Exception:
-				pass
 			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
 				if fileContains(bouquetname, ".ts") or fileContains(bouquetname, ".m3u"):
 					self.addEPGChannel(channel_name, sref)
