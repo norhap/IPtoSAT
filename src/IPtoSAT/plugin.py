@@ -2207,14 +2207,14 @@ class AssignService(ChannelSelectionBase):
 						filereference = file.readlines()
 						with open(REFERENCES_FILE, "w") as finalfile:
 							for line in filereference:
-								if str(channel_name).lower() in line and str(refSat) not in line:
+								if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
 									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
 									line = line.replace(olderef, str(refSat))
-								if str(channel_name).lower() not in line and str(refSat) in line:
+								if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
 									oldchannel_name = line.split("-->1:")[0]
 									line = line.replace(oldchannel_name, str(channel_name).lower())
 								finalfile.write(line)
-					if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(refSat)):
+					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							if "http" not in str(refSat):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
@@ -2480,14 +2480,14 @@ class AssignService(ChannelSelectionBase):
 						filereference = file.readlines()
 						with open(REFERENCES_FILE, "w") as finalfile:
 							for line in filereference:
-								if str(channel_name).lower() in line and str(refSat) not in line:
+								if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
 									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
 									line = line.replace(olderef, str(refSat))
-								if str(channel_name).lower() not in line and str(refSat) in line:
+								if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
 									oldchannel_name = line.split("-->1:")[0]
 									line = line.replace(oldchannel_name, str(channel_name).lower())
 								finalfile.write(line)
-					if not fileContains(REFERENCES_FILE, str(channel_name).lower()) and not fileContains(REFERENCES_FILE, str(refSat)):
+					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
 						with open(REFERENCES_FILE, "a") as updatefile:
 							if "http" not in str(refSat):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
