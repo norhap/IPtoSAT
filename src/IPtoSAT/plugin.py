@@ -2062,7 +2062,7 @@ class AssignService(ChannelSelectionBase):
 					with open(REFERENCES_FILE, "a") as updatefile:
 						if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 							channel_name = channel_name.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
-						if "iptosat" not in channel_name and not fileContains(REFERENCES_FILE, str(channel_name).lower()) and "ORDER BY bouquet" not in str(sref):
+						if "iptosat" not in channel_name and not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->1")  and not fileContains(REFERENCES_FILE, str(sref)) and "ORDER BY bouquet" not in str(sref):
 							if fileContains(REFERENCES_FILE, ":"):
 								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(sref) + "-->1")
 							else:
