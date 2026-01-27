@@ -196,6 +196,7 @@ def getDataZerotier(data):
 	except Exception:
 		return None
 
+
 def checkZerotierMember():
 	try:
 		zerotierdata = loads(getDataZerotier("network"))
@@ -859,7 +860,7 @@ class TimerUpdateCategories:
 					fw.write(str(err))
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
+		global clearCacheEPG  # noqa: F824
 		if config.plugins.epgimport.clear_oldepg.value:
 			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
@@ -875,7 +876,7 @@ class TimerUpdateCategories:
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
+		global clearCacheEPG  # noqa: F824
 		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
@@ -1882,7 +1883,7 @@ class AssignService(ChannelSelectionBase):
 							if enigma2files:
 								remove(enigma2files)
 				for cam in [x for x in listdir(self.backupdirectory) if "oscam" in x or "ncam" in x or "wicardd" in x or "CCcam" in x or "zerotier-one" in x]:
-					camfolder = join(self.backupdirectory, cam)
+					camfolder = join(self.backupdirectory, cam)  # noqa: F841
 					rmcamfolder = 'sleep 5 ; rm -rf ' + FILES_TUXBOX + '/config/*cam*'
 					if "cam" in cam or "cardd" in cam:
 						if exists(str(self.backupdirectory) + '/oscam'):
@@ -2125,7 +2126,7 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
+		global clearCacheEPG  # noqa: F824
 		if config.plugins.epgimport.clear_oldepg.value:
 			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
@@ -2141,7 +2142,7 @@ class AssignService(ChannelSelectionBase):
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG
+		global clearCacheEPG  # noqa: F824
 		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
@@ -2187,7 +2188,7 @@ class AssignService(ChannelSelectionBase):
 		self.showFavourites()
 
 	def getRefSat(self):  # Key "0".
-		global refSat
+		global refSat  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
 		channel_name = str(ServiceReference(refSat).getServiceName())
 		characterascii = [channel_name]
@@ -2262,22 +2263,16 @@ class AssignService(ChannelSelectionBase):
 						updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-			# END write file iptosatreferences updated.
-
-	def getRefSatCheck(self):
-		refSat = self.getCurrentSelection().toString()
-		if refSat and "4097" not in refSat and "FROM BOUQUET" not in refSat:
-			return refSat
-		return None
+		# END write file iptosatreferences updated.
 
 	def addEPGChannel(self, channel_name, sref, bouquetname):
-		global refSat
+		global refSat  # noqa: F824
 		ref = self.getCurrentSelection()
+		epg_channel_name = channel_name
 		if (ref.flags & 7) == 7:  # this is bouquet selection no channel!!
 			self.session.open(MessageBox, language.get(lang, "84"), MessageBox.TYPE_ERROR, simple=True, timeout=5)
 		else:
 			try:
-				epg_channel_name = channel_name
 				characterascii = [epg_channel_name]
 				satreferencename = ""
 				bouquetnamemsgbox = ""
@@ -2462,81 +2457,11 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 			self.resultEditionBouquets(epg_channel_name, sref, bouquetname)
 
-	def resultEditionBouquets(self, channel_name, sref, bouquetname):
-		refSat = self.getCurrentSelection().toString()
-		channel_name = str(ServiceReference(refSat).getServiceName())
-		characterascii = [channel_name]
-		for data in [refSat]:
-			if "::" in data:
-				refSat = data.split("::")[0] + ":"
-				break
-		try:  # write file iptosatreferences updated.
-			for character in characterascii:
-				if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
-					channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
-			if fileContains(REFERENCES_FILE, ":"):
-				if refSat is None and "4097" not in str(refSat):
-					with open(REFERENCES_FILE, "r") as file:  # clear old services references from direct EPG key
-						filereference = file.readlines()
-						with open(REFERENCES_FILE, "w") as finalfile:
-							for line in filereference:
-								if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
-									olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-									line = line.replace(olderef, str(refSat))
-								if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
-									oldchannel_name = line.split("-->1:")[0]
-									line = line.replace(oldchannel_name, str(channel_name).lower())
-								finalfile.write(line)
-					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
-						with open(REFERENCES_FILE, "a") as updatefile:
-							if "http" not in str(refSat):
-								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
-							else:
-								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat).split("http")[0].replace("4097:", "1:") + "-->1")
-			else:
-				with open(REFERENCES_FILE, "w") as updatefile:
-					updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
-			if refSat and "4097" not in refSat:
-				if fileContains(REFERENCES_FILE, ":"):
-					reference_from_refSat = ""
-					with open(REFERENCES_FILE, "r") as file:  # clear old services references
-						filereference = file.readlines()
-						with open(REFERENCES_FILE, "w") as finalfile:
-							for line in filereference:
-								if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
-									if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
-										olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
-										line = line.replace(olderef, str(refSat))
-									if str(channel_name).lower() + "-->" not in line and str(refSat) in line:
-										oldchannel_name = line.split("-->")[0]
-										line = line.replace(oldchannel_name, str(channel_name).lower())
-									if "#SERVICE" in line and "http" in line:
-										refiptv = line.split("#SERVICE ")[1].split("http")[0] + "-->1"
-										line = str(channel_name).lower() + "-->" + refiptv.replace("\n", "")
-										reference_from_refSat = line
-									if "http" in line:
-										line = line.split("http")[0] + "-->1".replace("\n", "")
-										reference_from_refSat = line
-									if "4097" not in line:
-										finalfile.write(line)
-					with open(REFERENCES_FILE, "r") as file:  # Add IPTV reference.
-						filereference = file.readlines()
-						if reference_from_refSat and reference_from_refSat not in file.readlines():
-							with open(REFERENCES_FILE, "a") as finalfile:
-								finalfile.write("\n" + reference_from_refSat.replace("4097:", "1:"))
-					if not fileContains(REFERENCES_FILE, str(channel_name).lower() + "-->") and not fileContains(REFERENCES_FILE, str(refSat)):
-						with open(REFERENCES_FILE, "a") as updatefile:
-							if "http" not in str(refSat):
-								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat) + "-->1")
-							else:
-								updatefile.write("\n" + str(channel_name).lower() + "-->" + str(refSat).split("http")[0].replace("4097:", "1:") + "-->1")
-				else:
-					with open(REFERENCES_FILE, "w") as updatefile:
-						updatefile.write(str(channel_name).lower() + "-->" + str(refSat) + "-->1")
-					# END write file iptosatreferences updated.
+	def resultEditionBouquets(self, epg_channel_name, sref, bouquetname):
+		try:
 			if not fileContains(IPToSAT_EPG_PATH, "#SERVICE") and not fileContains(IPToSAT_EPG_PATH, "#NAME IPToSAT_EPG"):
 				if fileContains(bouquetname, ".ts") or fileContains(bouquetname, ".m3u"):
-					self.addEPGChannel(channel_name, sref)
+					self.addEPGChannel(epg_channel_name, sref)
 			if fileContains(IPToSAT_EPG_PATH, epg_channel_name) and fileContains(IPToSAT_EPG_PATH, sref) or fileContains(IPToSAT_EPG_PATH, sref):
 				self.session.open(MessageBox, language.get(lang, "24") + epg_channel_name + "\n\n" + language.get(lang, "94") + "\n\n" + FILE_IPToSAT_EPG.replace("userbouquet.", "").replace(".tv", "").upper(), MessageBox.TYPE_INFO, simple=True)
 			if exists(BOUQUET_IPTV_NORHAP) and not fileContains(CONFIG_PATH, "pass") and fileContains(IPToSAT_EPG_PATH, "#SERVICE"):
@@ -2566,8 +2491,6 @@ class AssignService(ChannelSelectionBase):
 				self.session.open(MessageBox, language.get(lang, "125"), MessageBox.TYPE_ERROR)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
-			refSat = None
-		refSat = None
 
 	def purge(self):
 		if self.storage:
