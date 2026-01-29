@@ -1298,7 +1298,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,394" size="870,140" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
 			<widget name="codestatus" position="33,500" size="870,249" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,355" size="870,550" font="Regular;24" backgroundColor="#0023262f" zPosition="6" />
-			<widget name="managerlistchannels" position="33,735" size="870,182" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
+			<widget name="managerlistchannels" position="33,650" size="870,235" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
 			<widget name="help" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget name="play" position="925,394" size="990,565" font="Regular;24" backgroundColor="#0023262f" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,940" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1357,7 +1357,7 @@ class AssignService(ChannelSelectionBase):
 			<widget name="assign" position="33,245" size="540,100" font="Regular;18" zPosition="6" />
 			<widget name="codestatus" position="33,330" size="540,150" font="Regular;18" zPosition="10" />
 			<widget name="helpbouquetepg" position="33,245" size="540,318" font="Regular;17" zPosition="6" />
-			<widget name="managerlistchannels" position="33,425" size="540,125" font="Regular;18" zPosition="10" />
+			<widget name="managerlistchannels" position="33,410" size="540,140" font="Regular;17" zPosition="10" />
 			<widget name="help" position="600,245" size="595,322" font="Regular;17" zPosition="3" />
 			<widget name="play" position="600,245" size="595,320" font="Regular;18" zPosition="3" />
 			<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="12,588" zPosition="2" size="110,35" backgroundColor="key_green" font="Regular;16" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" />
@@ -1416,6 +1416,7 @@ class AssignService(ChannelSelectionBase):
 		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		self.m3ustoragefile = None
 		self.path = None
+		self.piconfolder = None
 		self["titleChannelsList"] = Label(language.get(lang, "11"))
 		self["titleSuscriptionList"] = Label()
 		self["status"] = Label()
@@ -1513,6 +1514,7 @@ class AssignService(ChannelSelectionBase):
 						self.alternatefolder = join(self.path, f"IPToSAT/{MODEL}/AlternateList")
 						self.changefolder = join(self.path, f"IPToSAT/{MODEL}/ChangeSuscriptionList")
 						self.m3ufolder = join(self.path, f"IPToSAT/{MODEL}/M3U")
+						self.piconfolder = join(self.path, f"IPToSAT/{MODEL}/{language.get(lang, "229")}")
 						self.m3ustoragefile = join(self.m3ufolder, "iptosat_norhap.m3u")
 						self.iptosatconfalternate = join(self.alternatefolder, "iptosat.conf")
 						self.iptosatconfchange = join(self.changefolder, "iptosat.conf")
@@ -1539,6 +1541,8 @@ class AssignService(ChannelSelectionBase):
 							if exists(str(self.backupdirectory).replace("Norhap", "")):
 								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("Norhap", "") + " " + str(self.backupdirectory))
 						# ################### END ###################
+						if not exists(str(self.piconfolder)):
+							eConsoleAppContainer().execute('mkdir -p ' + str(self.piconfolder))
 						if exists(str(self.backupdirectory)):
 							for files in [x for x in listdir(self.backupdirectory) if x.endswith(".tv")]:
 								backupfiles = join(self.backupdirectory, files)
@@ -1734,7 +1738,7 @@ class AssignService(ChannelSelectionBase):
 		self.suscription(url, self.getSuscriptionData)
 
 	def channelSelected(self):
-		text = language.get(lang, "223")
+		text = language.get(lang, "223") + " " + self.piconfolder + "/" + "\n" + language.get(lang, "230") if exists(str(self.piconfolder)) else language.get(lang, "223")
 		self.assignWidgetScript("#e5e619", text)
 		if config.plugins.IPToSAT.typecategories.value in ("vod", "series"):
 			self['managerlistchannels'].show()
@@ -2190,15 +2194,36 @@ class AssignService(ChannelSelectionBase):
 	def getRefSat(self):  # Key "0".
 		global refSat  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
-		channel_name = str(ServiceReference(refSat).getServiceName())
-		characterascii = [channel_name]
-		for data in [refSat]:
-			if "::" in data:
-				refSat = data.split("::")[0] + ":"
-				break
-		text = language.get(lang, "224")
-		self.assignWidgetScript("#86dc3d", text)
-		try:  # write file iptosatreferences updated.
+		newpng = ""
+		picon_update = False
+		try:
+			if exists(str(self.piconfolder)):
+				for pngpicon in [x for x in listdir(self.piconfolder) if x.endswith(".png")]:
+					renamepng = pngpicon.replace(pngpicon, refSat.replace(":", "_")) + ".png"
+					newpng = renamepng.replace("_.png", ".png")
+					move(self.piconfolder + "/" + str(pngpicon), self.piconfolder + "/" + str(newpng))
+					break
+				for partition in harddiskmanager.getMountedPartitions():
+					path = normpath(partition.mountpoint)
+					if exists(join(str(path), 'picon')) and str(newpng):
+						pathdevice = join(str(path), 'picon')
+						picon_update = True
+						copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
+					if exists('/usr/share/enigma2/picon') and str(newpng):
+						pathflash = '/usr/share/enigma2/picon/'
+						eConsoleAppContainer().execute("cp -f " + str(self.piconfolder) + "/" + str(newpng) + " " + str(pathflash) + str(newpng))
+				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
+					eConsoleAppContainer().execute("rm -f " + str(self.piconfolder) + "/" + str(newpng))
+			channel_name = str(ServiceReference(refSat).getServiceName())
+			characterascii = [channel_name]
+			for data in [refSat]:
+				if "::" in data:
+					refSat = data.split("::")[0] + ":"
+					break
+			if picon_update is False:
+				text = language.get(lang, "224")
+				self.assignWidgetScript("#86dc3d", text)
+			# write file iptosatreferences updated.
 			for character in characterascii:
 				if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):
 					channel_name = character.replace(" ", "").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("M+", "M").replace("MOVISTAR+", "M").replace("MOVISTAR", "M").replace("+", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("Ñ", "N").replace("movistar+", "m").replace("m+", "m").replace("movistar", "m").replace(".", "").encode('ascii', 'ignore').decode()
