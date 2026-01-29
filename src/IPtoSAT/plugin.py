@@ -2196,6 +2196,8 @@ class AssignService(ChannelSelectionBase):
 		refSat = self.getCurrentSelection().toString()
 		newpng = ""
 		picon_update = False
+		pngdevice = False
+		pngflash = False
 		try:
 			if exists(str(self.piconfolder)):
 				for pngpicon in [x for x in listdir(self.piconfolder) if x.endswith(".png")]:
@@ -2209,9 +2211,11 @@ class AssignService(ChannelSelectionBase):
 						pathdevice = join(str(path), 'picon')
 						picon_update = True
 						copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
+						pngdevice = exists(join(str(pathdevice), str(newpng)))
 					if exists('/usr/share/enigma2/picon') and str(newpng):
 						pathflash = '/usr/share/enigma2/picon/'
 						eConsoleAppContainer().execute("cp -f " + str(self.piconfolder) + "/" + str(newpng) + " " + str(pathflash) + str(newpng))
+						pngflash = exists(join(str(pathflash), str(newpng)))
 				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
 					eConsoleAppContainer().execute("rm -f " + str(self.piconfolder) + "/" + str(newpng))
 			channel_name = str(ServiceReference(refSat).getServiceName())
@@ -2223,6 +2227,10 @@ class AssignService(ChannelSelectionBase):
 			if picon_update is False:
 				text = language.get(lang, "224")
 				self.assignWidgetScript("#86dc3d", text)
+			else:
+				if pngflash or pngdevice:
+					text = language.get(lang, "231")
+					self.assignWidgetScript("#86dc3d", text)
 			# write file iptosatreferences updated.
 			for character in characterascii:
 				if search(r'[áÁéÉíÍóÓúÚñÑM+m+.]', channel_name):

@@ -230,6 +230,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 228 = The list has not been installed
 229 = update_picon
 230 = Select the channel that corresponds to the unupdated picon and press "0".
+231 = The picon has been successfully updated.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -462,3 +463,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 228 = No se ha instalado la lista
 229 = actualizar_picon
 230 = Seleccione el canal que corresponda al picon no actualizado y pulse "0".
+231 = Se ha actualizado el picon con éxito.
