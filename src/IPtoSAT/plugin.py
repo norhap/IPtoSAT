@@ -2194,15 +2194,18 @@ class AssignService(ChannelSelectionBase):
 	def getRefSat(self):  # Key "0".
 		global refSat  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
+		channel_name = str(ServiceReference(refSat).getServiceName())
 		newpng = ""
 		picon_update = False
 		pngdevice = False
 		pngflash = False
 		try:
-			if exists(str(self.piconfolder)):
+			if exists(str(self.piconfolder)):  # Rename and create picon.
 				for pngpicon in [x for x in listdir(self.piconfolder) if x.endswith(".png")]:
 					renamepng = pngpicon.replace(pngpicon, refSat.replace(":", "_")) + ".png"
 					newpng = renamepng.replace("_.png", ".png")
+					if channel_name in newpng:
+						newpng = newpng.split(channel_name)[0].replace("__", ".png")
 					move(self.piconfolder + "/" + str(pngpicon), self.piconfolder + "/" + str(newpng))
 					break
 				for partition in harddiskmanager.getMountedPartitions():
@@ -2218,7 +2221,6 @@ class AssignService(ChannelSelectionBase):
 						pngflash = exists(join(str(pathflash), str(newpng)))
 				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
 					eConsoleAppContainer().execute("rm -f " + str(self.piconfolder) + "/" + str(newpng))
-			channel_name = str(ServiceReference(refSat).getServiceName())
 			characterascii = [channel_name]
 			for data in [refSat]:
 				if "::" in data:
