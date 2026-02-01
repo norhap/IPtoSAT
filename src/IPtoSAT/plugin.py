@@ -2220,7 +2220,7 @@ class AssignService(ChannelSelectionBase):
 						pngdevice = exists(join(str(pathdevice), str(newpng)))
 					if exists('/usr/share/enigma2/picon') and str(newpng):
 						pathflash = '/usr/share/enigma2/picon/'
-						eConsoleAppContainer().execute("cp -f " + str(self.piconfolder) + "/" + str(newpng) + " " + str(pathflash) + str(newpng))
+						copy(str(self.piconfolder) + "/" + str(newpng), str(pathflash) + str(newpng))
 						pngflash = exists(join(str(pathflash), str(newpng)))
 				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
 					remove(str(self.piconfolder) + "/" + str(newpng))
