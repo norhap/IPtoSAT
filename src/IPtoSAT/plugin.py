@@ -2210,6 +2210,9 @@ class AssignService(ChannelSelectionBase):
 					break
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
+					if path != "/" and "net" not in path and "autofs" not in path:
+						if path and not exists(join(str(path), 'picon')):
+							makedirs(join(str(path), 'picon'))
 					if exists(join(str(path), 'picon')) and str(newpng):
 						pathdevice = join(str(path), 'picon')
 						picon_update = True
