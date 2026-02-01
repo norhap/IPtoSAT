@@ -2223,7 +2223,7 @@ class AssignService(ChannelSelectionBase):
 						eConsoleAppContainer().execute("cp -f " + str(self.piconfolder) + "/" + str(newpng) + " " + str(pathflash) + str(newpng))
 						pngflash = exists(join(str(pathflash), str(newpng)))
 				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
-					eConsoleAppContainer().execute("rm -f " + str(self.piconfolder) + "/" + str(newpng))
+					remove(str(self.piconfolder) + "/" + str(newpng))
 			characterascii = [channel_name]
 			for data in [refSat]:
 				if "::" in data:
