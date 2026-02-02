@@ -3029,6 +3029,7 @@ class AssignService(ChannelSelectionBase):
 		self.right()
 
 	def exit(self, ret=None):
+		global refSat
 		if ret:
 			self.close(True)
 		if self.selectedList == self['list'] and self.in_bouquets:
@@ -3038,6 +3039,7 @@ class AssignService(ChannelSelectionBase):
 			self.getCategories(self.url)
 		else:
 			self.close(True)
+			refSat = None
 
 
 class EditPlaylist(Screen):
