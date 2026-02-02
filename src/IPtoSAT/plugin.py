@@ -118,6 +118,7 @@ SCRIPT_OSCAM = ""
 FILES_TUXBOX_CONFIG = "/etc/tuxbox/config"
 USR_SCRIPT = "/usr/script"
 ETC_INITD = "/etc/init.d"
+PICON_FLASH_PATH = "/usr/share/enigma2/picon"
 
 if isPluginInstalled("EPGImport") and not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(FOLDER_EPGIMPORT + "rytec.sources.xml") and lang == "es":
 	eConsoleAppContainer().execute('cp -f ' + EPG_CHANNELS_XML + " " + FOLDER_EPGIMPORT + ' ; cp -f ' + EPG_SOURCES_XML + " " + FOLDER_EPGIMPORT)
@@ -2211,6 +2212,8 @@ class AssignService(ChannelSelectionBase):
 		self.showFavourites()
 
 	def getRefSat(self):  # Key "0".
+		if (self.getCurrentSelection().flags & 7) == 7:  # this is bouquet selection no channel!!
+			self.session.open(MessageBox, language.get(lang, "233"), MessageBox.TYPE_ERROR, simple=True, timeout=5)
 		global refSat, epg_candidate_channel  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
 		channel_name = str(ServiceReference(refSat).getServiceName())
@@ -2228,29 +2231,29 @@ class AssignService(ChannelSelectionBase):
 						newpng = newpng.split(channel_name)[0].replace("__", ".png")
 					move(self.piconfolder + "/" + str(pngpicon), self.piconfolder + "/" + str(newpng))
 					break
-				for partition in harddiskmanager.getMountedPartitions():
-					path = normpath(partition.mountpoint)
-					if path != "/" and "net" not in path and "autofs" not in path:
-						if path and not exists(join(str(path), 'picon')) and not glob('/usr/share/enigma2/picon/*.png*') and not glob('/picon/*.png*'):
-							makedirs(join(str(path), 'picon'))
-					if exists(join(str(path), 'picon')) and str(newpng):
-						pathdevice = join(str(path), 'picon')
-						if path == "/":
-							if glob('/picon/*.png*'):
+				if newpng:
+					for partition in harddiskmanager.getMountedPartitions():
+						path = normpath(partition.mountpoint)
+						if path != "/" and "net" not in path and "autofs" not in path:
+							if path and not exists(join(str(path), 'picon')) and not glob(PICON_FLASH_PATH + '/*.png*') and not glob('/picon/*.png*'):
+								makedirs(join(str(path), 'picon'))
+						if exists(join(str(path), 'picon')):
+							pathdevice = join(str(path), 'picon')
+							if path == "/":
+								if glob('/picon/*.png*'):
+									copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
+							else:
 								copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
-						else:
-							copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
-						if exists(join(str(pathdevice), str(newpng))):
-							picon_update = True
-							pngdevice = True
-					if glob('/usr/share/enigma2/picon/*.png*') and str(newpng):
-						pathflash = '/usr/share/enigma2/picon'
-						copy(str(self.piconfolder) + "/" + str(newpng), str(pathflash) + "/" + str(newpng))
-						if exists(join(str(pathflash), str(newpng))):
-							picon_update = True
-							pngflash = True
-				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
-					remove(str(self.piconfolder) + "/" + str(newpng))
+							if exists(join(str(pathdevice), str(newpng))):
+								picon_update = True
+								pngdevice = True
+						if glob(PICON_FLASH_PATH + '/*.png*'):
+							copy(str(self.piconfolder) + "/" + str(newpng), str(PICON_FLASH_PATH) + "/" + str(newpng))
+							if exists(join(str(PICON_FLASH_PATH), str(newpng))):
+								picon_update = True
+								pngflash = True
+					if exists(str(self.piconfolder) + "/" + str(newpng)):
+						remove(str(self.piconfolder) + "/" + str(newpng))
 			characterascii = [channel_name]
 			for data in [refSat]:
 				if "::" in data:
@@ -2296,7 +2299,7 @@ class AssignService(ChannelSelectionBase):
 						filereference = file.readlines()
 						with open(REFERENCES_FILE, "w") as finalfile:
 							for line in filereference:
-								if ":" in line and "FROM BOUQUET" not in line or "." in line and "FROM BOUQUET" not in line:
+								if ":" in line:
 									if str(channel_name).lower() + "-->" in line and str(refSat) not in line:
 										olderef = line.split(str(channel_name).lower() + "-->")[1].split("-->1")[0]
 										line = line.replace(olderef, str(refSat))
