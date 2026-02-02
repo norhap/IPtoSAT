@@ -2211,17 +2211,24 @@ class AssignService(ChannelSelectionBase):
 				for partition in harddiskmanager.getMountedPartitions():
 					path = normpath(partition.mountpoint)
 					if path != "/" and "net" not in path and "autofs" not in path:
-						if path and not exists(join(str(path), 'picon')):
+						if path and not exists(join(str(path), 'picon')) and not glob('/usr/share/enigma2/picon/*.png*') and not glob('/picon/*.png*'):
 							makedirs(join(str(path), 'picon'))
 					if exists(join(str(path), 'picon')) and str(newpng):
 						pathdevice = join(str(path), 'picon')
-						picon_update = True
-						copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
-						pngdevice = exists(join(str(pathdevice), str(newpng)))
-					if exists('/usr/share/enigma2/picon') and str(newpng):
-						pathflash = '/usr/share/enigma2/picon/'
-						copy(str(self.piconfolder) + "/" + str(newpng), str(pathflash) + str(newpng))
-						pngflash = exists(join(str(pathflash), str(newpng)))
+						if path == "/":
+							if glob('/picon/*.png*'):
+								copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
+						else:
+							copy(str(self.piconfolder) + "/" + str(newpng), str(pathdevice) + "/" + str(newpng))
+						if exists(join(str(pathdevice), str(newpng))):
+							picon_update = True
+							pngdevice = True
+					if glob('/usr/share/enigma2/picon/*.png*') and str(newpng):
+						pathflash = '/usr/share/enigma2/picon'
+						copy(str(self.piconfolder) + "/" + str(newpng), str(pathflash) + "/" + str(newpng))
+						if exists(join(str(pathflash), str(newpng))):
+							picon_update = True
+							pngflash = True
 				if str(newpng) and exists(str(self.piconfolder) + "/" + str(newpng)):
 					remove(str(self.piconfolder) + "/" + str(newpng))
 			characterascii = [channel_name]
