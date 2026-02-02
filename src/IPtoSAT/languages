@@ -231,6 +231,7 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 229 = update_picon
 230 = Select the channel that corresponds to the unupdated picon and press "0".
 231 = The picon has been successfully updated.
+232 = This is a possible channel to assign EPG to.\nIf this is the channel you are looking for: press the "EPG" button.
 
 [es]
 Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sincronizar y visionar canales satélites a través de IPTV. Setup 2.1 por norhap
@@ -464,3 +465,4 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 229 = actualizar_picon
 230 = Seleccione el canal que corresponda al picon no actualizado y pulse "0".
 231 = Se ha actualizado el picon con éxito.
+232 = Este es un posible canal al que se le puede asignar EPG.\nSi este es el canal que está buscando: pulse el botón "EPG".

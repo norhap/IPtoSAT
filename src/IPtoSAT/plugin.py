@@ -37,6 +37,7 @@ from Screens.Standby import TryQuitMainloop
 import NavigationInstance
 
 refSat = None
+epg_candidate_channel = None
 notresetchannels = False
 clearCacheEPG = False
 
@@ -1676,20 +1677,38 @@ class AssignService(ChannelSelectionBase):
 		self.resetWidget()
 
 	def moveDown(self):
+		global refSat, epg_candidate_channel  # noqa: F824
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveDown)
 			if (self.getCurrentSelection().flags & 7) == 7:
 				text = ""
 				self.assignWidgetScript("#e5e619", text)
+			else:
+				if refSat and epg_candidate_channel:
+					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper():
+						text = language.get(lang, "232")
+						self.assignWidgetScript("#e5e619", text)
+					else:
+						text = ""
+						self.assignWidgetScript("#e5e619", text)
 
 	def moveUp(self):
+		global refSat, epg_candidate_channel  # noqa: F824
 		if self.selectedList.getCurrent():
 			instance = self.selectedList.instance
 			instance.moveSelection(instance.moveUp)
 			if (self.getCurrentSelection().flags & 7) == 7:
 				text = ""
 				self.assignWidgetScript("#e5e619", text)
+			else:
+				if refSat and epg_candidate_channel:
+					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper():
+						text = language.get(lang, "232")
+						self.assignWidgetScript("#e5e619", text)
+					else:
+						text = ""
+						self.assignWidgetScript("#e5e619", text)
 
 	def getUserData(self):
 		listsuscription = join(str(self.alternatefolder), "iptosat_LIST1.conf")
@@ -2192,9 +2211,10 @@ class AssignService(ChannelSelectionBase):
 		self.showFavourites()
 
 	def getRefSat(self):  # Key "0".
-		global refSat  # noqa: F824
+		global refSat, epg_candidate_channel  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
 		channel_name = str(ServiceReference(refSat).getServiceName())
+		epg_candidate_channel = channel_name.upper()
 		newpng = ""
 		picon_update = False
 		pngdevice = False
