@@ -1687,7 +1687,7 @@ class AssignService(ChannelSelectionBase):
 				self.assignWidgetScript("#e5e619", text)
 			else:
 				if refSat and epg_candidate_channel:
-					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper():
+					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper().replace("+ ", "+"):
 						text = language.get(lang, "232")
 						self.assignWidgetScript("#e5e619", text)
 					else:
@@ -1704,7 +1704,7 @@ class AssignService(ChannelSelectionBase):
 				self.assignWidgetScript("#e5e619", text)
 			else:
 				if refSat and epg_candidate_channel:
-					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper():
+					if "http" in self.getCurrentSelection().toString() and epg_candidate_channel in ServiceReference(self.getCurrentSelection().toString()).getServiceName().upper().replace("+ ", "+"):
 						text = language.get(lang, "232")
 						self.assignWidgetScript("#e5e619", text)
 					else:
@@ -2217,7 +2217,7 @@ class AssignService(ChannelSelectionBase):
 		global refSat, epg_candidate_channel  # noqa: F824
 		refSat = self.getCurrentSelection().toString()
 		channel_name = str(ServiceReference(refSat).getServiceName())
-		epg_candidate_channel = channel_name.upper()
+		epg_candidate_channel = channel_name.upper().replace("+ ", "+").replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U").replace("Ñ", "N")
 		newpng = ""
 		picon_update = False
 		pngdevice = False
