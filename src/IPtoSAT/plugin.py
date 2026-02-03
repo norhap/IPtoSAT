@@ -1516,8 +1516,8 @@ class AssignService(ChannelSelectionBase):
 						self.alternatefolder = join(self.path, f"IPToSAT/{MODEL}/AlternateList")
 						self.changefolder = join(self.path, f"IPToSAT/{MODEL}/ChangeSuscriptionList")
 						self.m3ufolder = join(self.path, f"IPToSAT/{MODEL}/M3U")
-						self.piconfolder = join(self.path, f"IPToSAT/{MODEL}/{language.get(lang, "229")}")
 						self.m3ustoragefile = join(self.m3ufolder, "iptosat_norhap.m3u")
+						self.piconfolder = join(self.path, f"IPToSAT/{MODEL}/{language.get(lang, "229")}")
 						self.iptosatconfalternate = join(self.alternatefolder, "iptosat.conf")
 						self.iptosatconfchange = join(self.changefolder, "iptosat.conf")
 						self.iptosatjsonalternate = join(self.alternatefolder, "iptosat.json")
@@ -1543,6 +1543,8 @@ class AssignService(ChannelSelectionBase):
 							if exists(str(self.backupdirectory).replace("Norhap", "")):
 								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("Norhap", "") + " " + str(self.backupdirectory))
 						# ################### END ###################
+						if not exists(str(self.m3ufolder)):
+							eConsoleAppContainer().execute('mkdir -p ' + str(self.m3ufolder))
 						if not exists(str(self.piconfolder)):
 							eConsoleAppContainer().execute('mkdir -p ' + str(self.piconfolder))
 						if exists(str(self.backupdirectory)):
