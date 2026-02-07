@@ -1444,7 +1444,7 @@ class AssignService(ChannelSelectionBase):
 		self["key_rec"] = StaticText("")
 		self["key_audio"] = StaticText("")
 		self["key_1"] = StaticText("")
-		self.checkStorageDevice()
+
 		self["ChannelSelectBaseActions"] = ActionMap(["IPToSATAsignActions"],
 		{
 			"cancel": self.exit,
@@ -1500,6 +1500,7 @@ class AssignService(ChannelSelectionBase):
 		self.getUserData()
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
+		self.checkStorageDevice()
 
 	def checkStorageDevice(self):
 		try:
