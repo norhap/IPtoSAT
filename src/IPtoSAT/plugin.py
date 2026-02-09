@@ -1293,6 +1293,7 @@ class AssignService(ChannelSelectionBase):
 				<convert type="ClockToText">Default</convert>
 			</widget>
 			<widget name="list" position="23,42" size="613,310" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
+			<widget name="letternumber" conditional="letternumber" position="0,42" size="0,0" font="Regular;25" foregroundColor="#0000fafa" backgroundColor="#0023262f" transparent="1" zPosition="1"/>
 			<widget name="list2" position="658,42" size="612,304" backgroundColor="#0023262f" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
 			<widget name="please" position="680,42" size="590,35" font="Regular;24" backgroundColor="#0023262f" zPosition="12" />
 			<widget name="status" position="33,394" size="870,355" font="Regular;24" backgroundColor="#0023262f" zPosition="10" />
@@ -1352,6 +1353,7 @@ class AssignService(ChannelSelectionBase):
 				<convert type="ClockToText">Default</convert>
 			</widget>
 			<widget name="list" position="33,42" size="550,198" scrollbarMode="showOnDemand" />
+			<widget name="letternumber" conditional="letternumber" position="0,42" size="0,0" font="Regular;18" foregroundColor="#0000fafa" transparent="1" zPosition="1"/>
 			<widget name="list2" position="600,42" size="550,200" scrollbarMode="showOnDemand" />
 			<widget name="please" position="600,42" size="540,35" font="Regular;18" zPosition="12" />
 			<widget name="status" position="33,245" size="540,225" font="Regular;18" zPosition="11" />
