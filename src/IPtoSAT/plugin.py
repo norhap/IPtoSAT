@@ -1976,7 +1976,7 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or ".xml" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "interfaces" in x or "CCcam.cfg" in x or x.startswith("wpa_supplicant.wlan") or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*' + " " + self.backupdirectory + '/*binary-spa*')
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/*script*' + " " + self.backupdirectory + '/*zerotier-one*' + " " + self.backupdirectory + '/*binary-spa*' + " " + self.backupdirectory + '/bouquetmakerxtream')
 					self['managerlistchannels'].show()
 					self.assignWidgetScript("#86dc3d", language.get(lang, "68"))
 					if fileContains(CONFIG_PATH, "pass"):
@@ -2013,11 +2013,13 @@ class AssignService(ChannelSelectionBase):
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
 					backupfiles = join(self.backupdirectory, files)
 					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
+					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*' + " " + self.backupdirectory + '/bouquetmakerxtream')
 				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
+					if exists(ENIGMA2_PATH + '/bouquetmakerxtream'):
+						eConsoleAppContainer().execute('cp -rf ' + ENIGMA2_PATH + '/bouquetmakerxtream' + ' ' + self.backupdirectory + '/')
 						self['managerlistchannels'].show()
 						self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
@@ -3953,7 +3955,7 @@ class InstallChannelsLists(Screen):
 								tuxboxfiles = join(FILES_TUXBOX, filestuxboxlist)
 								if tuxboxfiles:
 									remove(tuxboxfiles)
-					eConsoleAppContainer().execute('sleep 5 && init 4 && sleep 2 ; cp -a ' + str(self.backupdirectory) + '/*.xml ' + FILES_TUXBOX + '/ ; cp -a ' + str(self.backupdirectory) + '/*.tv ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*.radio ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*whitelist* ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*alternatives. ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/blacklist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/lamedb ' + ENIGMA2_PATH_LISTS + ' ; init 3')
+					eConsoleAppContainer().execute('sleep 5 && init 4 && sleep 2 ; cp -a ' + str(self.backupdirectory) + '/*.xml ' + FILES_TUXBOX + '/ ; cp -a ' + str(self.backupdirectory) + '/*.tv ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*.radio ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*whitelist* ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/*alternatives. ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/blacklist ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/lamedb ' + ENIGMA2_PATH_LISTS + ' ; cp -a ' + str(self.backupdirectory) + '/bouquetmakerxtream ' + ENIGMA2_PATH_LISTS + ' ; init 3')
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		if self.storage and self.backupChannelList:
