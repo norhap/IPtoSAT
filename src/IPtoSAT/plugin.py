@@ -2018,9 +2018,9 @@ class AssignService(ChannelSelectionBase):
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
 					if enigma2files:
 						copy(enigma2files, self.backupdirectory)
+						self['managerlistchannels'].show()
 					if exists(ENIGMA2_PATH + '/bouquetmakerxtream'):
 						eConsoleAppContainer().execute('cp -rf ' + ENIGMA2_PATH + '/bouquetmakerxtream' + ' ' + self.backupdirectory + '/')
-						self['managerlistchannels'].show()
 						self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
 				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
 					etc_files = join("/etc", files)
