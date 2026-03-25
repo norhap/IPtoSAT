@@ -1480,14 +1480,6 @@ class AssignService(ChannelSelectionBase):
 			self["key_yellow"].setText(language.get(lang, "32"))
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
-		if self.storage and not fileContains(CONFIG_PATH, "pass"):
-			self["key_tv"].setText("TV")
-			self["description"].setText(language.get(lang, "60"))
-		elif self.storage and fileContains(CONFIG_PATH, "pass"):
-			self["key_tv"].setText("TV")
-			self["description"].setText(language.get(lang, "78"))
-		else:
-			self["description"] = Label(language.get(lang, "0"))
 		try:
 			self.errortimer.callback.append(self.errorMessage)
 		except Exception:
@@ -1534,6 +1526,12 @@ class AssignService(ChannelSelectionBase):
 						self.categoriesall = join(self.alternatefolder, "iptosatcategories.json")
 						self.categoriesallwildcard = join(self.alternatefolder, "categoriesalljson")
 						self.categoriesallwildcardchanged = join(self.alternatefolder, "categoriesalljsonchanged")
+						if not fileContains(CONFIG_PATH, "pass"):
+							self["key_tv"].setText("TV")
+							self["description"].setText(language.get(lang, "60"))
+						elif fileContains(CONFIG_PATH, "pass"):
+							self["key_tv"].setText("TV")
+							self["description"].setText(language.get(lang, "78"))
 						backupfiles = ""
 						bouquetiptosatepg = ""
 						if exists(str(BUILDBOUQUETS_SOURCE)):
@@ -1559,6 +1557,8 @@ class AssignService(ChannelSelectionBase):
 									self.backupChannelsListStorage = True
 								if exists(str(bouquetiptosatepg)):
 									self["key_red"].setText(language.get(lang, "18"))
+					if not self.storage:
+						self["description"] = Label(language.get(lang, "0"))
 		except Exception as err:
 			print("ERROR: %s" % str(err))
 
