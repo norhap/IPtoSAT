@@ -1502,7 +1502,12 @@ class AssignService(ChannelSelectionBase):
 				with open(CONFIG_PATH, 'w') as fw:
 					fw.write("[IPToSAT]" + "\n" + 'Host=http://domain:port' + "\n" + "User=user" + "\n" + "Pass=pass")
 			for partition in harddiskmanager.getMountedPartitions():
-				self.path = normpath(partition.mountpoint)
+				if exists("/media/usb/") and listdir("/media/usb"):
+					self.path = "/media/usb/"
+				elif exists("/media/hdd/") and listdir("/media/hdd"):
+					self.path = "/media/hdd/"
+				else:
+					self.path = normpath(partition.mountpoint)
 				if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 					if exists(str(self.path)) and listdir(self.path):
 						self.storage = True
@@ -3274,7 +3279,12 @@ class EditCategories(Screen):
 
 	def chekScenarioToBackup(self):
 		for partition in harddiskmanager.getMountedPartitions():
-			self.path = normpath(partition.mountpoint)
+			if exists("/media/usb/") and listdir("/media/usb"):
+				self.path = "/media/usb/"
+			elif exists("/media/hdd/") and listdir("/media/hdd"):
+				self.path = "/media/hdd/"
+			else:
+				self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
 				backupfolder = ("BackupChannelsListNorhap" if BoxInfo.getItem("distro") == "norhap" else "BackupChannelsListSPA" if BoxInfo.getItem("distro") == "openspa" else "BackupChannelsList")
@@ -3755,7 +3765,12 @@ class InstallChannelsLists(Screen):
 
 	def chekScenarioToInstall(self):
 		for partition in harddiskmanager.getMountedPartitions():
-			self.path = normpath(partition.mountpoint)
+			if exists("/media/usb/") and listdir("/media/usb"):
+				self.path = "/media/usb/"
+			elif exists("/media/hdd/") and listdir("/media/hdd"):
+				self.path = "/media/hdd/"
+			else:
+				self.path = normpath(partition.mountpoint)
 			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
 				self.storage = True
 				self.folderlistchannels = join(self.path, f"IPToSAT/{MODEL}/ChannelsLists")
