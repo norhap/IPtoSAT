@@ -1491,10 +1491,10 @@ class AssignService(ChannelSelectionBase):
 		self.categories = []
 		self['list2'] = MenuList([])
 		self.selectedList = self["list"]
+		self.checkStorageDevice()
 		self.getUserData()
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
-		self.checkStorageDevice()
 
 	def checkStorageDevice(self):
 		try:
@@ -1947,7 +1947,7 @@ class AssignService(ChannelSelectionBase):
 						script = scriptsh
 				initscriptsh = "sh " + USR_SCRIPT + '/' + script + ' start'
 				createfoldercam = ' ; mkdir -p ' + FILES_TUXBOX + '/config/' + foldercam + ' ; ' if foldercam else ' ; '
-				command = 'init 3 ; mount -a' if BoxInfo.getItem("socfamily") != "hisi3798mv200" and not exists(str(self.backupdirectory) + '/zerotier-one') and BoxInfo.getItem("distro") != "openspa" else initscriptsh + ' ; init 3'
+				command = 'init 6' if exists(str(self.backupdirectory) + '/zerotier-one') else initscriptsh + ' ; init 3' if BoxInfo.getItem("distro") == "openspa" else 'init 3 ; mount -a' if BoxInfo.getItem("socfamily") != "hisi3798mv200" else 'init 3'
 				dumpcommand = f'{command}' if BoxInfo.getItem("distro") != "openspa" else 'cp -a ' + self.backupdirectory + '/' + camdscriptspa + ' /etc/ ; cp -f ' + self.backupdirectory + '/.ActiveCamd /etc/ ; ' + f'{command}'
 				cambackupfolder = '*cam*'
 				dumped = (' ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*cam* ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dumpcommand}' if not exists(str(self.backupdirectory) + '/zerotier-one') else ' ; rm -rf ' + FOLDER_TOKEN_ZEROTIER + '/*.d ; cp -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one/* ' + FOLDER_TOKEN_ZEROTIER + '/ ; /etc/init.d/zerotier start ; rm -rf ' + ENIGMA2_PATH_LISTS + 'zerotier-one ; mv -f ' + ENIGMA2_PATH_LISTS + cambackupfolder + ' ' + FILES_TUXBOX + '/config/ ; mv -f ' + ENIGMA2_PATH_LISTS + 'binary-spa/*cam* /usr/bin/ ; rm -rf ' + ENIGMA2_PATH_LISTS + 'binary-spa ; chmod 755 /usr/bin/*cam* ; chmod -R 644 ' + FOLDER_TOKEN_ZEROTIER + ' ; chmod -R 644 ' + FILES_TUXBOX + '/config/ ;' f'{dumpcommand}')
