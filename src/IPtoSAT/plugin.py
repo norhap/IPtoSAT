@@ -758,6 +758,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 class TimerUpdateCategories:
 	def __init__(self, session):
 		self.session = session
+		self.categoriestimerStart = eTimer()
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
 		self.iptosatpolltimer = eTimer()
@@ -774,7 +775,7 @@ class TimerUpdateCategories:
 		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, downloadcategoriesclock[0], downloadcategoriesclock[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
 
 	def prepareTimer(self):
-		self.categoriestimer.stop()
+		self.categoriestimerStart.stop()
 		downloadtime = self.getTimeDownloadCategories()
 		now = int(time())
 		if downloadtime > 0:
@@ -782,8 +783,8 @@ class TimerUpdateCategories:
 				downloadtime += 24 * 3600
 				while (int(downloadtime) - 30) < now:
 					downloadtime += 24 * 3600
-			next = downloadtime - now
-			self.categoriestimer.startLongTimer(next)
+			nextime = downloadtime - now
+			self.categoriestimer.startLongTimer(nextime)
 		else:
 			downloadtime = -1
 		return downloadtime
@@ -889,19 +890,14 @@ class TimerUpdateCategories:
 	def refreshScheduler(self):
 		now = int(time())
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			if now > 1262304000:
-				self.scheduledtime = self.prepareTimer()
-			else:
-				self.scheduledtime = 0
-				self.iptosatpolltimer.start(36000)
-		else:
-			self.scheduledtime = 0
-			self.iptosatpolltimer.stop()
+			self.categoriestimerStart.callback.append(self.prepareTimer)
+			self.categoriestimerStart.start(36000, True)
 
 
 class TimerOffCard:
 	def __init__(self):
 		self.cardofftimer = eTimer()
+		self.cardofftimerStart = eTimer()
 		self.cardofftimer.callback.append(self.iptosatCardOffTimer)
 		self.cardpolltimer = eTimer()
 		self.cardpolltimer.timeout.get().append(self.cardPollTimer)
@@ -917,7 +913,7 @@ class TimerOffCard:
 		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, config.plugins.IPToSAT.timecardoff[current_day].value[0], config.plugins.IPToSAT.timecardoff[current_day].value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
 
 	def prepareTimer(self):
-		self.cardofftimer.stop()
+		self.cardofftimerStart.stop()
 		cardofftime = self.getTimeOffCard()
 		now = int(time())
 		if cardofftime > 0:
@@ -925,8 +921,8 @@ class TimerOffCard:
 				cardofftime += 24 * 3600
 				while (int(cardofftime) - 30) < now:
 					cardofftime += 24 * 3600
-			next = cardofftime - now
-			self.cardofftimer.startLongTimer(next)
+			nextime = cardofftime - now
+			self.cardofftimer.startLongTimer(nextime)
 		else:
 			cardofftime = -1
 		return cardofftime
@@ -1034,19 +1030,14 @@ class TimerOffCard:
 		current_day = int(localtime().tm_wday)
 		now = int(time())
 		if config.plugins.IPToSAT.timecardoff[current_day].value:
-			if now > 1262304000:
-				self.scheduledtime = self.prepareTimer()
-			else:
-				self.scheduledtime = 0
-				self.cardpolltimer.start(36000)
-		else:
-			self.scheduledtime = 0
-			self.cardpolltimer.stop()
+			self.cardofftimerStart.callback.append(self.prepareTimer)
+			self.cardofftimerStart.start(36000, True)
 
 
 class TimerOnCard:
 	def __init__(self):
 		self.cardontimer = eTimer()
+		self.cardontimerStart = eTimer()
 		self.cardontimer.callback.append(self.iptosatCardOnTimer)
 		self.cardpolltimer = eTimer()
 		self.cardpolltimer.timeout.get().append(self.cardPollTimer)
@@ -1063,6 +1054,7 @@ class TimerOnCard:
 
 	def prepareTimer(self):
 		self.cardontimer.stop()
+		self.cardontimerStart.stop()
 		cardontime = self.getTimeOnCard()
 		now = int(time())
 		if cardontime > 0:
@@ -1070,8 +1062,8 @@ class TimerOnCard:
 				cardontime += 24 * 3600
 				while (int(cardontime) - 30) < now:
 					cardontime += 24 * 3600
-			next = cardontime - now
-			self.cardontimer.startLongTimer(next)
+			nextime = cardontime - now
+			self.cardontimer.startLongTimer(nextime)
 		else:
 			cardontime = -1
 		return cardontime
@@ -1109,14 +1101,8 @@ class TimerOnCard:
 		current_day = int(localtime().tm_wday)
 		now = int(time())
 		if config.plugins.IPToSAT.timecardon[current_day].value:
-			if now > 1262304000:
-				self.scheduledtime = self.prepareTimer()
-			else:
-				self.scheduledtime = 0
-				self.cardpolltimer.start(36000)
-		else:
-			self.scheduledtime = 0
-			self.cardpolltimer.stop()
+			self.cardontimerStart.callback.append(self.prepareTimer)
+			self.cardontimerStart.start(36000, True)
 
 
 class IPToSAT(Screen):
@@ -1144,7 +1130,6 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self.session)  # category update timer initializer
-			self.timercategories.refreshScheduler()
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
