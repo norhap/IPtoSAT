@@ -19,6 +19,7 @@ from ServiceReference import ServiceReference
 from timer import TimerEntry
 from Tools.Directories import SCOPE_CONFIG, SCOPE_PLUGINS, fileContains, fileExists, isPluginInstalled, resolveFilename
 from Tools.Notifications import AddPopup
+from Tools.StbHardware import getFPWasTimerWakeup
 from Plugins.Plugin import PluginDescriptor
 from Components.config import config, getConfigListEntry, ConfigClock, ConfigSelection, ConfigYesNo, ConfigText, ConfigSubsection, ConfigEnableDisable, ConfigSubDict
 from Components.ActionMap import ActionMap
@@ -40,6 +41,7 @@ refSat = None
 epg_candidate_channel = None
 notresetchannels = False
 clearCacheEPG = False
+timerupdatecategories = None
 
 # HTTPS twisted client
 try:
@@ -96,9 +98,9 @@ WILD_CARD_CATYOURLIST = resolveFilename(SCOPE_CONFIG, "iptosatyourcatall")
 BACKUP_CATEGORIES = "iptosatyourcatbackup"
 WILD_CARD_CATEGORIES_FILE = resolveFilename(SCOPE_CONFIG, "wildcardcategories")
 ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategoriesall.json")
-CATEGORIES_TIMER_OK = "/tmp/timercatiptosat.log"
+CATEGORIES_TIMER_OK = "/home/root/logs/timercatiptosat.log"
 TIMER_OK = ""
-CATEGORIES_TIMER_ERROR = "/tmp/timercatiptosat_error.log"
+CATEGORIES_TIMER_ERROR = "/home/root/logs/timercatiptosat_error.log"
 TIMER_ERROR = ""
 USER_LIST_CATEGORIE_CHOSEN = ""
 USER_EDIT_CATEGORIE = ""
@@ -166,6 +168,8 @@ config.plugins.IPToSAT.username = ConfigText(default=language.get(lang, "113"), 
 config.plugins.IPToSAT.password = ConfigText(default=language.get(lang, "114"), fixed_size=False)
 config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang, "188"), fixed_size=False)
 config.plugins.IPToSAT.timebouquets = ConfigClock(default=64800)
+config.plugins.IPToSAT.timebouquetsdeepstandby = ConfigYesNo(default=False)
+config.plugins.IPToSAT.deepstandby = ConfigYesNo(default=False)
 if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 	config.plugins.IPToSAT.sequencetimers = ConfigYesNo(default=False)
 	config.plugins.IPToSAT.timerscard = ConfigYesNo(default=False)
@@ -489,6 +493,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if config.plugins.IPToSAT.autotimerbouquets.value:
 					self.list.append(getConfigListEntry(language.get(lang, "145"),
 						config.plugins.IPToSAT.timebouquets, language.get(lang, "130")))
+					self.list.append(getConfigListEntry(language.get(lang, "124"),
+						config.plugins.IPToSAT.timebouquetsdeepstandby, language.get(lang, "128")))
+					if config.plugins.IPToSAT.timebouquetsdeepstandby.value:
+						self.list.append(getConfigListEntry(language.get(lang, "234"),
+							config.plugins.IPToSAT.deepstandby, language.get(lang, "126")))
 		if BoxInfo.getItem("distro") in ("norhap", "openspa") and exists(str(OSCAM_SERVER)):
 			self.list.append(getConfigListEntry(language.get(lang, "209"),
 				config.plugins.IPToSAT.timerscard))
@@ -571,6 +580,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				remove(CATEGORIES_TIMER_ERROR)
 			notresetchannels = True
 			IPToSAT(self.session)  # update category timer initializer.
+		if not config.plugins.IPToSAT.timebouquetsdeepstandby.value and config.plugins.IPToSAT.deepstandby.value:
+			config.plugins.IPToSAT.deepstandby.value = False
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				if config.plugins.IPToSAT.usercategories.value:
@@ -886,12 +897,17 @@ class TimerUpdateCategories:
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
+		if config.plugins.IPToSAT.deepstandby.value and getFPWasTimerWakeup():
+			self.Console.ePopen(['sleep 120'], self.deepStandbyAfterUpdateCategories)  # Delay for Deep Standby Mode.
+
+	def deepStandbyAfterUpdateCategories(self, result=None, retVal=None, extra_args=None):
+		self.session.open(TryQuitMainloop, 1)
 
 	def refreshScheduler(self):
 		now = int(time())
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.categoriestimerStart.callback.append(self.prepareTimer)
-			self.categoriestimerStart.start(36000, True)
+			self.categoriestimerStart.start(15000, True)  # Delay for localtime to display real time e.g. Start from the rear button or from the power supply.
 
 
 class TimerOffCard:
@@ -1031,7 +1047,7 @@ class TimerOffCard:
 		now = int(time())
 		if config.plugins.IPToSAT.timecardoff[current_day].value:
 			self.cardofftimerStart.callback.append(self.prepareTimer)
-			self.cardofftimerStart.start(36000, True)
+			self.cardofftimerStart.start(15000, True)  # Delay for localtime to display real time e.g. Start from the rear button or from the power supply.
 
 
 class TimerOnCard:
@@ -1102,7 +1118,7 @@ class TimerOnCard:
 		now = int(time())
 		if config.plugins.IPToSAT.timecardon[current_day].value:
 			self.cardontimerStart.callback.append(self.prepareTimer)
-			self.cardontimerStart.start(36000, True)
+			self.cardontimerStart.start(15000, True)  # Delay for localtime to display real time e.g. Start from the rear button or from the power supply.
 
 
 class IPToSAT(Screen):
@@ -4063,12 +4079,16 @@ def startMainMenu(menuid, **kwargs):
 	return [("IPToSAT", iptosatSetup, "iptosat_menu", 1)]
 
 
-def autostart(reason, **kwargs):
+def autostart(reason, session=None, **kwargs):
+	global timerupdatecategories
 	if reason == 0:
+		if timerupdatecategories is None:
+			if config.plugins.IPToSAT.autotimerbouquets.value and config.plugins.IPToSAT.timebouquetsdeepstandby.value:
+				timerupdatecategories = TimerUpdateCategories(session)
 		if config.plugins.IPToSAT.enable.value:
 			killActivePlayer()
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
-				IPToSAT(kwargs["session"])
+				IPToSAT(session)
 			else:
 				log("Cannot start IPToSAT, {} not found".format(config.plugins.IPToSAT.player.value))
 
@@ -4077,9 +4097,16 @@ def iptosatSetup(session, **kwargs):
 	session.open(IPToSATSetup)
 
 
+def wakeupForTimerUpdateCategories():
+	"""Start updating categories bouquets from Deep Standby Mode"""
+	if timerupdatecategories is not None:
+		return timerupdatecategories.prepareTimer()
+	return -1
+
+
 def Plugins(**kwargs):
 	Descriptors = []
-	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart))
+	Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=autostart, wakeupfnc=wakeupForTimerUpdateCategories))
 	Descriptors.append(PluginDescriptor(name="IPToSAT", description=language.get(lang, "Synchronize and view satellite channels through IPTV. Setup" + " " + "{}".format(VERSION) + " " + "by norhap"), icon="icon.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=iptosatSetup))
 	if config.plugins.IPToSAT.mainmenu.value:
 		Descriptors.append(PluginDescriptor(where=[PluginDescriptor.WHERE_MENU], fnc=startMainMenu))
