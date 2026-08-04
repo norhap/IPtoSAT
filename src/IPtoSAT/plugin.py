@@ -4,11 +4,11 @@ from requests import get
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse
 from twisted.web.client import getPage
-from datetime import datetime
+from datetime import datetime, timedelta
 from json import dump, loads
 from glob import glob
 from os import listdir, makedirs, remove, unlink, symlink
-from os.path import join, exists, normpath, islink
+from os.path import join, exists, getmtime, normpath, islink
 from configparser import ConfigParser
 from time import sleep, localtime, mktime, time
 from shutil import move, copy
@@ -42,6 +42,7 @@ epg_candidate_channel = None
 notresetchannels = False
 clearCacheEPG = False
 timerupdatecategories = None
+bouquet_update = None
 
 # HTTPS twisted client
 try:
@@ -801,6 +802,8 @@ class TimerUpdateCategories:
 		return downloadtime
 
 	def iptosatDownloadTimer(self):
+		global bouquet_update
+		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		self.Console = Console()
 		self.categoriestimer.stop()
 		now = int(time())
@@ -857,12 +860,11 @@ class TimerUpdateCategories:
 								m3uw.write(line)
 					if exists(str(BUILDBOUQUETS_FILE)):
 						move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-					with open(CATEGORIES_TIMER_OK, "w") as fw:
-						now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
-						fw.write(now)
 					eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
 					if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 						self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
+					else:
+						self.userbouquetCategoriesUpdate()
 					if self.storage:
 						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
 				else:
@@ -872,6 +874,21 @@ class TimerUpdateCategories:
 			except Exception as err:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(str(err))
+
+	def userbouquetCategoriesUpdate(self):
+		self.Console.ePopen(['sleep 115'], self.userbouquetCategoriesUpdated)
+
+	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
+		global bouquet_update  # noqa: F824
+		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
+		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
+		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
@@ -888,6 +905,8 @@ class TimerUpdateCategories:
 			autoStartTimer.runImport()
 			self.Console = Console()
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
+		else:
+			self.userbouquetCategoriesUpdate()
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
@@ -899,8 +918,20 @@ class TimerUpdateCategories:
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
 		if config.plugins.IPToSAT.deepstandby.value and getFPWasTimerWakeup():
 			self.Console.ePopen(['sleep 120'], self.deepStandbyAfterUpdateCategories)  # Delay for Deep Standby Mode.
+		else:
+			self.userbouquetCategoriesUpdate()
 
 	def deepStandbyAfterUpdateCategories(self, result=None, retVal=None, extra_args=None):
+		global bouquet_update  # noqa: F824
+		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
+		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
+		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
 		self.session.open(TryQuitMainloop, 1)
 
 	def refreshScheduler(self):
@@ -2079,6 +2110,8 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def createBouquetIPTV(self):
+		global bouquet_update
+		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		self.Console = Console()
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
@@ -2146,11 +2179,10 @@ class AssignService(ChannelSelectionBase):
 						self["helpbouquetepg"].hide()
 						self['managerlistchannels'].show()
 						self.assignWidgetScript("#e5e619", (language.get(lang, "5") if config.plugins.IPToSAT.typecategories.value in ("all", "live") else language.get(lang, "220")))
-						with open(CATEGORIES_TIMER_OK, "w") as fw:
-							now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + datetime.now().strftime("%H:%M")
-							fw.write(now)
 						if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 							self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
+						else:
+							self.userbouquetCategoriesUpdate()
 					else:
 						self.assignWidgetScript("#00ff2525", f"ERROR: {error}\n" + language.get(lang, "6"))
 				else:
@@ -2160,8 +2192,24 @@ class AssignService(ChannelSelectionBase):
 		else:
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
+	def userbouquetCategoriesUpdate(self):
+		self.Console.ePopen(['sleep 115'], self.userbouquetCategoriesUpdated)
+
+	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
+		global bouquet_update  # noqa: F824
+		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
+		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
+		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+			with open(CATEGORIES_TIMER_OK, "w") as fw:
+				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
+				fw.write(now)
+
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
+		self.Console = Console()
 		if config.plugins.epgimport.clear_oldepg.value:
 			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
@@ -2173,8 +2221,9 @@ class AssignService(ChannelSelectionBase):
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
-			self.Console = Console()
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
+		else:
+			self.userbouquetCategoriesUpdate()
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
@@ -2184,6 +2233,7 @@ class AssignService(ChannelSelectionBase):
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
+		self.userbouquetCategoriesUpdate()
 
 	def setEPGChannel(self):
 		bouquetname = BOUQUET_IPTV_NORHAP
