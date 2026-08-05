@@ -4,7 +4,7 @@ from requests import get
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse
 from twisted.web.client import getPage
-from datetime import datetime, timedelta
+from datetime import datetime
 from json import dump, loads
 from glob import glob
 from os import listdir, makedirs, remove, unlink, symlink
@@ -876,19 +876,23 @@ class TimerUpdateCategories:
 					fw.write(str(err))
 
 	def userbouquetCategoriesUpdate(self):
+		self.Console = Console()
 		self.Console.ePopen(['sleep 115'], self.userbouquetCategoriesUpdated)
 
 	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
 		global bouquet_update  # noqa: F824
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
-		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
-		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
+		if bouquet_updated is not None:
+			hours = f" {datetime.fromtimestamp(bouquet_updated).hour}:" if datetime.fromtimestamp(bouquet_updated).hour >= 10 else f" 0{datetime.fromtimestamp(bouquet_updated).hour}:"
+			minutes = f"{datetime.fromtimestamp(bouquet_updated).minute}" if datetime.fromtimestamp(bouquet_updated).minute >= 10 else f"0{datetime.fromtimestamp(bouquet_updated).minute}"
+			if bouquet_update and (int(bouquet_update) != int(bouquet_updated)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
+			elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
@@ -917,6 +921,7 @@ class TimerUpdateCategories:
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
 		if config.plugins.IPToSAT.deepstandby.value and getFPWasTimerWakeup():
+			self.Console = Console()
 			self.Console.ePopen(['sleep 120'], self.deepStandbyAfterUpdateCategories)  # Delay for Deep Standby Mode.
 		else:
 			self.userbouquetCategoriesUpdate()
@@ -924,14 +929,17 @@ class TimerUpdateCategories:
 	def deepStandbyAfterUpdateCategories(self, result=None, retVal=None, extra_args=None):
 		global bouquet_update  # noqa: F824
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
-		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
-		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
+		if bouquet_updated is not None:
+			hours = f" {datetime.fromtimestamp(bouquet_updated).hour}:" if datetime.fromtimestamp(bouquet_updated).hour >= 10 else f" 0{datetime.fromtimestamp(bouquet_updated).hour}:"
+			minutes = f"{datetime.fromtimestamp(bouquet_updated).minute}" if datetime.fromtimestamp(bouquet_updated).minute >= 10 else f"0{datetime.fromtimestamp(bouquet_updated).minute}"
+			if bouquet_update and (int(bouquet_update) != int(bouquet_updated)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
+			elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
 		self.session.open(TryQuitMainloop, 1)
 
 	def refreshScheduler(self):
@@ -2112,6 +2120,9 @@ class AssignService(ChannelSelectionBase):
 	def createBouquetIPTV(self):
 		global bouquet_update
 		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
+		self.docreateBouquetIPTV()
+
+	def docreateBouquetIPTV(self):
 		self.Console = Console()
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
@@ -2193,23 +2204,26 @@ class AssignService(ChannelSelectionBase):
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
 
 	def userbouquetCategoriesUpdate(self):
+		self.Console = Console()
 		self.Console.ePopen(['sleep 115'], self.userbouquetCategoriesUpdated)
 
 	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
 		global bouquet_update  # noqa: F824
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
-		if bouquet_update and bouquet_updated and (int(bouquet_update) != int(bouquet_updated)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
-		elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
-			with open(CATEGORIES_TIMER_OK, "w") as fw:
-				now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + " " + (datetime.now() - timedelta(minutes=1)).strftime("%H:%M")
-				fw.write(now)
+		if bouquet_updated is not None:
+			hours = f" {datetime.fromtimestamp(bouquet_updated).hour}:" if datetime.fromtimestamp(bouquet_updated).hour >= 10 else f" 0{datetime.fromtimestamp(bouquet_updated).hour}:"
+			minutes = f"{datetime.fromtimestamp(bouquet_updated).minute}" if datetime.fromtimestamp(bouquet_updated).minute >= 10 else f"0{datetime.fromtimestamp(bouquet_updated).minute}"
+			if bouquet_update and (int(bouquet_update) != int(bouquet_updated)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
+			elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
+				with open(CATEGORIES_TIMER_OK, "w") as fw:
+					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
+					fw.write(now)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
-		self.Console = Console()
 		if config.plugins.epgimport.clear_oldepg.value:
 			clearCacheEPG = True
 			config.plugins.epgimport.clear_oldepg.value = False
@@ -2221,6 +2235,7 @@ class AssignService(ChannelSelectionBase):
 		if islink(EPG_IMPORT_CONFIG):
 			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
 			autoStartTimer.runImport()
+			self.Console = Console()
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 		else:
 			self.userbouquetCategoriesUpdate()
