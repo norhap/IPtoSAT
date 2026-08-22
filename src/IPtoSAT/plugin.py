@@ -55,13 +55,14 @@ except ImportError:
 
 if sslverify:
 	class SSLFactory(ssl.ClientContextFactory):
-		def __init__(self, hostname=None):
+		def __init__(self, hostname=None, count=0):
 			self.hostname = hostname
+			self.count = count  # apply count attributes for builtins ClientTLSOptions
 
 		def getContext(self):
 			context = self._contextFactory(self.method)
-			if self.hostname:
-				ClientTLSOptions(self.hostname, context)
+			if self.hostname and self.count:
+				ClientTLSOptions(self.hostname, self.count, context)
 			return context
 # END HTTPS twisted client
 
