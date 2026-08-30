@@ -1320,7 +1320,7 @@ class IPToSAT(Screen):
 class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
-		<screen name="IPToSAT Service Assign" position="1,80" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
+		<screen name="IPToSAT Service Assign" position="10,50" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
 			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,2"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,997"/>
 			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,2"/>
