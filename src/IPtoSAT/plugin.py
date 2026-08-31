@@ -1320,11 +1320,11 @@ class IPToSAT(Screen):
 class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
-		<screen name="IPToSAT Service Assign" position="10,50" size="1920,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
-			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1917,2"/>
-			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,997"/>
-			<eLabel backgroundColor="#0044a2ff" position="0,997" size="1917,2"/>
-			<eLabel backgroundColor="#0044a2ff" position="1917,0" size="2,999"/>
+		<screen name="IPToSAT Service Assign" position="10,40" size="1900,1020" backgroundColor="#0023262f" title="IPToSAT Service Assign">
+			<eLabel backgroundColor="#0044a2ff" position="0,0" size="1915,2"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,2" size="2,1000"/>
+			<eLabel backgroundColor="#0044a2ff" position="0,1000" size="1915,2"/>
+			<eLabel backgroundColor="#0044a2ff" position="1899,0" size="2,1000" zPosition="10"/>
 			<eLabel backgroundColor="#0044a2ff" position="1274,2" size="1,400"/>
 			<eLabel backgroundColor="#0044a2ff" position="1274,393" size="642,1" zPosition="10"/>
 			<widget source="session.VideoPicture" render="Pig" position="1275,5" size="635,400" zPosition="1" backgroundColor="#df0b1300"/>
