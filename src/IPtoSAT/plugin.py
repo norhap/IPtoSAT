@@ -52,7 +52,6 @@ try:
 except ImportError:
 	sslverify = False
 
-
 if sslverify:
 	class SSLFactory(ssl.ClientContextFactory):
 		def __init__(self, hostname=None, count=0):
@@ -190,6 +189,25 @@ if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
 		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
 		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((11 * 60) * 60))
+
+
+def getChannelOnFallbackTuner():
+	channelOnFallbackTuner = False
+	try:
+		service = NavigationInstance.instance.getCurrentService()
+		ref = NavigationInstance.instance.getCurrentlyPlayingServiceReference().toString()
+		if service:
+			info = service and service.info()
+			if info:
+				FeInfo = service and service.frontendInfo()
+				if FeInfo:
+					SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality)
+					AGC = FeInfo.getFrontendInfo(iFrontendInformation.signalPower)
+					if not SNR and not AGC and "http" not in ref and config.usage.remote_fallback_enabled.value:
+						channelOnFallbackTuner = True
+	except Exception:
+		return False
+	return channelOnFallbackTuner
 
 
 def getTokenZerotier():
@@ -413,7 +431,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		self["footnote"] = Label("")  # noqa: F821
 		try:
 			self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
-		except:
+		except Exception:
 			self.currentservice = False
 		self.timerupdatebouquets = config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
@@ -1173,10 +1191,12 @@ class IPToSAT(Screen):
 			iPlayableService.evStopped: self.__evEnd,
 		})
 		self.Timer = eTimer()
+		self.timerFallbackTuner = eTimer()
+		self.firstFallbackTuner = False
 		if notresetchannels is False:
 			try:
 				self.Timer.callback.append(self.get_channel)
-			except:
+			except Exception:
 				self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		else:
 			notresetchannels = False
@@ -1236,7 +1256,7 @@ class IPToSAT(Screen):
 						self.recording = True
 						self.__InfoallowsMultipleRecordingsFBC()
 					if self.ip_sat:
-						self.container.write("q\n", 2)
+						self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 						self.ip_sat = False
 					if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
 						if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
@@ -1246,32 +1266,45 @@ class IPToSAT(Screen):
 					else:
 						if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
 							self.__resetDataBase()
-			service = self.session.nav.getCurrentService()
-			if service:
-				info = service and service.info()
-				if info:
-					FeInfo = service and service.frontendInfo()
-					if FeInfo:
-						SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
-						isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
-						if isCrypted or isIPToSAT():
-							if SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
-								lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
-								channel_name = ServiceReference(lastservice).getServiceName()
-								self.current_channel(channel_name, lastservice)
-						else:
-							if self.ip_sat:
-								self.container.write("q\n", 2)
-								self.ip_sat = False
-		except:
+			if not getChannelOnFallbackTuner():
+				service = self.session.nav.getCurrentService()
+				if service:
+					info = service and service.info()
+					if info:
+						FeInfo = service and service.frontendInfo()
+						if FeInfo:
+							SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
+							isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
+							if isCrypted or isIPToSAT():
+								self.firstFallbackTuner = True if isIPToSAT() else False
+								if SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
+									lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
+									channel_name = ServiceReference(lastservice).getServiceName()
+									self.current_channel(channel_name, lastservice)
+							else:
+								if self.ip_sat:
+									self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+									self.ip_sat = False
+			elif exists(str(OSCAM_SERVER)) and self.firstFallbackTuner:  # Displays the TV feed if coming from an IPToSAT channel via the fallback tuner.
+				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
+				if self.currentservice:
+					self.session.nav.stopService()
+					self.firstFallbackTuner = False
+					self.timerFallbackTuner.callback.append(self.initChannelFallbackTuner)
+					self.timerFallbackTuner.start(0, True)
+		except Exception:
 			pass
+
+	def initChannelFallbackTuner(self):
+		self.timerFallbackTuner.stop()
+		eConsoleAppContainer().execute(f'wget -Oq http://127.0.0.1/web/zap?sRef={self.currentservice} ; rm -f /home/root/q')
 
 	def __evStart(self):
 		initializetime = 1000 if not isPluginInstalled("FastChannelChange") else 2000
 		self.Timer.start(initializetime)
 
 	def __recordingInfo(self):
-		self.container.write("q\n", 2)
+		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 		self.Timer.stop()
 		if not isPluginInstalled("FastChannelChange"):
 			AddPopup(language.get(lang, "214"), MessageBox.TYPE_INFO, timeout=0)
@@ -1279,7 +1312,7 @@ class IPToSAT(Screen):
 			AddPopup(language.get(lang, "218"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordingsFBC(self):
-		self.container.write("q\n", 2)
+		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), MessageBox.TYPE_INFO, timeout=0)
 
@@ -1290,7 +1323,7 @@ class IPToSAT(Screen):
 			copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
 
 	def deactivateFCC(self):
-		self.container.write("q\n", 2)
+		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 		self.Timer.stop()
 
 		def restartDisableFCC(answer=False):
@@ -1313,7 +1346,7 @@ class IPToSAT(Screen):
 	def __evEnd(self):
 		self.Timer.stop()
 		if hasattr(self, "ip_sat"):
-			self.container.write("q\n", 2)
+			self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 			self.ip_sat = False
 
 
@@ -2881,14 +2914,14 @@ class AssignService(ChannelSelectionBase):
 		try:
 			self['assign'].instance.setForegroundColor(parseColor(color))
 			self['status'].hide()
-		except:
+		except Exception:
 			pass
 
 	def assignWidgetScript(self, color, text):
 		self['managerlistchannels'].setText(text)
 		try:
 			self['managerlistchannels'].instance.setForegroundColor(parseColor(color))
-		except:
+		except Exception:
 			pass
 
 	def resetWidget(self):
