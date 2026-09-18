@@ -171,6 +171,8 @@ config.plugins.IPToSAT.networkidzerotier = ConfigText(default=language.get(lang,
 config.plugins.IPToSAT.timebouquets = ConfigClock(default=64800)
 config.plugins.IPToSAT.timebouquetsdeepstandby = ConfigYesNo(default=False)
 config.plugins.IPToSAT.deepstandby = ConfigYesNo(default=False)
+"""
+Card timer, unused code.
 if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 	config.plugins.IPToSAT.sequencetimers = ConfigYesNo(default=False)
 	config.plugins.IPToSAT.timerscard = ConfigYesNo(default=False)
@@ -189,6 +191,8 @@ if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 		config.plugins.IPToSAT.cardday[day] = ConfigEnableDisable(default=False)
 		config.plugins.IPToSAT.timecardon[day] = ConfigClock(default=((23 * 60) * 60))
 		config.plugins.IPToSAT.timecardoff[day] = ConfigClock(default=((11 * 60) * 60))
+END Card timer, unused code.
+"""
 
 
 def getChannelOnFallbackTuner():
@@ -518,6 +522,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					if config.plugins.IPToSAT.timebouquetsdeepstandby.value:
 						self.list.append(getConfigListEntry(language.get(lang, "234"),
 							config.plugins.IPToSAT.deepstandby, language.get(lang, "126")))
+		"""
+		Card timer, unused code.
 		if BoxInfo.getItem("distro") in ("norhap", "openspa") and exists(str(OSCAM_SERVER)):
 			self.list.append(getConfigListEntry(language.get(lang, "209"),
 				config.plugins.IPToSAT.timerscard))
@@ -542,6 +548,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 							config.plugins.IPToSAT.timecardoff[day]))
 						self.list.append(getConfigListEntry(language.get(lang, "198"),
 							config.plugins.IPToSAT.timecardon[day]))
+		END Card timer, unused code.
+		"""
 		if self.storage:
 			self.list.append(getConfigListEntry(language.get(lang, "88"), config.plugins.IPToSAT.installchannelslist))
 		self.list.append(getConfigListEntry(language.get(lang, "17"),
@@ -749,6 +757,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self["description"].text = self.getCurrentDescription()
 
 	def saveiptosatconf(self):
+		"""
+		Card timer, unused code.
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			now = localtime(time())
 			current_day = int(now.tm_wday)
@@ -757,6 +767,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 					self.timercardOn = TimerOnCard()  # card ON timer start
 				if config.plugins.IPToSAT.timecardoff[current_day].value:  # ignore timer OFF for not current day
 					self.timercardOff = TimerOffCard()  # card OFF timer start
+		END Card timer, unused code.
+		"""
 		if exists(CONFIG_PATH):
 			with open(CONFIG_PATH, 'w') as self.iptosatconfalternate:
 				self.iptosatconfalternate.write("[IPToSAT]" + "\n" + 'Host=' + config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value + "\n" + "User=" + config.plugins.IPToSAT.username.value + "\n" + "Pass=" + config.plugins.IPToSAT.password.value)
@@ -1200,10 +1212,14 @@ class IPToSAT(Screen):
 				self.Timer_conn = self.Timer.timeout.connect(self.get_channel)
 		else:
 			notresetchannels = False
+		"""
+		Card timer, unused code.
 		if BoxInfo.getItem("distro") in ("norhap", "openspa"):
 			if config.plugins.IPToSAT.cardday[day].value and config.plugins.IPToSAT.timerscard.value:
 				self.timercardOff = TimerOffCard()  # card timer initializer off from reboot
 				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
+		END Card timer, unused code.
+		"""
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			self.timercategories = TimerUpdateCategories(self.session)  # category update timer initializer
 		self.container = eConsoleAppContainer()
