@@ -1,6 +1,7 @@
 from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eDVBDB, eTimer, gRGB, eConsoleAppContainer, getDesktop
 from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
 from requests import get
+from process import ProcessList
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse
 from twisted.web.client import getPage
@@ -361,16 +362,6 @@ def getUserDataSuscription():
 		print("ERROR: %s" % str(err))
 
 
-def killActivePlayer():
-	from process import ProcessList  # noqa: E402
-	exteplayer3 = str(ProcessList().named("exteplayer3")).strip("[]")
-	gstplayer = str(ProcessList().named("gstplayer")).strip("[]")
-	if exteplayer3:
-		Console().ePopen(f'kill -9 {exteplayer3}')
-	elif gstplayer:
-		Console().ePopen(f'kill -9 {gstplayer}')
-
-
 class IPToSATSetup(Screen, ConfigListScreen):
 	skin = """
 	<screen name="IPToSATSetup" position="30,90" size="1860,930" backgroundColor="#0023262f" title="IPToSATSetup settings">
@@ -646,7 +637,6 @@ class IPToSATSetup(Screen, ConfigListScreen):
 
 	def joinZeroTier(self):
 		if config.plugins.IPToSAT.showuserdata.value:
-			from process import ProcessList  # noqa: E402
 			zerotierscript = ""
 			zerotier_process = str(ProcessList().named('zerotier-one')).strip('[]')
 			zerotier_auto = glob("/etc/rc2.d/S*zerotier")
@@ -1361,7 +1351,8 @@ class IPToSAT(Screen):
 
 	def __evEnd(self):
 		self.Timer.stop()
-		if hasattr(self, "ip_sat"):
+		player_ative = str(ProcessList().named(f"{config.plugins.IPToSAT.player.value}")).strip("[]")
+		if player_ative:
 			self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 			self.ip_sat = False
 
@@ -4201,7 +4192,6 @@ def autostart(reason, session=None, **kwargs):
 			if config.plugins.IPToSAT.autotimerbouquets.value and config.plugins.IPToSAT.timebouquetsdeepstandby.value:
 				timerupdatecategories = TimerUpdateCategories(session)
 		if config.plugins.IPToSAT.enable.value:
-			killActivePlayer()
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
 				IPToSAT(session)
 			else:
