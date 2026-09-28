@@ -1291,7 +1291,7 @@ class IPToSAT(Screen):
 								if self.ip_sat:
 									self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 									self.ip_sat = False
-			elif exists(str(OSCAM_SERVER)) and self.firstFallbackTuner:  # Displays the TV feed if coming from an IPToSAT channel via the fallback tuner.
+			elif self.firstFallbackTuner:  # Displays the TV feed if coming from an IPToSAT channel via the fallback tuner.
 				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.currentservice:
 					self.session.nav.stopService()
