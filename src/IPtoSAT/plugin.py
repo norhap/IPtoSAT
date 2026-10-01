@@ -3810,8 +3810,8 @@ class EditCategories(Screen):
 
 class InstallChannelsLists(Screen):
 	skin = """
-	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,701" title="IPToSAT - Install Channels Lists">
-		<widget name="list" itemHeight="40" position="18,22" size="1364,520" font="Regular;25" scrollbarMode="showOnDemand"/>
+	<screen name="InstallChannelsListsIPToSAT" position="center,center" size="1400,706" title="IPToSAT - Install Channels Lists">
+		<widget name="list" itemHeight="40" position="18,22" size="1364,515" font="Regular;25" scrollbarMode="showOnDemand"/>
 		<widget source="xmlfiles" render="Label" conditional="xmlfiles" position="7,555" zPosition="12" size="165,55" backgroundColor="key_back" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text"/>
 		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,618" zPosition="2" size="165,52" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
@@ -3825,7 +3825,7 @@ class InstallChannelsLists(Screen):
 		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,618" zPosition="2" size="165,52" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
 			<convert type="ConditionalShowHide"/>
 		</widget>
-		<widget name="status" position="712,545" size="684,170" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
+		<widget name="status" position="712,540" size="684,170" font="Regular;20" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
 		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
 	</screen>"""
 
@@ -3866,6 +3866,7 @@ class InstallChannelsLists(Screen):
 			"pageUp": self.pageUp,
 			"pageDown": self.pageDown,
 			"0": self.restoreBackupChannelsList,
+			"1": self.restoreSettingsIPTOSAT
 		}, -2)
 		self.listChannels = getChannelsLists()
 		self.chekScenarioToInstall()
@@ -4080,6 +4081,26 @@ class InstallChannelsLists(Screen):
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 		if self.storage and self.backupChannelList:
 			self.session.openWithCallback(dorestoreBackupChannelsList, MessageBox, language.get(lang, "225"), MessageBox.TYPE_YESNO)
+
+	def restoreSettingsIPTOSAT(self):
+		def dorestoreSettingsIPTOSAT(answer):
+			try:
+				filesalliptosat = ""
+				if answer:
+					self.session.open(MessageBox, language.get(lang, "236"), MessageBox.TYPE_INFO, simple=True)
+					if self.backupChannelList:
+						for filesiptosat in [x for x in listdir(ENIGMA2_PATH) if x.startswith("iptosat")]:
+							if not config.plugins.IPToSAT.enable.value:
+								config.plugins.IPToSAT.enable.value = True
+								config.plugins.IPToSAT.enable.save()
+							filesalliptosat = join(ENIGMA2_PATH, filesiptosat)
+							if filesalliptosat:
+								remove(filesalliptosat)
+					eConsoleAppContainer().execute('cp -a ' + str(self.backupdirectory) + '/*iptosat* '  + ENIGMA2_PATH_LISTS + ' ; /sbin/init 4 ; sleep 5 ; /sbin/init 3')
+			except Exception as err:
+				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
+		if self.storage and self.backupChannelList:
+			self.session.openWithCallback(dorestoreSettingsIPTOSAT, MessageBox, language.get(lang, "235"), MessageBox.TYPE_YESNO)
 
 	def getListsRepositories(self):
 		if self.storage:
