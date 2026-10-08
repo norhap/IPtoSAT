@@ -1193,7 +1193,6 @@ class IPToSAT(Screen):
 			iPlayableService.evStopped: self.__evEnd,
 		})
 		self.Timer = eTimer()
-		self.timerFallbackTuner = eTimer()
 		self.firstFallbackTuner = False
 		if notresetchannels is False:
 			try:
@@ -1294,16 +1293,10 @@ class IPToSAT(Screen):
 			elif self.firstFallbackTuner:  # Displays the TV feed if coming from an IPToSAT channel via the fallback tuner.
 				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				if self.currentservice:
-					self.session.nav.stopService()
 					self.firstFallbackTuner = False
-					self.timerFallbackTuner.callback.append(self.initChannelFallbackTuner)
-					self.timerFallbackTuner.start(0, True)
+					eConsoleAppContainer().execute(f'wget -Oq http://127.0.0.1/web/zap?sRef={self.currentservice} ; rm -f /home/root/q')
 		except Exception:
 			pass
-
-	def initChannelFallbackTuner(self):
-		self.timerFallbackTuner.stop()
-		eConsoleAppContainer().execute(f'wget -Oq http://127.0.0.1/web/zap?sRef={self.currentservice} ; rm -f /home/root/q')
 
 	def __evStart(self):
 		initializetime = 1000 if not isPluginInstalled("FastChannelChange") else 2000
