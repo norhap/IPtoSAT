@@ -4193,6 +4193,12 @@ class InstallChannelsLists(Screen):
 		self["list"].pageDown()
 
 
+def killActivePlayer():  # kill player IPToSAT to restart Enigma2.
+	exteplayer3 = str(ProcessList().named("exteplayer3")).strip("[]")
+	gstplayer = str(ProcessList().named("gstplayer")).strip("[]")
+	Console().ePopen(f'kill -9 {exteplayer3}') if exteplayer3 else Console().ePopen(f'kill -9 {gstplayer}') if gstplayer else ""
+
+
 def startMainMenu(menuid, **kwargs):
 	if menuid != "mainmenu":
 		return []
@@ -4206,6 +4212,7 @@ def autostart(reason, session=None, **kwargs):
 			if config.plugins.IPToSAT.autotimerbouquets.value and config.plugins.IPToSAT.timebouquetsdeepstandby.value:
 				timerupdatecategories = TimerUpdateCategories(session)
 		if config.plugins.IPToSAT.enable.value:
+			killActivePlayer()
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
 				IPToSAT(session)
 			else:
