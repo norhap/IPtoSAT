@@ -1193,7 +1193,6 @@ class IPToSAT(Screen):
 			iPlayableService.evStopped: self.__evEnd,
 		})
 		self.Timer = eTimer()
-		self.firstFallbackTuner = False
 		if notresetchannels is False:
 			try:
 				self.Timer.callback.append(self.get_channel)
@@ -1247,31 +1246,32 @@ class IPToSAT(Screen):
 
 	def get_channel(self):
 		try:
-			if isPluginInstalled("FastChannelChange"):
-				if config.plugins.fccsetup.activate.value:
-					config.plugins.fccsetup.activate.value = False
-					config.plugins.fccsetup.activate.save()
-					self.deactivateFCC()
-			if self.session.nav.getCurrentlyPlayingServiceReference():
-				if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
-					recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
-					if self.recordingASingleConnection and allowsMultipleRecordings() is False:
-						self.recording = True
-					if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
-						self.recording = True
-						self.__InfoallowsMultipleRecordingsFBC()
-					if self.ip_sat:
-						self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
-						self.ip_sat = False
-					if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
-						if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
-							self.__recordingInfo()
-							self.recordingASingleConnection = True
-							self.__resetDataBase()
-					else:
-						if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
-							self.__resetDataBase()
 			if not getChannelOnFallbackTuner():
+				self.session.nav.streamRetryOverride = False
+				if isPluginInstalled("FastChannelChange"):
+					if config.plugins.fccsetup.activate.value:
+						config.plugins.fccsetup.activate.value = False
+						config.plugins.fccsetup.activate.save()
+						self.deactivateFCC()
+				if self.session.nav.getCurrentlyPlayingServiceReference():
+					if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
+						recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
+						if self.recordingASingleConnection and allowsMultipleRecordings() is False:
+							self.recording = True
+						if allowsMultipleRecordings() is True and isPluginInstalled("FastChannelChange") and not self.recording:
+							self.recording = True
+							self.__InfoallowsMultipleRecordingsFBC()
+						if self.ip_sat:
+							self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+							self.ip_sat = False
+						if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
+							if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
+								self.__recordingInfo()
+								self.recordingASingleConnection = True
+								self.__resetDataBase()
+						else:
+							if allowsMultipleRecordings() is False and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
+								self.__resetDataBase()
 				service = self.session.nav.getCurrentService()
 				if service:
 					info = service and service.info()
@@ -1281,7 +1281,6 @@ class IPToSAT(Screen):
 							SNR = FeInfo.getFrontendInfo(iFrontendInformation.signalQuality) / 655
 							isCrypted = info and info.getInfo(iServiceInformation.sIsCrypted)
 							if isCrypted or isIPToSAT():
-								self.firstFallbackTuner = True if isIPToSAT() else False
 								if SNR > 10 and self.session.nav.getCurrentlyPlayingServiceReference():
 									lastservice = self.session.nav.getCurrentlyPlayingServiceReference()
 									channel_name = ServiceReference(lastservice).getServiceName()
@@ -1290,11 +1289,10 @@ class IPToSAT(Screen):
 								if self.ip_sat:
 									self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 									self.ip_sat = False
-			elif self.firstFallbackTuner:  # Displays the TV feed if coming from an IPToSAT channel via the fallback tuner.
+			else:
+				self._retryCount = 0
 				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
-				if self.currentservice:
-					self.firstFallbackTuner = False
-					eConsoleAppContainer().execute(f'wget -Oq http://127.0.0.1/web/zap?sRef={self.currentservice} ; rm -f /home/root/q')
+				self.session.nav.streamRetryOverride = True
 		except Exception:
 			pass
 
