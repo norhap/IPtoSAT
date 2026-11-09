@@ -1341,11 +1341,11 @@ class IPToSAT(Screen):
 			AddPopup(language.get(lang, "120"), type=MessageBox.TYPE_INFO, timeout=0)
 
 	def __evEnd(self):
+		self.ip_sat = False
 		self.Timer.stop()
 		player_ative = str(ProcessList().named(f"{config.plugins.IPToSAT.player.value}")).strip("[]")
 		if player_ative:
 			self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
-			self.ip_sat = False
 
 
 class AssignService(ChannelSelectionBase):
