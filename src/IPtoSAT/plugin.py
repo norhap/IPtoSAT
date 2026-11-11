@@ -2096,7 +2096,7 @@ class AssignService(ChannelSelectionBase):
 		}, -2)
 		self.errortimer = eTimer()
 		if not fileContains(CONFIG_PATH, "pass") and not fileContains(CONFIG_PATH, "domain"):
-			self["key_yellow"].setText(language.get(lang, "237" if exists(BOUQUET_IPTV_NORHAP) else "32"))
+			self["key_yellow"].setText(language.get(lang, "185" if exists(BOUQUET_IPTV_NORHAP) else "32"))
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
 		try:
@@ -3876,8 +3876,6 @@ class EditCategories(Screen):
 				self["key_green"].setText(language.get(lang, "138"))
 				self["key_yellow"].setText(language.get(lang, "27"))
 				self["key_blue"].setText(language.get(lang, "161"))
-				if len(list) < 4:
-					self["footnote"] = Label(language.get(lang, "185")) if config.plugins.IPToSAT.typecategories.value != "all" else Label(language.get(lang, "207"))
 				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage or exists(str(self.backup_categories)):
 					self["key_0"].setText("0")
 				if exists(str(self.backup_categories)):
@@ -4052,34 +4050,38 @@ class EditCategories(Screen):
 			self.session.openWithCallback(self.deleteBouquet, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
 
 	def deleteBouquet(self, answer):
-		if answer:
-			try:
-				index = self['list'].getCurrent()
-				with open(CONFIG_PATH_CATEGORIES, "r") as categoriesjsonread:
-					with open(WILD_CARD_CATEGORIES_FILE, "w") as fwildcardwrite:
-						for bouquet in categoriesjsonread.readlines():
-							if str(index) not in bouquet:
-								if "EU | GR " in bouquet or "AR| " in bouquet:  # remove global for flags AR and GR unicode characters in CONFIG_PATH_CATEGORIES
-									fwildcardwrite.write(bouquet.replace(bouquet, ""))
-								else:
-									fwildcardwrite.write(bouquet)
-				if config.plugins.IPToSAT.typecategories.value == "all":
-					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-						with open(WILD_CARD_CATYOURLIST, "w") as fw:
-							for lines in fr.readlines():
-								if "{" not in lines and "}" not in lines and "null" not in lines or "," in lines and "{" not in lines and "}" not in lines:
-									fw.write(lines)
-			except Exception:
-				pass
+		if not answer:
+			return
+		try:
+			index = self['list'].getCurrent()
+			with open(CONFIG_PATH_CATEGORIES, "r", encoding="utf-8") as categoriesjsonread:
+				categories = loads(categoriesjsonread.read())
+			if not isinstance(categories, dict) or index not in categories:
+				return
+			if config.plugins.IPToSAT.typecategories.value == "all":
+				with open(CONFIG_PATH_CATEGORIES, "r", encoding="utf-8") as categoriesjsonread:
+					with open(WILD_CARD_CATYOURLIST, "w", encoding="utf-8") as wildcardwrite:
+						for line in categoriesjsonread.readlines():
+							if "{" not in line and "}" not in line and "null" not in line:
+								wildcardwrite.write(line)
+			del categories[index]
+			with open(WILD_CARD_CATEGORIES_FILE, "w", encoding="utf-8") as categoriesjsonwrite:
+				dump(categories, categoriesjsonwrite, ensure_ascii=False, indent=4)
+				categoriesjsonwrite.write("\n")
 			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			if config.plugins.IPToSAT.typecategories.value != "all":
-				if not config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = True
-					config.plugins.IPToSAT.usercategories.save()
-			try:
-				self.session.openWithCallback(self.exit, EditCategories)
-			except Exception:
-				pass
+		except Exception as err:
+			self.session.open(
+				MessageBox,
+				"ERROR: %s" % str(err),
+				MessageBox.TYPE_ERROR,
+				default=False,
+				timeout=10)
+			return
+		if config.plugins.IPToSAT.typecategories.value != "all":
+			if not config.plugins.IPToSAT.usercategories.value:
+				config.plugins.IPToSAT.usercategories.value = True
+				config.plugins.IPToSAT.usercategories.save()
+		self.session.openWithCallback(self.exit, EditCategories)
 
 	def deleteBouquetsList(self, answer):
 		if answer:
@@ -4550,7 +4552,7 @@ class InstallChannelsLists(Screen):
 			try:
 				filesalliptosat = ""
 				if answer:
-					self.session.open(MessageBox, language.get(lang, "236"), MessageBox.TYPE_INFO, simple=True)
+					self.session.open(MessageBox, language.get(lang, "207"), MessageBox.TYPE_INFO, simple=True)
 					if self.backupChannelList:
 						for filesiptosat in [x for x in listdir(ENIGMA2_PATH) if x.startswith("iptosat")]:
 							if not config.plugins.IPToSAT.enable.value:
