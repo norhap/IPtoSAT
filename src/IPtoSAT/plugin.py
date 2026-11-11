@@ -3,19 +3,19 @@ from boxbranding import getBoxType  # MODEL import from getBoxType for all image
 from requests import get
 from process import ProcessList
 from urllib.request import urlopen, Request
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit, urlunsplit
 from twisted.web.client import getPage
 from twisted.internet.threads import deferToThread
 from datetime import datetime
 from json import dump, loads
 from glob import glob
 from os import listdir, makedirs, remove, unlink, symlink
-from os.path import join, exists, getmtime, normpath, islink
+from os.path import join, exists, getmtime, normpath, islink, splitext, basename
 from configparser import ConfigParser
 from time import sleep, localtime, mktime, time
 from shutil import move, copy
-from re import search
-from sys import stdout, version_info
+from re import search, sub, match
+from sys import stdout
 from RecordTimer import RecordTimerEntry
 from ServiceReference import ServiceReference
 from timer import TimerEntry
@@ -86,8 +86,6 @@ MODEL = getBoxType()
 PLAYLIST_PATH = resolveFilename(SCOPE_CONFIG, "iptosat.json")
 CHANNELS_LISTS_PATH = resolveFilename(SCOPE_CONFIG, "iptosatchlist.json")
 SUSCRIPTION_USER_DATA = resolveFilename(SCOPE_CONFIG, "suscriptiondata")
-BUILDBOUQUETS_FILE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets")
-BUILDBOUQUETS_SOURCE = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/buildbouquets.py")
 EPG_CHANNELS_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.channels.xml")
 EPG_SOURCES_XML = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/iptosat.sources.xml")
 EPG_CONFIG = resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/epgimport.conf")
@@ -232,12 +230,20 @@ def getDataZerotier(data):
 
 def checkZerotierMember():
 	try:
-		zerotierdata = loads(getDataZerotier("network"))
+		zerotierdata = getDataZerotier("network")
+		if not zerotierdata:
+			return False
+		zerotierdata = loads(zerotierdata)
+		if not isinstance(zerotierdata, list):
+			return False
+		for data in zerotierdata:
+			if not isinstance(data, dict):
+				continue
+			status = data.get("status")
+			return True if str(status).upper() == "OK" else False
+		return False
 	except Exception:
 		return False
-	for data in zerotierdata:
-		status = data.get("status")
-		return True if str(status).upper() == "OK" else False
 
 
 def typeselectcategorie():
@@ -320,14 +326,329 @@ def getChannelsLists():
 		return None
 
 
+def addBouquetsTVEntry(favorite_name):
+	bouquets_tv_path = "/etc/enigma2/bouquets.tv"
+	content_bouquets_tv = '#SERVICE 1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.{}.tv" ORDER BY bouquet\n'.format(favorite_name)
+	if not exists(bouquets_tv_path):
+		with open(bouquets_tv_path, "w") as bouquets_tv_file:
+			bouquets_tv_file.write(content_bouquets_tv)
+			bouquets_tv_file.write("\n")
+		return
+	with open(bouquets_tv_path, "r") as bouquets_tv_file:
+		lines = bouquets_tv_file.readlines()
+	if lines and not lines[-1].strip():
+		lines.pop()
+	if content_bouquets_tv not in lines:
+		with open(bouquets_tv_path, "w") as bouquets_tv_file:
+			for line in lines:
+				bouquets_tv_file.write(line)
+				if not line.strip():
+					break
+			bouquets_tv_file.write(content_bouquets_tv.strip())
+			bouquets_tv_file.write("\n")
+			bouquets_tv_file.writelines(lines[len(lines) - (len(lines) - lines.index(line)) + 1:])
+
+
+def removeAccents(text):
+	accent_replacements = {
+		'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+		'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+		'ü': 'u', 'Ü': 'U', 'ñ': 'n', 'Ñ': 'N'
+	}
+	for original, replacement in accent_replacements.items():
+		text = text.replace(original, replacement)
+	return text
+
+
+def cleanChannelName(channel_name):
+	cleaned_name = removeAccents(channel_name.lower())
+	return sub(r'\W+', '', cleaned_name)
+
+
+def isValidName(name):
+	return bool(match(r'^[\w\s#]+$', name))
+
+
+def loadSatelliteReference(file_path):
+	with open(file_path, "r") as file:
+		data = {}
+		for line in file.readlines():
+			try:
+				parts = line.strip().split("-->")
+				if len(parts) == 4:
+					name, ref, display_name, order = parts
+					order = int(order)
+				elif len(parts) == 3:
+					name, ref, display_name_or_order = parts
+					try:
+						order = int(display_name_or_order)
+						display_name = None
+					except ValueError:
+						display_name = display_name_or_order
+						order = None
+				else:
+					name, ref = parts
+					display_name = None
+					order = None
+				if isValidName(name):
+					data[cleanChannelName(name)] = (ref, display_name, order)
+			except ValueError:
+				pass
+	return data
+
+
+def findChannelWithKeyword(channel_name, satellite_reference):
+	cleaned_channel_name = cleanChannelName(channel_name)
+	matched_keyword = None
+	max_length = 0
+	for keyword, ref in satellite_reference.items():
+		cleaned_keyword = cleanChannelName(keyword)
+		if cleaned_keyword in cleaned_channel_name and len(cleaned_keyword) > max_length:
+			matched_keyword = keyword
+			max_length = len(cleaned_keyword)
+	return matched_keyword
+
+
+def orderChannels(channels_list):
+	occupied_orders = []
+	ordered_channels = []
+	unordered_channels = []
+	for channel in channels_list:
+		if channel[0] is None:
+			unordered_channels.append(channel)
+		else:
+			ordered_channels.append(channel)
+			occupied_orders.append(channel[0])
+
+	def getFreeOrder(occupied_orders):
+		free_order = 1
+		while True:
+			if free_order not in occupied_orders:
+				yield free_order
+			free_order += 1
+
+	free_order_gen = getFreeOrder(occupied_orders)
+	for channel in unordered_channels:
+		order = next(free_order_gen)
+		ordered_channels.append((order, *channel[1:]))
+	ordered_channels.sort(key=lambda x: x[0])
+	return ordered_channels
+
+
+def buildBouquetsFromM3U(input_file):
+	if not exists(input_file) or not exists(REFERENCES_FILE):
+		return False
+	categories = getCategories() or {}
+	bouquets_categories = {categorie: [] for categorie in categories.keys()}
+	satellite_reference = loadSatelliteReference(REFERENCES_FILE)
+	favorite_name = splitext(basename(input_file))[0]
+	output_file = join(ENIGMA2_PATH, "userbouquet." + favorite_name + ".tv")
+	with open(output_file, "w") as enigma2_file:
+		if exists("/etc/enigma2/settings"):
+			with open("/etc/enigma2/settings", "r") as settingsload:
+				language = "todos" if "config.osd." not in settingsload.read() else "all"
+		else:
+			language = "all"
+		enigma2_file.write(f"#NAME {favorite_name}   ({language})\n")
+		channels = []
+		occupied_orders = []
+		skip_channel = False
+		with open(input_file, "rb") as m3u_file:
+			channel_reference = None
+			for raw_line in m3u_file:
+				try:
+					line = raw_line.decode('utf-8')
+				except UnicodeDecodeError:
+					continue
+				if line.startswith("#EXTINF:"):
+					if skip_channel:
+						skip_channel = False
+						continue
+					channel_name = ""
+					group_title = ""
+					channel_name_match = search('tvg-name="(.*?)"', line)
+					if channel_name_match:
+						channel_name = channel_name_match.group(1)
+					else:
+						channel_id_match = search('tvg-id="(.*?)"', line)
+						if channel_id_match:
+							channel_name = channel_id_match.group(1)
+						else:
+							fallback_name = search(',(.*)', line)
+							if fallback_name:
+								channel_name = fallback_name.group(1)
+							else:
+								continue
+					group_title_match = search(r"group-title\s*=\s*[\"'](.*?)[\"']", line)
+					if group_title_match:
+						group_title = group_title_match.group(1)
+					channel_reference = "4097:0:1:0:0:0:0:0:0:0:"
+					order = None
+					if "FHD" in channel_name:
+						channel_name = channel_name.upper().replace("ES** | ", "").replace("ES: ", "").replace("FHD", "HD")
+						if "HD" in channel_name and "US:" not in channel_name and "WEST" not in channel_name and "GR" not in channel_name:
+							matching_channel_name = findChannelWithKeyword(channel_name, satellite_reference)
+							if matching_channel_name:
+								channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower(), ("4097:0:1:0:0:0:0:0:0:0:", None, None))
+								if channel_display_name:
+									channel_name = channel_display_name
+								if order is not None:
+									occupied_orders.append(order)
+							else:
+								channel_reference = "4097:0:1:0:0:0:0:0:0:0:"
+								order = None
+						else:
+							channel_reference = "4097:0:1:0:0:0:0:0:0:0:"
+							order = None
+					else:
+						channel_reference = "4097:0:1:0:0:0:0:0:0:0:"
+						order = None
+				if line.startswith("http"):
+					if channel_reference is not None:
+						channel_url = line.strip()
+						parsed_url = urlsplit(channel_url)
+						enigma2_url = urlunsplit((parsed_url.scheme, parsed_url.netloc, parsed_url.path, parsed_url.query, parsed_url.fragment))
+						if "4097" not in channel_reference and ("/ts" in enigma2_url or ".ts" in enigma2_url or "_-/ts" in enigma2_url):
+							channel_reference = channel_reference.replace("1:0:1", "4097:0:1")
+						enigma2_url = enigma2_url.replace(":", "%3a")
+						if exists("/etc/epgimport/iptosat.channels.xml"):
+							channel_name_upper = channel_name.upper()
+							if "AMC " in channel_name_upper and "SELEKT" not in channel_name_upper and "CRIME" not in channel_name_upper and "BREAK" not in channel_name_upper:
+								channel_reference = "4097:0:C9:23AB:44A:1:C00000:0:0:0:"
+							if "HOLLYWOOD " in channel_name_upper:
+								channel_reference = "4097:0:C9:23AC:44A:1:C00000:0:0:0:"
+							if "DARK " in channel_name_upper:
+								channel_reference = "4097:0:C0:23B3:44A:1:C00000:0:0:0:"
+							if "SHOWTIME" in channel_name_upper:
+								channel_reference = "4097:0:C:23B0:44A:1:C00000:0:0:0:"
+							if "START+ CHANNEL" in channel_name_upper:
+								channel_reference = "4097:0:C0:23B2:44A:1:C00000:0:0:0:"
+							if "XTRM" in channel_name_upper:
+								channel_reference = "4097:0:C0:23B1:44A:1:C00000:0:0:0:"
+							if "COSMO" in channel_name_upper:
+								channel_reference = "4097:0:C0:23B9:44A:1:C00000:0:0:0:"
+							if "SOMOS" in channel_name_upper:
+								channel_reference = "4097:0:C0:23BA:44A:1:C00000:0:0:0:"
+							if "SUNDANCE " in channel_name_upper:
+								channel_reference = "4097:0:C0:23BB:44A:1:C00000:0:0:0:"
+							if "PARAMOUNT" in channel_name_upper:
+								channel_reference = "4097:0:C0:23BF:44A:1:C00000:0:0:0:"
+							if "AXN MOVIES" in channel_name_upper:
+								channel_reference = "4097:0:C0:23C0:44A:1:C00000:0:0:0:"
+							if "AMC SELEKT" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:41:001:C00000:0:0:0:"
+							if "AMC BREAK" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:42:002:C00000:0:0:0:"
+							if "AMC CRIME" in channel_name_upper and "NAT" not in channel_name_upper:
+								channel_reference = "4097:0:1:7000:43:003:C00000:0:0:0:"
+							if "AXN " in channel_name_upper and "AXN MOVIES" not in channel_name_upper:
+								channel_reference = "4097:0:1:7477:3F0:1:C00000:0:0:0:"
+							if "DOCUMENTALES" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:46:006:C00000:0:0:0:"
+							if "AMC " in channel_name_upper and "SELEKT" not in channel_name_upper and "CRIME" not in channel_name_upper and "BREAK" not in channel_name_upper:
+								channel_reference = "4097:0:1:7000:46:006:C00000:0:0:0:"
+							if "DECASA" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:47:007:C00000:0:0:0:"
+							if "COCINA" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:48:008:C00000:0:0:0:"
+							if "HISTORIA" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:49:009:C00000:0:0:0:"
+							if "IBERALIA" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:50:010:C00000:0:0:0:"
+							if "CAZA Y" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:51:011:C00000:0:0:0:"
+							if "CAZAVISI" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:52:012:C00000:0:0:0:"
+							if "ODISEA" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:53:013:C00000:0:0:0:"
+							if "TORO" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:54:014:C00000:0:0:0:"
+							if "DISCOVERY" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:55:015:C00000:0:0:0:"
+							if "GEOGRAPH" in channel_name_upper and "WILD" not in channel_name_upper:
+								channel_reference = "4097:0:1:7000:56:016:C00000:0:0:0:"
+							if "WILD" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:57:017:C00000:0:0:0:"
+							if "COMEDY CENTRAL" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:58:018:C00000:0:0:0:"
+							if "RAKUTEN TV TOP" in channel_name_upper and "2" not in channel_name_upper:
+								channel_reference = "4097:0:1:7000:59:019:C00000:0:0:0:"
+							if "RAKUTEN TV FAMILY" in channel_name_upper:
+								channel_reference = "4097:0:1:7000:60:020:C00000:0:0:0:"
+						stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
+						stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)
+						readprefix = group_title if group_title else ""
+						added_to_favorites = False
+						for categorie, prefixes in (categories or {}).items():
+							if added_to_favorites or not isinstance(prefixes, (list, tuple)):
+								continue
+							for prefix in prefixes:
+								if readprefix.startswith(prefix):
+									bouquets_categories[categorie].append((order, channel_reference, stream_iptv, channel_name))
+									added_to_favorites = True
+									break
+						channels.append((order, channel_reference, stream_iptv, channel_name))
+					elif skip_channel:
+						skip_channel = False
+		ordered_channels = []
+		unordered_channels = []
+		for channel in channels:
+			if channel[0] is None:
+				unordered_channels.append(channel)
+			else:
+				ordered_channels.append(channel)
+		if ordered_channels:
+			max_order = max(ordered_channels, key=lambda x: x[0])[0]
+		else:
+			max_order = 0
+		for i, channel in enumerate(unordered_channels, start=max_order + 1):
+			ordered_channels.append((i, *channel[1:]))
+		ordered_channels.sort(key=lambda x: x[0])
+		for _, channel_reference, enigma2_url, channel_name in ordered_channels:
+			enigma2_file.write("#SERVICE {}{}\n".format(channel_reference, enigma2_url))
+			enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
+	for categorie, favorites in bouquets_categories.items():
+		categorie_favorite_name = f"{favorite_name}_{categorie}"
+		if "☆" not in categorie_favorite_name:
+			country_output_file = join(ENIGMA2_PATH, f"userbouquet.{categorie_favorite_name}.tv")
+			with open(country_output_file, "w") as bouquet_enigma2_file:
+				ordered_channels_by_categorie = orderChannels(favorites)
+				channel_counter = len(ordered_channels_by_categorie)
+				bouquet_enigma2_file.write(f"#NAME {categorie_favorite_name}   ({channel_counter})\n")
+				for order, channel_reference, enigma2_url, channel_name in ordered_channels_by_categorie:
+					bouquet_enigma2_file.write("#SERVICE {}{}\n".format(channel_reference, enigma2_url))
+					bouquet_enigma2_file.write("#DESCRIPTION {}\n".format(channel_name))
+			if channel_counter > 0:
+				addBouquetsTVEntry(categorie_favorite_name)
+				addBouquetsTVEntry(favorite_name)
+	return True
 def allowsMultipleRecordings():
-	if exists(SUSCRIPTION_USER_DATA):
+	if not exists(SUSCRIPTION_USER_DATA):
+		return False
+	try:
 		with open(SUSCRIPTION_USER_DATA, "r") as line:
-			for userdata in line:
+			userdata = line.read()
+		if not userdata:
+			return False
+		try:
+			data = loads(userdata)
+			if not isinstance(data, list):
+				return False
+			for item in data:
+				max_connections = item.get("max_connections") if isinstance(item, dict) else None
+				if max_connections is not None and int(max_connections) > 1:
+					return True
+			return False
+		except ValueError:
+			for userdata in userdata.splitlines():
+				if '"max_connections":' not in userdata:
+					continue
 				max_connections = userdata.split('"max_connections": "')[1].split('", "allowed_output_formats"')[0]
 				if int(max_connections) > 1:
 					return True
 			return False
+	except Exception:
+		return False
 
 
 def isIPToSAT():
@@ -346,18 +667,46 @@ def isIPToSAT():
 
 def getUserDataSuscription():
 	try:
+		if not exists(CONFIG_PATH):
+			return
 		with open(CONFIG_PATH, "r") as f:
 			iptosatconfread = f.read()
-			host = iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "http://") if not fileContains(CONFIG_PATH, "https") else iptosatconfread.split()[1].split('Host=')[1].split(':')[1].replace("//", "https://")
-			port = iptosatconfread.split()[1].split(host)[1].replace(":", "")
-			user = iptosatconfread.split()[2].split('User=')[1]
-			password = iptosatconfread.split()[3].split('Pass=')[1]
-			config.plugins.IPToSAT.domain.value = host
-			config.plugins.IPToSAT.domain.save()
-			config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
-			config.plugins.IPToSAT.serverport.save()
+		if not iptosatconfread:
+			return
+		values = {}
+		for line in iptosatconfread.splitlines():
+			line = line.strip()
+			if not line or line.startswith("#") or line.startswith(";") or '=' not in line:
+				continue
+			key, value = line.split('=', 1)
+			values[key.strip()] = value.strip()
+		if not values:
+			return
+		host = values.get('Host', '')
+		if not host:
+			return
+		if '://' in host:
+			host = host.split('://', 1)[0] + '://' + host.split('://', 1)[1]
+		else:
+			host = 'http://' + host
+		parsed_host = host.rsplit(':', 1)
+		if len(parsed_host) == 2 and parsed_host[1].isdigit():
+			port = parsed_host[1]
+			host = parsed_host[0]
+		else:
+			port = config.plugins.IPToSAT.serverport.value if getattr(config.plugins.IPToSAT.serverport, 'value', None) else '80'
+		if '://' not in host:
+			host = 'http://' + host if 'https' not in host else 'https://' + host.replace('https://', '', 1)
+		user = values.get('User', '')
+		password = values.get('Pass', '')
+		config.plugins.IPToSAT.domain.value = host
+		config.plugins.IPToSAT.domain.save()
+		config.plugins.IPToSAT.serverport.value = port if port != "port" else language.get(lang, "115")
+		config.plugins.IPToSAT.serverport.save()
+		if user:
 			config.plugins.IPToSAT.username.value = user
 			config.plugins.IPToSAT.username.save()
+		if password:
 			config.plugins.IPToSAT.password.value = password
 			config.plugins.IPToSAT.password.save()
 	except Exception as err:
@@ -911,14 +1260,27 @@ class TimerUpdateCategories:
 		return True
 
 	def _downloadPrepared(self, result):
-		if exists(str(BUILDBOUQUETS_FILE)):
-			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-		eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+		if exists(str(BOUQUET_IPTV_NORHAP) + ".del"):
+			move(str(BOUQUET_IPTV_NORHAP) + ".del", str(BOUQUET_IPTV_NORHAP))
+		deferToThread(buildBouquetsFromM3U, str(self.m3ufile)).addCallbacks(
+			self._bouquetsBuilt,
+			self._bouquetBuildFailed,
+			callbackArgs=(result,))
+		return result
+
+	def _bouquetsBuilt(self, build_result, preparation_result):
+		if build_result:
+			eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f ' + str(self.m3ufile) + ' ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches')
 		if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 			self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
 		else:
 			self.userbouquetCategoriesUpdate()
-		return result
+		return preparation_result
+
+	def _bouquetBuildFailed(self, failure):
+		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+			fw.write(str(failure.value))
+		return None
 
 	def _downloadPreparationFailed(self, failure):
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
@@ -1426,25 +1788,20 @@ class ManualM3UUpdate:
 		return True
 
 	def _downloadReady(self, result):
-		global manual_m3u_job
-		if exists(str(BUILDBOUQUETS_FILE)):
-			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-		self.container = eConsoleAppContainer()
-		if manual_m3u_job is not None:
-			manual_m3u_job.container = self.container
-		self.container.appClosed.append(self._bouquetBuildFinished)
-		self.container.execute(
-			'sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) +
-			" ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) +
-			" ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " +
-			str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " +
-			str(BUILDBOUQUETS_FILE) +
-			" ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
-		if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
+		return deferToThread(buildBouquetsFromM3U, str(self.m3ufile)).addCallback(
+			self._bouquetsBuilt, result)
+
+	def _bouquetsBuilt(self, build_result, download_result):
+		if not build_result:
+			raise RuntimeError("Bouquet generation could not complete")
+		eConsoleAppContainer().execute(
+			'wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f ' + str(self.m3ufile) +
+			' ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches')
+		if build_result and isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 			self.console.ePopen(['sleep 0'], self._runEPGIMPORT)
 		else:
 			self._scheduleBouquetCheck()
-		return result
+		return download_result
 
 	def _downloadFailed(self, failure):
 		error = str(failure.value)
@@ -1806,8 +2163,6 @@ class AssignService(ChannelSelectionBase):
 							self["description"].setText(language.get(lang, "78"))
 						backupfiles = ""
 						bouquetiptosatepg = ""
-						if exists(str(BUILDBOUQUETS_SOURCE)):
-							move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 						# ###################REMOVE IN A FEW MONTHS ###################
 						if BoxInfo.getItem("distro") == "openspa" and not exists(str(self.backupdirectory)):
 							if exists(str(self.backupdirectory).replace("SPA", "")):
@@ -4227,13 +4582,11 @@ class InstallChannelsLists(Screen):
 			urlnorhap = 'https://github.com/norhap/IPtoSAT/archive/refs/heads/main.zip'
 			norhaprepository = get(urlnorhap, timeout=10)
 			if answer:
-				if exists(str(BUILDBOUQUETS_SOURCE)):
-					move(BUILDBOUQUETS_SOURCE, BUILDBOUQUETS_FILE)
 				self.session.open(MessageBox, language.get(lang, "103"), MessageBox.TYPE_INFO, simple=True)
 				with open(str(self.folderlistchannels) + "/" + "IPtoSAT-main.zip", "wb") as source:
 					source.write(norhaprepository.content)
 				checkfilesinstall = ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH if not exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") else ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/etc/enigma2/iptosatreferences ' + ENIGMA2_PATH + '/ && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/* ' + SOURCE_PATH + ' && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/iptosat.channels.xml ' + FOLDER_EPGIMPORT + 'iptosat.channels.xml && cp -f ' + self.folderlistchannels + '/IPtoSAT-main/src/IPtoSAT/iptosat.sources.xml ' + FOLDER_EPGIMPORT + 'iptosat.sources.xml'
-				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + EPG_CONFIG + " " + EPG_SOURCES_XML + " " + EPG_CHANNELS_XML + " " + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + SOURCE_PATH + "buildbouquets" + " " + LANGUAGE_PATH + " " + VERSION_PATH + f'{checkfilesinstall}' + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
+				eConsoleAppContainer().execute('cd ' + self.folderlistchannels + ' && unzip IPtoSAT-main.zip && rm -f ' + EPG_CONFIG + " " + EPG_SOURCES_XML + " " + EPG_CHANNELS_XML + " " + SOURCE_PATH + "keymap.xml" + " " + SOURCE_PATH + "icon.png" + " " + LANGUAGE_PATH + " " + VERSION_PATH + f'{checkfilesinstall}' + ' && /sbin/init 4 && sleep 5 && /sbin/init 3 && sleep 35 && rm -rf ' + self.folderlistchannels + "/* " + SOURCE_PATH + '*.py')
 		except Exception as err:
 			self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False, timeout=10)
 
