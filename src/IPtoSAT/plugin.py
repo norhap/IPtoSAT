@@ -5,6 +5,7 @@ from process import ProcessList
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse
 from twisted.web.client import getPage
+from twisted.internet.threads import deferToThread
 from datetime import datetime
 from json import dump, loads
 from glob import glob
@@ -44,6 +45,7 @@ notresetchannels = False
 clearCacheEPG = False
 timerupdatecategories = None
 bouquet_update = None
+manual_m3u_job = None
 
 # HTTPS twisted client
 try:
@@ -775,16 +777,16 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			fw.write("")
 		with open(WILD_CARD_ALL_CATEGORIES, 'w') as fw:
 			fw.write("")
-		for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
+		bouquets_iptosat_norhap = [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]
+		if bouquets_iptosat_norhap:
 			with open(BOUQUETS_TV, "r") as fr:
 				bouquetread = fr.readlines()
-				with open(BOUQUETS_TV, "w") as bouquetswrite:
-					for line in bouquetread:
-						if "iptosat_norhap" not in line:
-							bouquetswrite.write(line)
-			enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-			if enigma2files:
-				remove(enigma2files)
+			with open(BOUQUETS_TV, "w") as bouquetswrite:
+				bouquetswrite.writelines(line for line in bouquetread if "iptosat_norhap" not in line)
+			for bouquet in bouquets_iptosat_norhap:
+				enigma2files = join(ENIGMA2_PATH, bouquet)
+				if enigma2files:
+					remove(enigma2files)
 		eConsoleAppContainer().execute('sleep 3 ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2')
 
 
@@ -843,58 +845,85 @@ class TimerUpdateCategories:
 		user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		headers = {'User-Agent': user_agent}
 		request = Request(url, None, headers)
+		deferToThread(self._downloadM3U, request).addCallbacks(
+			self._processDownloadedM3U,
+			self._downloadM3UFailed,
+			callbackArgs=(wake, now),
+			errbackArgs=(wake, now))
+
+	def _downloadM3U(self, request):
+		with urlopen(request) as response:
+			return response.read()
+
+	def _downloadM3UFailed(self, failure, wake, now):
+		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+			fw.write(str(failure.value))
+		return self._processDownloadedM3U(b"", wake, now)
+
+	def _processDownloadedM3U(self, m3u, wake, now):
+		if wake - now >= 60 or not config.plugins.IPToSAT.autotimerbouquets.value:
+			return
+		if exists(str(CATEGORIES_TIMER_ERROR)):
+			remove(CATEGORIES_TIMER_ERROR)
+		if exists(str(CATEGORIES_TIMER_OK)):
+			remove(CATEGORIES_TIMER_OK)
 		try:
-			with urlopen(request) as response:
-				m3u = response.read()
+			AssignService.checkStorageDevice(self)
+			if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
+				storagefile = self.m3ustoragefile if self.storage else None
+				deferToThread(
+					self._prepareDownloadedM3U,
+					m3u,
+					config.plugins.IPToSAT.deletecategories.value,
+					storagefile).addCallbacks(
+						self._downloadPrepared,
+						self._downloadPreparationFailed)
+			elif m3u:
+				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+					fw.write(language.get(lang, "156"))
 		except Exception as err:
 			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 				fw.write(str(err))
-		if wake - now < 60 and config.plugins.IPToSAT.autotimerbouquets.value:
-			if exists(str(CATEGORIES_TIMER_ERROR)):
-				remove(CATEGORIES_TIMER_ERROR)
-			if exists(str(CATEGORIES_TIMER_OK)):
-				remove(CATEGORIES_TIMER_OK)
-			try:
-				if config.plugins.IPToSAT.deletecategories.value and m3u:
-					for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
-						with open(BOUQUETS_TV, "r") as fr:
-							bouquetread = fr.readlines()
-							with open(BOUQUETS_TV, "w") as bouquetswrite:
-								for line in bouquetread:
-									if "iptosat_norhap" not in line:
-										bouquetswrite.write(line)
-						enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-						if enigma2files:
-							remove(enigma2files)
-				AssignService.checkStorageDevice(self)
-				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
-					with open(str(self.m3ufile), "wb") as m3ufile:
-						m3ufile.write(m3u)  # m3ufile.write(m3u.content) with get
-					with open(str(self.m3ufile), "r") as m3uread:
-						charactertoreplace = m3uread.readlines()
-						with open(str(self.m3ufile), "w") as m3uw:
-							for line in charactertoreplace:
-								if '[' in line and ']' in line and '|' in line:
-									line = line.replace('[', '').replace(']', '|')
-								if '|  ' in line:
-									line = line.replace('|  ', '| ')
-								m3uw.write(line)
-					if exists(str(BUILDBOUQUETS_FILE)):
-						move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-					eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
-					if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
-						self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
-					else:
-						self.userbouquetCategoriesUpdate()
-					if self.storage:
-						eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
-				else:
-					if m3u:
-						with open(CATEGORIES_TIMER_ERROR, "w") as fw:
-							fw.write(language.get(lang, "156"))
-			except Exception as err:
-				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
-					fw.write(str(err))
+
+	def _prepareDownloadedM3U(self, m3u, deletecategories, storagefile):
+		if deletecategories:
+			bouquets_iptosat_norhap = [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]
+			if bouquets_iptosat_norhap:
+				with open(BOUQUETS_TV, "r") as fr:
+					bouquetread = fr.readlines()
+				with open(BOUQUETS_TV, "w") as bouquetswrite:
+					bouquetswrite.writelines(line for line in bouquetread if "iptosat_norhap" not in line)
+				for bouquet in bouquets_iptosat_norhap:
+					remove(join(ENIGMA2_PATH, bouquet))
+		with open(str(self.m3ufile), "wb") as m3ufile:
+			m3ufile.write(m3u)
+		with open(str(self.m3ufile), "r") as m3uread:
+			charactertoreplace = m3uread.readlines()
+		with open(str(self.m3ufile), "w") as m3uw:
+			for line in charactertoreplace:
+				if '[' in line and ']' in line and '|' in line:
+					line = line.replace('[', '').replace(']', '|')
+				if '|  ' in line:
+					line = line.replace('|  ', '| ')
+				m3uw.write(line)
+		if storagefile:
+			copy(self.m3ufile, storagefile)
+		return True
+
+	def _downloadPrepared(self, result):
+		if exists(str(BUILDBOUQUETS_FILE)):
+			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+		eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+		if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
+			self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
+		else:
+			self.userbouquetCategoriesUpdate()
+		return result
+
+	def _downloadPreparationFailed(self, failure):
+		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+			fw.write(str(failure.value))
+		return None
 
 	def userbouquetCategoriesUpdate(self):
 		self.Console = Console()
@@ -1348,6 +1377,165 @@ class IPToSAT(Screen):
 			self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
 
 
+class ManualM3UUpdate:
+	def __init__(self, screen, request):
+		self.screen = screen
+		self.request = request
+		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
+		self.m3ustoragefile = screen.m3ustoragefile if screen.storage else None
+		self.deletecategories = config.plugins.IPToSAT.deletecategories.value
+		self.bouquet_update = bouquet_update
+		self.console = Console()
+		self.container = None
+
+	def start(self):
+		deferToThread(
+			self._downloadAndPrepare,
+			self.request,
+			self.m3ufile,
+			self.m3ustoragefile,
+			self.deletecategories).addCallback(self._downloadReady).addErrback(self._downloadFailed)
+
+	def _downloadAndPrepare(self, request, m3ufile, m3ustoragefile, deletecategories):
+		with urlopen(request) as response:
+			m3u = response.read()
+		if not m3u:
+			raise ValueError("The M3U download was empty")
+		if deletecategories:
+			bouquets = [name for name in listdir(ENIGMA2_PATH) if "iptosat_norhap" in name]
+			if bouquets:
+				with open(BOUQUETS_TV, "r") as bouquetread:
+					lines = bouquetread.readlines()
+				with open(BOUQUETS_TV, "w") as bouquetwrite:
+					bouquetwrite.writelines(line for line in lines if "iptosat_norhap" not in line)
+				for bouquet in bouquets:
+					remove(join(ENIGMA2_PATH, bouquet))
+		with open(m3ufile, "wb") as m3uwrite:
+			m3uwrite.write(m3u)
+		with open(m3ufile, "r") as m3uread:
+			lines = m3uread.readlines()
+		with open(m3ufile, "w") as m3uwrite:
+			for line in lines:
+				if '[' in line and ']' in line and '|' in line:
+					line = line.replace('[', '').replace(']', '|')
+				if '|  ' in line:
+					line = line.replace('|  ', '| ')
+				m3uwrite.write(line)
+		if m3ustoragefile:
+			copy(m3ufile, m3ustoragefile)
+		return True
+
+	def _downloadReady(self, result):
+		global manual_m3u_job
+		if exists(str(BUILDBOUQUETS_FILE)):
+			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
+		self.container = eConsoleAppContainer()
+		if manual_m3u_job is not None:
+			manual_m3u_job.container = self.container
+		self.container.appClosed.append(self._bouquetBuildFinished)
+		self.container.execute(
+			'sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) +
+			" ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) +
+			" ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " +
+			str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " +
+			str(BUILDBOUQUETS_FILE) +
+			" ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
+		if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
+			self.console.ePopen(['sleep 0'], self._runEPGIMPORT)
+		else:
+			self._scheduleBouquetCheck()
+		return result
+
+	def _downloadFailed(self, failure):
+		error = str(failure.value)
+		try:
+			with open(CATEGORIES_TIMER_ERROR, "w") as errorfile:
+				errorfile.write(error)
+			screen = self.screen
+			if screen is not None and not screen._screen_closed:
+				if failure.check(TimeoutError):
+					screen.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_ERROR, default=False)
+				else:
+					screen.assignWidgetScript("#00ff2525", "ERROR: " + error + "\n" + language.get(lang, "6"))
+			else:
+				log(error)
+		except Exception as err:
+			log(err)
+		finally:
+			self._finish()
+		return None
+
+	def _runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		global clearCacheEPG
+		try:
+			if config.plugins.epgimport.clear_oldepg.value:
+				clearCacheEPG = True
+				config.plugins.epgimport.clear_oldepg.value = False
+				config.plugins.epgimport.clear_oldepg.save()
+			if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
+				move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
+			if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
+				symlink(EPG_CONFIG, EPG_IMPORT_CONFIG)
+			if islink(EPG_IMPORT_CONFIG):
+				from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
+				autoStartTimer.runImport()
+				self.console.ePopen(['sleep 2'], self._finishedEPGIMPORT)
+			else:
+				self._scheduleBouquetCheck()
+		except Exception as err:
+			log(err)
+			self._restoreEPGImportConfig()
+			self._scheduleBouquetCheck()
+
+	def _finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		self._restoreEPGImportConfig()
+		self._scheduleBouquetCheck()
+
+	def _restoreEPGImportConfig(self):
+		global clearCacheEPG
+		if clearCacheEPG is True:
+			config.plugins.epgimport.clear_oldepg.value = True
+			config.plugins.epgimport.clear_oldepg.save()
+			clearCacheEPG = False
+		if exists(EPG_IMPORT_CONFIG_BACK):
+			if islink(EPG_IMPORT_CONFIG):
+				unlink(EPG_IMPORT_CONFIG)
+			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
+
+	def _scheduleBouquetCheck(self):
+		self.console.ePopen(['sleep 115'], self._bouquetCheckFinished)
+
+	def _bouquetCheckFinished(self, result=None, retVal=None, extra_args=None):
+		try:
+			self._writeBouquetUpdateStatus()
+		except Exception as err:
+			log(err)
+		self._finish()
+
+	def _bouquetBuildFinished(self, result):
+		try:
+			self._writeBouquetUpdateStatus()
+		except Exception as err:
+			log(err)
+
+	def _writeBouquetUpdateStatus(self):
+		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
+		if bouquet_updated is not None and (
+				(self.bouquet_update and int(self.bouquet_update) != int(bouquet_updated)) or
+				(not self.bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)))):
+			hours = datetime.fromtimestamp(bouquet_updated).strftime("%H:%M")
+			with open(CATEGORIES_TIMER_OK, "w") as statusfile:
+				statusfile.write(
+					datetime.now().strftime("%A %-d %B") + " " +
+					language.get(lang, "170") + " " + hours)
+
+	def _finish(self):
+		global manual_m3u_job
+		self.screen = None
+		if manual_m3u_job is self:
+			manual_m3u_job = None
+
+
 class AssignService(ChannelSelectionBase):
 	if screenWidth == 1920:
 		skin = """
@@ -1480,6 +1668,8 @@ class AssignService(ChannelSelectionBase):
 	def __init__(self, session, *args):
 		self.session = session
 		ChannelSelectionBase.__init__(self, session)
+		self._screen_closed = False
+		self.onClose.append(self._markScreenClosed)
 		self.bouquet_mark_edit = 0
 		self.secondSuscription = False
 		self.storage = False
@@ -1549,7 +1739,7 @@ class AssignService(ChannelSelectionBase):
 		}, -2)
 		self.errortimer = eTimer()
 		if not fileContains(CONFIG_PATH, "pass") and not fileContains(CONFIG_PATH, "domain"):
-			self["key_yellow"].setText(language.get(lang, "32"))
+			self["key_yellow"].setText(language.get(lang, "237" if exists(BOUQUET_IPTV_NORHAP) else "32"))
 		if self.backupChannelsListStorage:
 			self["key_rec"].setText("REC")
 		try:
@@ -1567,6 +1757,11 @@ class AssignService(ChannelSelectionBase):
 		self.getUserData()
 		self.onLayoutFinish.append(self.setModeTv)
 		self.onShown.append(self.onWindowShow)
+
+	def _markScreenClosed(self):
+		self._screen_closed = True
+		if manual_m3u_job is not None and manual_m3u_job.screen is self:
+			manual_m3u_job.screen = None
 
 	def checkStorageDevice(self):
 		try:
@@ -2155,17 +2350,16 @@ class AssignService(ChannelSelectionBase):
 		self.docreateBouquetIPTV()
 
 	def docreateBouquetIPTV(self):
-		self.Console = Console()
+		global manual_m3u_job
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
-		if exists(str(BUILDBOUQUETS_FILE)):
-			move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
-				m3u = ""
-				error = ""
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
+					if manual_m3u_job is not None:
+						log("Manual M3U update already in progress")
+						return
 					if exists(str(CATEGORIES_TIMER_ERROR)):
 						remove(CATEGORIES_TIMER_ERROR)
 					if exists(str(CATEGORIES_TIMER_OK)):
@@ -2183,104 +2377,27 @@ class AssignService(ChannelSelectionBase):
 					user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 					headers = {'User-Agent': user_agent}
 					request = Request(url, None, headers)
+					job = ManualM3UUpdate(self, request)
+					manual_m3u_job = job
 					try:
-						with urlopen(request) as response:
-							m3u = response.read()
-					except TimeoutError:
-						self.session.open(MessageBox, language.get(lang, "221"), MessageBox.TYPE_ERROR, default=False)
-						return
-					except Exception as err:
-						error = str(err)
-					if config.plugins.IPToSAT.deletecategories.value and m3u:
-						for bouquets_iptosat_norhap in [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]:
-							with open(BOUQUETS_TV, "r") as fr:
-								bouquetread = fr.readlines()
-								with open(BOUQUETS_TV, "w") as bouquetswrite:
-									for line in bouquetread:
-										if "iptosat_norhap" not in line:
-											bouquetswrite.write(line)
-							enigma2files = join(ENIGMA2_PATH, bouquets_iptosat_norhap)
-							if enigma2files:
-								remove(enigma2files)
-					if m3u:
-						with open(str(self.m3ufile), "wb") as m3ufile:
-							m3ufile.write(m3u)  # m3ufile.write(m3u.content) with get
-						with open(str(self.m3ufile), "r") as m3uread:
-							charactertoreplace = m3uread.readlines()
-							with open(str(self.m3ufile), "w") as m3uw:
-								for line in charactertoreplace:
-									if '[' in line and ']' in line and '|' in line:
-										line = line.replace('[', '').replace(']', '|')
-									if '|  ' in line:
-										line = line.replace('|  ', '| ')
-									m3uw.write(line)
-						if exists(str(BUILDBOUQUETS_FILE)):
-							move(BUILDBOUQUETS_FILE, BUILDBOUQUETS_SOURCE)
-						eConsoleAppContainer().execute('sleep 3 ; python' + str(version_info.major) + ' ' + str(BUILDBOUQUETS_SOURCE) + " ; mv " + str(BOUQUET_IPTV_NORHAP) + ".del" + " " + str(BOUQUET_IPTV_NORHAP) + " ; wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f " + str(self.m3ufile) + " ; mv " + str(BUILDBOUQUETS_SOURCE) + " " + str(BUILDBOUQUETS_FILE) + " ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches")
-						if self.storage:
-							eConsoleAppContainer().execute('rm -f ' + str(self.m3ustoragefile) + " ; cp " + str(self.m3ufile) + " " + str(self.m3ustoragefile))
+						job.start()
+					except Exception:
+						manual_m3u_job = None
+						raise
+					try:
 						self["helpbouquetepg"].hide()
-						self['managerlistchannels'].show()
-						self.assignWidgetScript("#e5e619", (language.get(lang, "5") if config.plugins.IPToSAT.typecategories.value in ("all", "live") else language.get(lang, "220")))
-						if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
-							self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
-						else:
-							self.userbouquetCategoriesUpdate()
-					else:
-						self.assignWidgetScript("#00ff2525", f"ERROR: {error}\n" + language.get(lang, "6"))
+						self["managerlistchannels"].show()
+						self.assignWidgetScript(
+							"#e5e619",
+							language.get(lang, "5") if config.plugins.IPToSAT.typecategories.value in ("all", "live") else language.get(lang, "220"))
+					except Exception as err:
+						log(err)
 				else:
 					self.assignWidgetScript("#00ff2525", language.get(lang, "156"))
 			except Exception as err:
 				self.session.open(MessageBox, "ERROR: %s" % str(err), MessageBox.TYPE_ERROR, default=False)
 		else:
 			self.session.open(MessageBox, language.get(lang, "33"), MessageBox.TYPE_ERROR, default=False)
-
-	def userbouquetCategoriesUpdate(self):
-		self.Console = Console()
-		self.Console.ePopen(['sleep 115'], self.userbouquetCategoriesUpdated)
-
-	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
-		global bouquet_update  # noqa: F824
-		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
-		if bouquet_updated is not None:
-			hours = f" {datetime.fromtimestamp(bouquet_updated).hour}:" if datetime.fromtimestamp(bouquet_updated).hour >= 10 else f" 0{datetime.fromtimestamp(bouquet_updated).hour}:"
-			minutes = f"{datetime.fromtimestamp(bouquet_updated).minute}" if datetime.fromtimestamp(bouquet_updated).minute >= 10 else f"0{datetime.fromtimestamp(bouquet_updated).minute}"
-			if bouquet_update and (int(bouquet_update) != int(bouquet_updated)):
-				with open(CATEGORIES_TIMER_OK, "w") as fw:
-					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
-					fw.write(now)
-			elif not bouquet_update and exists(str(BOUQUET_IPTV_NORHAP)):
-				with open(CATEGORIES_TIMER_OK, "w") as fw:
-					now = datetime.now().strftime("%A %-d %B") + " " + language.get(lang, "170") + hours + minutes
-					fw.write(now)
-
-	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG  # noqa: F824
-		if config.plugins.epgimport.clear_oldepg.value:
-			clearCacheEPG = True
-			config.plugins.epgimport.clear_oldepg.value = False
-			config.plugins.epgimport.clear_oldepg.save()
-		if exists(EPG_IMPORT_CONFIG) and not exists(EPG_IMPORT_CONFIG_BACK):
-			move(EPG_IMPORT_CONFIG, EPG_IMPORT_CONFIG_BACK)
-		if not islink(EPG_IMPORT_CONFIG) and exists(EPG_CONFIG) and exists(EPG_IMPORT_CONFIG_BACK):
-			symlink(EPG_CONFIG, EPG_IMPORT_CONFIG)
-		if islink(EPG_IMPORT_CONFIG):
-			from Plugins.Extensions.EPGImport.plugin import autoStartTimer  # noqa: E402
-			autoStartTimer.runImport()
-			self.Console = Console()
-			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
-		else:
-			self.userbouquetCategoriesUpdate()
-
-	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
-		global clearCacheEPG  # noqa: F824
-		if clearCacheEPG is True:
-			config.plugins.epgimport.clear_oldepg.value = True
-			config.plugins.epgimport.clear_oldepg.save()
-		if exists(EPG_IMPORT_CONFIG_BACK):
-			unlink(EPG_IMPORT_CONFIG)
-			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
-		self.userbouquetCategoriesUpdate()
 
 	def setEPGChannel(self):
 		bouquetname = BOUQUET_IPTV_NORHAP
