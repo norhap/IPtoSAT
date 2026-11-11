@@ -931,9 +931,12 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		elif current[1] == config.plugins.IPToSAT.playlist:
 			self.session.open(EditPlaylist)
 		elif current[1] == config.plugins.IPToSAT.categories:
-			self.session.open(EditCategories)
+			self.session.openWithCallback(self.categoriesEditorClosed, EditCategories)
 		elif current[1] == config.plugins.IPToSAT.installchannelslist:
 			self.session.open(InstallChannelsLists)
+
+	def categoriesEditorClosed(self, ret=None):
+		self.createSetup()
 
 	def changedEntry(self):
 		for x in self.onChangedEntry:
@@ -4081,7 +4084,18 @@ class EditCategories(Screen):
 			if not config.plugins.IPToSAT.usercategories.value:
 				config.plugins.IPToSAT.usercategories.value = True
 				config.plugins.IPToSAT.usercategories.save()
-		self.session.openWithCallback(self.exit, EditCategories)
+		self.categories = getCategories() or {}
+		self.bouquets = sorted(self.categories)
+		self['list'].l.setList(self.bouquets)
+		if self.bouquets:
+			self['list'].show()
+		else:
+			self['list'].hide()
+			self["status"].setText(language.get(lang, "140"))
+			self["status"].show()
+			self["key_green"].setText("")
+			self["key_yellow"].setText("")
+			self["key_blue"].setText("")
 
 	def deleteBouquetsList(self, answer):
 		if answer:
