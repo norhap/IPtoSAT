@@ -37,6 +37,7 @@ from Screens.Screen import Screen
 from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
+from .epgchannels import updateEPGChannelIds
 import NavigationInstance
 
 refSat = None
@@ -270,6 +271,13 @@ def trace_error():
 def log(data):
 	now = datetime.now().strftime('%Y-%m-%d %H:%M')
 	open('/tmp/IPToSAT.log', 'a').write(now + ' : ' + str(data) + '\r\n')
+
+
+def logEPGChannelIdReport(report):
+	for old_id, new_id in report["updated"]:
+		log("EPGImport channel ID updated: %s -> %s; service reference preserved" % (old_id, new_id))
+	for old_id, candidates in report["ambiguous"].items():
+		log("EPGImport channel ID left unchanged (ambiguous): %s -> %s" % (old_id, ", ".join(candidates)))
 
 
 def getversioninfo():
@@ -1310,6 +1318,19 @@ class TimerUpdateCategories:
 					fw.write(now)
 
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		deferToThread(updateEPGChannelIds, FOLDER_EPGIMPORT + "iptosat.channels.xml").addCallbacks(
+			self.epgChannelIdsUpdated,
+			self.epgChannelIdsUpdateFailed)
+
+	def epgChannelIdsUpdated(self, report):
+		logEPGChannelIdReport(report)
+		self.startEPGIMPORT()
+
+	def epgChannelIdsUpdateFailed(self, failure):
+		log("EPGImport channel ID check failed: " + failure.getErrorMessage())
+		self.startEPGIMPORT()
+
+	def startEPGIMPORT(self):
 		global clearCacheEPG  # noqa: F824
 		if config.plugins.epgimport.clear_oldepg.value:
 			clearCacheEPG = True
@@ -1826,6 +1847,19 @@ class ManualM3UUpdate:
 		return None
 
 	def _runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
+		deferToThread(updateEPGChannelIds, FOLDER_EPGIMPORT + "iptosat.channels.xml").addCallbacks(
+			self._epgChannelIdsUpdated,
+			self._epgChannelIdsUpdateFailed)
+
+	def _epgChannelIdsUpdated(self, report):
+		logEPGChannelIdReport(report)
+		self._startEPGIMPORT()
+
+	def _epgChannelIdsUpdateFailed(self, failure):
+		log("EPGImport channel ID check failed: " + failure.getErrorMessage())
+		self._startEPGIMPORT()
+
+	def _startEPGIMPORT(self):
 		global clearCacheEPG
 		try:
 			if config.plugins.epgimport.clear_oldepg.value:
