@@ -81,7 +81,9 @@ def reconcileChannelIds(channels_xml, source_ids):
 		candidates = {
 			channel_id
 			for channel_id, keys in id_keys.items()
-			if channel_id.lower() not in mapped_ids and old_keys.intersection(keys)
+			if channel_id.lower() not in mapped_ids
+			and re.findall(r"\d+", old_id) == re.findall(r"\d+", channel_id)
+			and old_keys.intersection(keys)
 		}
 		if len(candidates) == 1:
 			new_id = candidates.pop()

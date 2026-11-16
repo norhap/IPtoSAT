@@ -373,6 +373,90 @@ def cleanChannelName(channel_name):
 	return sub(r'\W+', '', cleaned_name)
 
 
+TDT_EPG_REFERENCES = {
+	"la1": "100", "la2": "101", "antena3": "102", "cuatro": "103",
+	"telecinco": "104", "lasexta": "105", "laseptima": "106",
+	"fdf": "107", "energy": "108", "dmax": "109", "divinity": "10A",
+	"nova": "10B", "neox": "10C", "mega": "10D", "bemad": "10E",
+	"a3series": "10F", "dkisstv": "110", "24horas": "111",
+	"trece": "112", "ten": "113", "golplay": "114", "realmadridtv": "115",
+	"7rm": "116", "7tvandalucia": "117", "tv3": "118", "esport3": "119",
+	"ib3global": "11A", "super333": "11B", "324": "11C",
+	"canalsur": "11D", "aragontv": "11E", "apunt": "11F",
+	"telemadrid": "120", "galiciatv": "121", "galiciatv2": "122",
+	"cmmtv": "123", "etb1": "124", "etb2": "125", "tvcanaria": "126",
+	"ondacadiztv": "127", "extremaduratv": "128",
+}
+
+IPTV_EPG_REFERENCES = {
+	"iberalia100caza": "129", "iberaliacaza": "129",
+	"iberalia100pesca": "12A", "iberaliapesca": "12A",
+	"onetorotv": "12B", "torole": "12C", "ubeat": "12D",
+	"horsetv": "12E", "escapatv": "12F", "motoadv": "130",
+	"betistv": "131", "squirrel2": "132", "vintv": "133",
+	"disneych": "134", "disneychannel": "134", "clantve": "135",
+	"boing": "136",
+	"teledeporte": "13E", "squirrel": "13F",
+	"mytimemovienetwork": "140", "redbulltv": "141",
+	"surfchannel": "142", "rallytv": "143", "rallytvwrc": "143",
+	"mpopup1": "144", "mpopup2": "145",
+	"33": "146", "3catinfo": "147", "andaluciatelevision": "148",
+	"andorratelevisio": "149", "apuntinternet": "14A",
+	"beteve": "14C", "canal4tenerife": "14D", "canal7televalencia": "14E",
+	"canalextremadurasat": "14F",
+	"cyltvglobal": "151", "distritotv": "152", "eitbbasque": "153",
+	"elche7tv": "154", "eltreceinternacional": "155", "estutele": "156",
+	"etb1on": "157", "etb2on": "158", "etb3": "159", "etb4": "15A",
+	"huelvatv": "15B", "ib3": "15C", "informaciontv": "15D",
+	"la1canarias": "15E", "la1catalunya": "15F", "la2canarias": "160",
+	"la2catalunya": "161", "la7": "162", "la7rioja": "163",
+	"la8burgos": "164", "la8": "165", "laochomediterraneo": "166",
+	"laotra": "167", "levantetv": "168", "mirametv": "169",
+	"navarratelevision": "16A", "ondaalgecirastv": "16B",
+	"pirineustv": "16C", "populartvregiondemurcia": "16D", "teleelx": "16E",
+	"telemadridinternacional": "16F", "tpa": "170", "tv3cat": "171",
+	"tvgeuropa": "172", "solmusica": "173", "canaldelasestrellaseuropa": "174",
+	"myzen": "175", "myzentv": "175", "viajesysabores": "176",
+	"vivircongatos": "177", "vivirconperros": "178",
+}
+
+
+def cleanIptvDisplayName(channel_name):
+	name = sub(r'(?i)^ES(?:\*+)?\s*(?:\||:)\s*', '', channel_name.strip())
+	name = sub(r'(?i)\s*\(ES\)$', '', name)
+	return sub(r'(?i)\s*(?:UHD|FHD|HD|SD)$', '', name)
+
+
+def isMovistarChannel(channel_name):
+	return bool(match(r'(?i)^(?:M[+.]|MOVISTAR\s*\+)', cleanIptvDisplayName(channel_name)))
+
+
+def satelliteReferenceMatchesChannel(channel_name, reference):
+	sat_name = ServiceReference(reference).getServiceName()
+	name = cleanChannelName(cleanIptvDisplayName(channel_name))
+	sat_name = cleanChannelName(cleanIptvDisplayName(sat_name)) if sat_name else ""
+	if sat_name and (sat_name == name or {sat_name, name} == {"scifi", "syfy"}):
+		return True
+	log("EPG satellite reference does not match %s: %s" % (channel_name, reference))
+	return False
+
+
+def getTdtEPGReference(channel_name):
+	name = cleanIptvDisplayName(channel_name)
+	tsid = TDT_EPG_REFERENCES.get(cleanChannelName(name))
+	if tsid is not None:
+		return "4097:0:1:7000:%s:FFFE:C00000:0:0:0:" % tsid
+	return None
+
+
+def getIptvEPGReference(channel_name):
+	name = cleanIptvDisplayName(channel_name)
+	tsid = IPTV_EPG_REFERENCES.get(cleanChannelName(name))
+	if tsid is not None:
+		return "4097:0:1:7000:%s:FFFE:C00000:0:0:0:" % tsid
+	return None
+
+
 def isValidName(name):
 	return bool(match(r'^[\w\s#]+$', name))
 
@@ -498,6 +582,8 @@ def buildBouquetsFromM3U(input_file):
 							matching_channel_name = findChannelWithKeyword(channel_name, satellite_reference)
 							if matching_channel_name:
 								channel_reference, channel_display_name, order = satellite_reference.get(matching_channel_name.lower(), ("4097:0:1:0:0:0:0:0:0:0:", None, None))
+								if isMovistarChannel(channel_name) and not satelliteReferenceMatchesChannel(channel_name, channel_reference):
+									channel_reference, channel_display_name, order = "4097:0:1:0:0:0:0:0:0:0:", None, None
 								if channel_display_name:
 									channel_name = channel_display_name
 								if order is not None:
@@ -521,6 +607,11 @@ def buildBouquetsFromM3U(input_file):
 						enigma2_url = enigma2_url.replace(":", "%3a")
 						if exists("/etc/epgimport/iptosat.channels.xml"):
 							channel_name_upper = channel_name.upper()
+							if channel_reference == "4097:0:1:0:0:0:0:0:0:0:":
+								iptv_name = cleanIptvDisplayName(channel_name)
+								sat_ref = satellite_reference.get(cleanChannelName(iptv_name))
+								if sat_ref and satelliteReferenceMatchesChannel(iptv_name, sat_ref[0]):
+									channel_reference = sub(r'^1:', '4097:', sat_ref[0])
 							if "AMC " in channel_name_upper and "SELEKT" not in channel_name_upper and "CRIME" not in channel_name_upper and "BREAK" not in channel_name_upper:
 								channel_reference = "4097:0:C9:23AB:44A:1:C00000:0:0:0:"
 							if "HOLLYWOOD " in channel_name_upper:
@@ -551,10 +642,6 @@ def buildBouquetsFromM3U(input_file):
 								channel_reference = "4097:0:1:7000:43:003:C00000:0:0:0:"
 							if "AXN " in channel_name_upper and "AXN MOVIES" not in channel_name_upper:
 								channel_reference = "4097:0:1:7477:3F0:1:C00000:0:0:0:"
-							if "DOCUMENTALES" in channel_name_upper:
-								channel_reference = "4097:0:1:7000:46:006:C00000:0:0:0:"
-							if "AMC " in channel_name_upper and "SELEKT" not in channel_name_upper and "CRIME" not in channel_name_upper and "BREAK" not in channel_name_upper:
-								channel_reference = "4097:0:1:7000:46:006:C00000:0:0:0:"
 							if "DECASA" in channel_name_upper:
 								channel_reference = "4097:0:1:7000:47:007:C00000:0:0:0:"
 							if "COCINA" in channel_name_upper:
@@ -583,6 +670,13 @@ def buildBouquetsFromM3U(input_file):
 								channel_reference = "4097:0:1:7000:59:019:C00000:0:0:0:"
 							if "RAKUTEN TV FAMILY" in channel_name_upper:
 								channel_reference = "4097:0:1:7000:60:020:C00000:0:0:0:"
+							iptv_reference = getIptvEPGReference(channel_name)
+							if iptv_reference is not None and (not isMovistarChannel(channel_name) or channel_reference == "4097:0:1:0:0:0:0:0:0:0:"):
+								channel_reference = iptv_reference
+							if channel_reference == "4097:0:1:0:0:0:0:0:0:0:":
+								tdt_reference = getTdtEPGReference(channel_name)
+								if tdt_reference is not None:
+									channel_reference = tdt_reference
 						stream = enigma2_url + ":" + channel_name.replace(enigma2_url + ":" + channel_name + enigma2_url + ":" + channel_name, enigma2_url + ":" + channel_name)
 						stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)
 						readprefix = group_title if group_title else ""
