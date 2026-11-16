@@ -1639,8 +1639,7 @@ class IPToSAT(Screen):
 			for ch in playlist['playlist']:
 				if ch['sref'] == str(ServiceReference(lastservice)):
 					if isPluginInstalled("FastChannelChange"):
-						if not config.plugins.fccsetup.activate.value:
-							eFCCServiceManager.getInstance().setFCCEnable(True)
+						eFCCServiceManager.getInstance().setFCCEnable(False)
 					self.session.nav.stopService()
 					self.container.execute(f"{player} {ch['url']}")
 					self.session.nav.playService(lastservice)
@@ -1708,12 +1707,13 @@ class IPToSAT(Screen):
 				self._retryCount = 0
 				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 				self.session.nav.streamRetryOverride = True
-		except Exception:
-			pass
+		except Exception as error:
+			print(f"[IPToSAT] get_channel failed: {type(error).__name__}")
 
 	def __evStart(self):
 		initializetime = 1000 if not isPluginInstalled("FastChannelChange") else 2000
-		self.Timer.start(initializetime)
+		if not self.Timer.isActive() or not isIPToSAT():
+			self.Timer.start(initializetime)
 
 	def __recordingInfo(self):
 		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
