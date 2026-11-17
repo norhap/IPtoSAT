@@ -881,7 +881,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
 		except Exception:
 			self.currentservice = False
-		self.timerupdatebouquets = config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]
+		self.timerupdatebouquets = tuple(config.plugins.IPToSAT.timebouquets.value)
 		self.typecategories = config.plugins.IPToSAT.typecategories.value
 		self.onLayoutFinish.append(self.layoutFinished)
 		for partition in harddiskmanager.getMountedPartitions():
@@ -1047,22 +1047,17 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.createSetup()
 
 	def keySave(self):
-		global notresetchannels
 		if config.plugins.IPToSAT.typecategories.value == "none":
 			self.deleteBouquetsNorhap()
-		if self.timerupdatebouquets != config.plugins.IPToSAT.timebouquets.value[0] + config.plugins.IPToSAT.timebouquets.value[1]:
+		if self.timerupdatebouquets != tuple(config.plugins.IPToSAT.timebouquets.value):
 			if exists(str(CATEGORIES_TIMER_ERROR)):
 				remove(CATEGORIES_TIMER_ERROR)
-			notresetchannels = True
-			IPToSAT(self.session)  # update category timer initializer.
 		if not config.plugins.IPToSAT.timebouquetsdeepstandby.value and config.plugins.IPToSAT.deepstandby.value:
 			config.plugins.IPToSAT.deepstandby.value = False
 		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
-			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
-				if config.plugins.IPToSAT.usercategories.value:
-					config.plugins.IPToSAT.usercategories.value = False
-					config.plugins.IPToSAT.usercategories.save()
-				AssignService(self.session)
+			if self.typecategories != config.plugins.IPToSAT.typecategories.value and config.plugins.IPToSAT.usercategories.value:
+				config.plugins.IPToSAT.usercategories.value = False
+				config.plugins.IPToSAT.usercategories.save()
 		else:
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value:
 				config.plugins.IPToSAT.typecategories.value = "all"
@@ -1087,8 +1082,10 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				else:
 					if fileContains(ALL_CATEGORIES, ":"):
 						move(ALL_CATEGORIES, CONFIG_PATH_CATEGORIES)
-		AssignService(self)
+		AssignService(self.session)
 		self.saveiptosatconf()
+		if timerupdatecategories is not None:
+			timerupdatecategories.refreshScheduler(delay=False)
 		ConfigListScreen.keySave(self)
 
 	def joinZeroTier(self):
@@ -1248,43 +1245,80 @@ class TimerUpdateCategories:
 	def __init__(self, session):
 		self.session = session
 		self.categoriestimerStart = eTimer()
+		self.categoriestimerStart.callback.append(self.prepareTimer)
 		self.categoriestimer = eTimer()
 		self.categoriestimer.callback.append(self.iptosatDownloadTimer)
-		self.iptosatpolltimer = eTimer()
-		self.iptosatpolltimer.timeout.get().append(self.iptosatPollTimer)
+		self.shutdownTimer = eTimer()
+		self.shutdownTimer.callback.append(self.deepStandbyAfterUpdateCategories)
+		self.updating = False
+		self.wakeupStandby = None
+		self.startupRecovery = True
+		self.scheduledtime = -1
 		self.refreshScheduler()
-
-	def iptosatPollTimer(self):
-		self.iptosatpolltimer.stop()
-		self.scheduledtime = self.prepareTimer()
 
 	def getTimeDownloadCategories(self):
 		downloadcategoriesclock = config.plugins.IPToSAT.timebouquets.value
 		now = localtime(time())
-		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, downloadcategoriesclock[0], downloadcategoriesclock[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
+		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, downloadcategoriesclock[0], downloadcategoriesclock[1], 0, -1, -1, -1)))
 
-	def prepareTimer(self):
-		self.categoriestimerStart.stop()
+	def nextDownloadTime(self):
+		if not config.plugins.IPToSAT.autotimerbouquets.value:
+			return -1
 		downloadtime = self.getTimeDownloadCategories()
 		now = int(time())
 		if downloadtime > 0:
-			if downloadtime < now:
-				downloadtime += 24 * 3600
-				while (int(downloadtime) - 30) < now:
-					downloadtime += 24 * 3600
-			nextime = downloadtime - now
-			self.categoriestimer.startLongTimer(nextime)
-		else:
-			downloadtime = -1
+			if downloadtime <= now:
+				today = localtime(now)
+				clock = config.plugins.IPToSAT.timebouquets.value
+				downloadtime = int(mktime((today.tm_year, today.tm_mon, today.tm_mday + 1, clock[0], clock[1], 0, -1, -1, -1)))
+			return downloadtime
+		return -1
+
+	def prepareTimer(self):
+		self.categoriestimerStart.stop()
+		self.categoriestimer.stop()
+		downloadtime = self.nextDownloadTime()
+		self.scheduledtime = downloadtime
+		if self.startupRecovery:
+			self.startupRecovery = False
+			now = int(time())
+			wakeup_time = getattr(config.misc, "prev_wakeup_time", None)
+			scheduled = wakeup_time.value if wakeup_time else -1
+			wakeup_clock = localtime(scheduled) if scheduled > 0 else None
+			if (config.plugins.IPToSAT.autotimerbouquets.value
+					and wakeup_clock and (wakeup_clock.tm_hour, wakeup_clock.tm_min) == tuple(config.plugins.IPToSAT.timebouquets.value)
+					and 0 <= now - scheduled < 600 and self.isCategoriesTimerWakeup(scheduled, now)):
+				downloadtime = now
+				self.scheduledtime = scheduled
+		if downloadtime > 0:
+			self.categoriestimer.startLongTimer(max(0, downloadtime - int(time())))
 		return downloadtime
+
+	def isCategoriesTimerWakeup(self, scheduled, now):
+		wakeup_type = getattr(config.misc, "prev_wakeup_time_type", None)
+		wakeup_time = getattr(config.misc, "prev_wakeup_time", None)
+		return bool(config.plugins.IPToSAT.timebouquetsdeepstandby.value
+			and getFPWasTimerWakeup() and wakeup_type and wakeup_type.value == 2
+			and wakeup_time and abs(wakeup_time.value - scheduled) < 60
+			and abs(now - wakeup_time.value) < 600)
 
 	def iptosatDownloadTimer(self):
 		global bouquet_update
+		wake = self.scheduledtime
+		self.prepareTimer()
+		if not config.plugins.IPToSAT.autotimerbouquets.value:
+			return
+		if self.updating or manual_m3u_job is not None:
+			log("Scheduled bouquet update skipped: another update is in progress")
+			return
+		from Screens import Standby
+		now = int(time())
+		self.wakeupStandby = None
+		if self.isCategoriesTimerWakeup(wake, now):
+			self.wakeupStandby = Standby.inStandby
+		self.updating = True
 		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		self.Console = Console()
-		self.categoriestimer.stop()
-		now = int(time())
-		wake = self.getTimeDownloadCategories()
 		self.m3ufile = join(ENIGMA2_PATH, "iptosat_norhap.m3u")
 		m3u = ""
 		hostport = config.plugins.IPToSAT.domain.value + ":" + config.plugins.IPToSAT.serverport.value
@@ -1310,21 +1344,23 @@ class TimerUpdateCategories:
 			return response.read()
 
 	def _downloadM3UFailed(self, failure, wake, now):
+		self.updating = False
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
-		return self._processDownloadedM3U(b"", wake, now)
+		log("Scheduled M3U download failed: " + failure.getErrorMessage())
+		return None
 
 	def _processDownloadedM3U(self, m3u, wake, now):
 		if wake - now >= 60 or not config.plugins.IPToSAT.autotimerbouquets.value:
+			self.updating = False
 			return
 		if exists(str(CATEGORIES_TIMER_ERROR)):
 			remove(CATEGORIES_TIMER_ERROR)
 		if exists(str(CATEGORIES_TIMER_OK)):
 			remove(CATEGORIES_TIMER_OK)
 		try:
-			AssignService.checkStorageDevice(self)
+			storagefile = self.getM3UStorageFile()
 			if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
-				storagefile = self.m3ustoragefile if self.storage else None
 				deferToThread(
 					self._prepareDownloadedM3U,
 					m3u,
@@ -1335,9 +1371,31 @@ class TimerUpdateCategories:
 			elif m3u:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(language.get(lang, "156"))
+				self.updating = False
+			else:
+				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+					fw.write("The M3U download was empty")
+				self.updating = False
 		except Exception as err:
 			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 				fw.write(str(err))
+			self.updating = False
+			log("Scheduled bouquet update failed: " + str(err))
+
+	def getM3UStorageFile(self):
+		storagefile = None
+		for partition in harddiskmanager.getMountedPartitions():
+			if exists("/media/usb/") and listdir("/media/usb"):
+				path = "/media/usb/"
+			elif exists("/media/hdd/") and listdir("/media/hdd"):
+				path = "/media/hdd/"
+			else:
+				path = normpath(partition.mountpoint)
+			if path != "/" and "net" not in path and "autofs" not in path and exists(path) and listdir(path):
+				folder = join(path, f"IPToSAT/{MODEL}/M3U")
+				makedirs(folder, exist_ok=True)
+				storagefile = join(folder, "iptosat_norhap.m3u")
+		return storagefile
 
 	def _prepareDownloadedM3U(self, m3u, deletecategories, storagefile):
 		if deletecategories:
@@ -1374,22 +1432,46 @@ class TimerUpdateCategories:
 		return result
 
 	def _bouquetsBuilt(self, build_result, preparation_result):
-		if build_result:
-			eConsoleAppContainer().execute('wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 ; rm -f ' + str(self.m3ufile) + ' ; echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches')
+		if not build_result:
+			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+				fw.write("Bouquet generation could not complete")
+			self.updating = False
+			return preparation_result
+		self.Console.ePopen(
+			['wget', 'wget', '-qO', '-', 'http://127.0.0.1/web/servicelistreload?mode=2'],
+			self._bouquetReloaded)
+		return preparation_result
+
+	def _bouquetReloaded(self, result, retVal, extra_args):
+		if retVal:
+			self.updating = False
+			message = "Bouquet reload failed (exit status %s)" % retVal
+			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+				fw.write(message)
+			log(message)
+			return
+		try:
+			remove(self.m3ufile)
+		except OSError as err:
+			log("Could not remove downloaded M3U: " + str(err))
+		eConsoleAppContainer().execute('echo 1 > /proc/sys/vm/drop_caches ; echo 2 > /proc/sys/vm/drop_caches ; echo 3 > /proc/sys/vm/drop_caches')
 		if isPluginInstalled("EPGImport") and exists(FOLDER_EPGIMPORT + "iptosat.channels.xml") and exists(EPG_CHANNELS_XML):
 			self.Console.ePopen(['sleep 0'], self.runEPGIMPORT)
 		else:
-			self.userbouquetCategoriesUpdate()
-		return preparation_result
+			self.finishUpdate()
 
 	def _bouquetBuildFailed(self, failure):
+		self.updating = False
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
+		log("Scheduled bouquet generation failed: " + failure.getErrorMessage())
 		return None
 
 	def _downloadPreparationFailed(self, failure):
+		self.updating = False
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
+		log("Scheduled M3U preparation failed: " + failure.getErrorMessage())
 		return None
 
 	def userbouquetCategoriesUpdate(self):
@@ -1398,6 +1480,7 @@ class TimerUpdateCategories:
 
 	def userbouquetCategoriesUpdated(self, result=None, retVal=None, extra_args=None):
 		global bouquet_update  # noqa: F824
+		self.updating = False
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		if bouquet_updated is not None:
 			hours = f" {datetime.fromtimestamp(bouquet_updated).hour}:" if datetime.fromtimestamp(bouquet_updated).hour >= 10 else f" 0{datetime.fromtimestamp(bouquet_updated).hour}:"
@@ -1414,7 +1497,7 @@ class TimerUpdateCategories:
 	def runEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		deferToThread(updateEPGChannelIds, FOLDER_EPGIMPORT + "iptosat.channels.xml").addCallbacks(
 			self.epgChannelIdsUpdated,
-			self.epgChannelIdsUpdateFailed)
+			self.epgChannelIdsUpdateFailed).addErrback(self.epgImportFailed)
 
 	def epgChannelIdsUpdated(self, report):
 		logEPGChannelIdReport(report)
@@ -1423,6 +1506,26 @@ class TimerUpdateCategories:
 	def epgChannelIdsUpdateFailed(self, failure):
 		log("EPGImport channel ID check failed: " + failure.getErrorMessage())
 		self.startEPGIMPORT()
+
+	def epgImportFailed(self, failure):
+		global clearCacheEPG
+		self.updating = False
+		message = "Scheduled EPG import failed: " + failure.getErrorMessage()
+		log(message)
+		if clearCacheEPG:
+			config.plugins.epgimport.clear_oldepg.value = True
+			config.plugins.epgimport.clear_oldepg.save()
+			clearCacheEPG = False
+		if exists(EPG_IMPORT_CONFIG_BACK):
+			if islink(EPG_IMPORT_CONFIG):
+				unlink(EPG_IMPORT_CONFIG)
+			if not exists(EPG_IMPORT_CONFIG):
+				move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
+			else:
+				log("EPGImport configuration backup retained: destination already exists")
+		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
+			fw.write(message)
+		return None
 
 	def startEPGIMPORT(self):
 		global clearCacheEPG  # noqa: F824
@@ -1440,23 +1543,65 @@ class TimerUpdateCategories:
 			self.Console = Console()
 			self.Console.ePopen(['sleep 2'], self.finishedEPGIMPORT)
 		else:
-			self.userbouquetCategoriesUpdate()
+			self.finishUpdate()
 
 	def finishedEPGIMPORT(self, result=None, retVal=None, extra_args=None):
 		global clearCacheEPG  # noqa: F824
 		if clearCacheEPG is True:
 			config.plugins.epgimport.clear_oldepg.value = True
 			config.plugins.epgimport.clear_oldepg.save()
+			clearCacheEPG = False
 		if exists(EPG_IMPORT_CONFIG_BACK):
 			unlink(EPG_IMPORT_CONFIG)
 			move(EPG_IMPORT_CONFIG_BACK, EPG_IMPORT_CONFIG)
-		if config.plugins.IPToSAT.deepstandby.value and getFPWasTimerWakeup():
-			self.Console = Console()
-			self.Console.ePopen(['sleep 120'], self.deepStandbyAfterUpdateCategories)  # Delay for Deep Standby Mode.
+		self.finishUpdate()
+
+	def finishUpdate(self):
+		if config.plugins.IPToSAT.deepstandby.value and self.wakeupStandby is not None:
+			self.shutdownTimer.startLongTimer(120)
 		else:
 			self.userbouquetCategoriesUpdate()
 
 	def deepStandbyAfterUpdateCategories(self, result=None, retVal=None, extra_args=None):
+		from Screens import Standby
+		if (not config.plugins.IPToSAT.autotimerbouquets.value
+				or not config.plugins.IPToSAT.timebouquetsdeepstandby.value
+				or not config.plugins.IPToSAT.deepstandby.value
+				or self.wakeupStandby is None or Standby.inStandby is not self.wakeupStandby):
+			log("Automatic shutdown cancelled: standby or timer settings changed")
+			self.userbouquetCategoriesUpdate()
+			return
+		get_reasons = getattr(Standby, "getReasons", None)
+		if get_reasons is None or get_reasons(self.session):
+			log("Automatic shutdown cancelled: receiver has pending activity")
+			self.userbouquetCategoriesUpdate()
+			return
+		nav = self.session.nav
+		now = time()
+		next_zap = nav.RecordTimer.getNextZapTime()
+		power_timer = getattr(nav, "PowerTimer", None)
+		if power_timer and (not hasattr(power_timer, "isProcessing") or power_timer.isProcessing()):
+			log("Automatic shutdown cancelled: power timer activity cannot be ruled out")
+			self.userbouquetCategoriesUpdate()
+			return
+		next_power = power_timer.getNextPowerManagerTime() if power_timer else -1
+		if any(0 <= scheduled - now < 360 for scheduled in (next_zap, next_power) if scheduled > 0):
+			log("Automatic shutdown cancelled: another timer is due")
+			self.userbouquetCategoriesUpdate()
+			return
+		if isPluginInstalled("EPGImport"):
+			try:
+				from Plugins.Extensions.EPGImport import plugin as epgimport_plugin
+			except ImportError as err:
+				log("Automatic shutdown cancelled: cannot check EPG import: " + str(err))
+				self.userbouquetCategoriesUpdate()
+				return
+			importer = getattr(epgimport_plugin, "epgimport", None)
+			if importer is None or not hasattr(importer, "isImportRunning") or importer.isImportRunning():
+				log("Automatic shutdown cancelled: EPG import is running or cannot be checked")
+				self.userbouquetCategoriesUpdate()
+				return
+		self.updating = False
 		global bouquet_update  # noqa: F824
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		if bouquet_updated is not None:
@@ -1472,11 +1617,17 @@ class TimerUpdateCategories:
 					fw.write(now)
 		self.session.open(TryQuitMainloop, 1)
 
-	def refreshScheduler(self):
-		now = int(time())
+	def refreshScheduler(self, delay=True):
+		self.categoriestimerStart.stop()
+		self.categoriestimer.stop()
+		if self.shutdownTimer.isActive():
+			self.userbouquetCategoriesUpdate()
+		self.shutdownTimer.stop()
 		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.categoriestimerStart.callback.append(self.prepareTimer)
-			self.categoriestimerStart.start(15000, True)  # Delay for localtime to display real time e.g. Start from the rear button or from the power supply.
+			if delay:
+				self.categoriestimerStart.start(15000, True)
+			else:
+				self.prepareTimer()
 
 
 class TimerOffCard:
@@ -1717,8 +1868,6 @@ class IPToSAT(Screen):
 				self.timercardOn = TimerOnCard()  # card timer initializer on from reboot
 		END Card timer, unused code.
 		"""
-		if config.plugins.IPToSAT.autotimerbouquets.value:
-			self.timercategories = TimerUpdateCategories(self.session)  # category update timer initializer
 		self.container = eConsoleAppContainer()
 		self.ip_sat = False
 
@@ -2831,21 +2980,20 @@ class AssignService(ChannelSelectionBase):
 				print("ERROR: %s" % str(err))
 
 	def createBouquetIPTV(self):
-		global bouquet_update
-		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		self.docreateBouquetIPTV()
 
 	def docreateBouquetIPTV(self):
-		global manual_m3u_job
+		global manual_m3u_job, bouquet_update
 		if hasattr(self, "getSref"):
 			sref = str(self.getSref())
 			channel_name = str(ServiceReference(sref).getServiceName())
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
 				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					if manual_m3u_job is not None:
-						log("Manual M3U update already in progress")
+					if manual_m3u_job is not None or (timerupdatecategories is not None and timerupdatecategories.updating):
+						log("Bouquet update already in progress")
 						return
+					bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 					if exists(str(CATEGORIES_TIMER_ERROR)):
 						remove(CATEGORIES_TIMER_ERROR)
 					if exists(str(CATEGORIES_TIMER_OK)):
@@ -4821,8 +4969,7 @@ def autostart(reason, session=None, **kwargs):
 	global timerupdatecategories
 	if reason == 0:
 		if timerupdatecategories is None:
-			if config.plugins.IPToSAT.autotimerbouquets.value and config.plugins.IPToSAT.timebouquetsdeepstandby.value:
-				timerupdatecategories = TimerUpdateCategories(session)
+			timerupdatecategories = TimerUpdateCategories(session)
 		if config.plugins.IPToSAT.enable.value:
 			killActivePlayer()
 			if fileExists('/usr/bin/{}'.format(config.plugins.IPToSAT.player.value)):
@@ -4837,8 +4984,9 @@ def iptosatSetup(session, **kwargs):
 
 def wakeupForTimerUpdateCategories():
 	"""Start updating categories bouquets from Deep Standby Mode"""
-	if timerupdatecategories is not None:
-		return timerupdatecategories.prepareTimer()
+	if (timerupdatecategories is not None and config.plugins.IPToSAT.autotimerbouquets.value
+			and config.plugins.IPToSAT.timebouquetsdeepstandby.value):
+		return timerupdatecategories.nextDownloadTime()
 	return -1
 
 
