@@ -1,4 +1,4 @@
-from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eDVBDB, eTimer, gRGB, eConsoleAppContainer, getDesktop
+from enigma import iPlayableService, iServiceInformation, iFrontendInformation, eDVBDB, eTimer, eActionMap, gRGB, eConsoleAppContainer, getDesktop
 from boxbranding import getBoxType  # MODEL import from getBoxType for all images OE
 from requests import get
 from process import ProcessList
@@ -15,7 +15,7 @@ from configparser import ConfigParser
 from time import sleep, localtime, mktime, time
 from shutil import move, copy
 from re import search, sub, match
-from sys import stdout
+from sys import stdout, maxsize
 from RecordTimer import RecordTimerEntry
 from ServiceReference import ServiceReference
 from timer import TimerEntry
@@ -1252,9 +1252,39 @@ class TimerUpdateCategories:
 		self.shutdownTimer.callback.append(self.deepStandbyAfterUpdateCategories)
 		self.updating = False
 		self.wakeupStandby = None
+		self.automaticWakeupTime = None
+		self.shutdownEligible = False
+		self.shutdownDeadline = 0
 		self.startupRecovery = True
 		self.scheduledtime = -1
 		self.refreshScheduler()
+		wake, _, _, _ = self.getCategoriesWakeup()
+		if (config.plugins.IPToSAT.autotimerbouquets.value
+				and config.plugins.IPToSAT.deepstandby.value and wake > 0
+				and (localtime(wake).tm_hour, localtime(wake).tm_min) == tuple(config.plugins.IPToSAT.timebouquets.value)
+				and self.isCategoriesTimerWakeup(wake, int(time()))):
+			self.automaticWakeupTime = wake
+			eActionMap.getInstance().bindAction("", -maxsize - 1, self.cancelAutomaticShutdownOnKey)
+
+	def stopWakeupTracking(self):
+		if self.automaticWakeupTime is not None:
+			eActionMap.getInstance().unbindAction("", self.cancelAutomaticShutdownOnKey)
+			self.automaticWakeupTime = None
+		self.shutdownEligible = False
+
+	def cancelAutomaticShutdownOnKey(self, key, flag):
+		if flag:
+			log("Automatic shutdown cancelled: user activity detected")
+			self.stopWakeupTracking()
+		return 0
+
+	def trackUpdateWakeup(self, wake, now, standby):
+		self.shutdownEligible = (
+			self.automaticWakeupTime is not None
+			and abs(self.automaticWakeupTime - wake) < 60
+			and self.isCategoriesTimerWakeup(wake, now)
+		)
+		self.wakeupStandby = standby
 
 	def getTimeDownloadCategories(self):
 		downloadcategoriesclock = config.plugins.IPToSAT.timebouquets.value
@@ -1282,8 +1312,7 @@ class TimerUpdateCategories:
 		if self.startupRecovery:
 			self.startupRecovery = False
 			now = int(time())
-			wakeup_time = getattr(config.misc, "prev_wakeup_time", None)
-			scheduled = wakeup_time.value if wakeup_time else -1
+			scheduled, _, _, _ = self.getCategoriesWakeup()
 			wakeup_clock = localtime(scheduled) if scheduled > 0 else None
 			if (config.plugins.IPToSAT.autotimerbouquets.value
 					and wakeup_clock and (wakeup_clock.tm_hour, wakeup_clock.tm_min) == tuple(config.plugins.IPToSAT.timebouquets.value)
@@ -1294,28 +1323,36 @@ class TimerUpdateCategories:
 			self.categoriestimer.startLongTimer(max(0, downloadtime - int(time())))
 		return downloadtime
 
-	def isCategoriesTimerWakeup(self, scheduled, now):
+	def getCategoriesWakeup(self):
+		nav = self.session.nav
+		if hasattr(nav, "timertime") and hasattr(nav, "wakeuptyp") and hasattr(nav, "wasTimerWakeup"):
+			return nav.timertime, nav.wakeuptyp == 3, nav.wasTimerWakeup(), getattr(nav, "wakeuptime", -1)
 		wakeup_type = getattr(config.misc, "prev_wakeup_time_type", None)
 		wakeup_time = getattr(config.misc, "prev_wakeup_time", None)
+		wake = wakeup_time.value if wakeup_time else -1
+		return wake, bool(wakeup_type and wakeup_type.value == 2), getFPWasTimerWakeup(), wake - 540
+
+	def isCategoriesTimerWakeup(self, scheduled, now):
+		wake, plugin_wakeup, was_timer_wakeup, hardware_wakeup = self.getCategoriesWakeup()
 		return bool(config.plugins.IPToSAT.timebouquetsdeepstandby.value
-			and getFPWasTimerWakeup() and wakeup_type and wakeup_type.value == 2
-			and wakeup_time and abs(wakeup_time.value - scheduled) < 60
-			and abs(now - wakeup_time.value) < 600)
+			and was_timer_wakeup and plugin_wakeup and wake > 0 and hardware_wakeup > 0
+			and abs(wake - scheduled) < 60
+			and hardware_wakeup - 60 <= now < wake + 600)
 
 	def iptosatDownloadTimer(self):
 		global bouquet_update
 		wake = self.scheduledtime
 		self.prepareTimer()
 		if not config.plugins.IPToSAT.autotimerbouquets.value:
+			self.stopWakeupTracking()
 			return
 		if self.updating or manual_m3u_job is not None:
 			log("Scheduled bouquet update skipped: another update is in progress")
+			self.stopWakeupTracking()
 			return
 		from Screens import Standby
 		now = int(time())
-		self.wakeupStandby = None
-		if self.isCategoriesTimerWakeup(wake, now):
-			self.wakeupStandby = Standby.inStandby
+		self.trackUpdateWakeup(wake, now, Standby.inStandby)
 		self.updating = True
 		bouquet_update = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
 		self.Console = Console()
@@ -1345,6 +1382,7 @@ class TimerUpdateCategories:
 
 	def _downloadM3UFailed(self, failure, wake, now):
 		self.updating = False
+		self.stopWakeupTracking()
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
 		log("Scheduled M3U download failed: " + failure.getErrorMessage())
@@ -1353,6 +1391,7 @@ class TimerUpdateCategories:
 	def _processDownloadedM3U(self, m3u, wake, now):
 		if wake - now >= 60 or not config.plugins.IPToSAT.autotimerbouquets.value:
 			self.updating = False
+			self.stopWakeupTracking()
 			return
 		if exists(str(CATEGORIES_TIMER_ERROR)):
 			remove(CATEGORIES_TIMER_ERROR)
@@ -1372,14 +1411,17 @@ class TimerUpdateCategories:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write(language.get(lang, "156"))
 				self.updating = False
+				self.stopWakeupTracking()
 			else:
 				with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 					fw.write("The M3U download was empty")
 				self.updating = False
+				self.stopWakeupTracking()
 		except Exception as err:
 			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 				fw.write(str(err))
 			self.updating = False
+			self.stopWakeupTracking()
 			log("Scheduled bouquet update failed: " + str(err))
 
 	def getM3UStorageFile(self):
@@ -1436,6 +1478,7 @@ class TimerUpdateCategories:
 			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 				fw.write("Bouquet generation could not complete")
 			self.updating = False
+			self.stopWakeupTracking()
 			return preparation_result
 		self.Console.ePopen(
 			['wget', 'wget', '-qO', '-', 'http://127.0.0.1/web/servicelistreload?mode=2'],
@@ -1445,6 +1488,7 @@ class TimerUpdateCategories:
 	def _bouquetReloaded(self, result, retVal, extra_args):
 		if retVal:
 			self.updating = False
+			self.stopWakeupTracking()
 			message = "Bouquet reload failed (exit status %s)" % retVal
 			with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 				fw.write(message)
@@ -1462,6 +1506,7 @@ class TimerUpdateCategories:
 
 	def _bouquetBuildFailed(self, failure):
 		self.updating = False
+		self.stopWakeupTracking()
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
 		log("Scheduled bouquet generation failed: " + failure.getErrorMessage())
@@ -1469,6 +1514,7 @@ class TimerUpdateCategories:
 
 	def _downloadPreparationFailed(self, failure):
 		self.updating = False
+		self.stopWakeupTracking()
 		with open(CATEGORIES_TIMER_ERROR, "w") as fw:
 			fw.write(str(failure.value))
 		log("Scheduled M3U preparation failed: " + failure.getErrorMessage())
@@ -1510,6 +1556,7 @@ class TimerUpdateCategories:
 	def epgImportFailed(self, failure):
 		global clearCacheEPG
 		self.updating = False
+		self.stopWakeupTracking()
 		message = "Scheduled EPG import failed: " + failure.getErrorMessage()
 		log(message)
 		if clearCacheEPG:
@@ -1557,9 +1604,11 @@ class TimerUpdateCategories:
 		self.finishUpdate()
 
 	def finishUpdate(self):
-		if config.plugins.IPToSAT.deepstandby.value and self.wakeupStandby is not None:
+		if config.plugins.IPToSAT.deepstandby.value and self.shutdownEligible:
+			self.shutdownDeadline = time() + 7200
 			self.shutdownTimer.startLongTimer(120)
 		else:
+			self.stopWakeupTracking()
 			self.userbouquetCategoriesUpdate()
 
 	def deepStandbyAfterUpdateCategories(self, result=None, retVal=None, extra_args=None):
@@ -1567,26 +1616,53 @@ class TimerUpdateCategories:
 		if (not config.plugins.IPToSAT.autotimerbouquets.value
 				or not config.plugins.IPToSAT.timebouquetsdeepstandby.value
 				or not config.plugins.IPToSAT.deepstandby.value
-				or self.wakeupStandby is None or Standby.inStandby is not self.wakeupStandby):
+				or not self.shutdownEligible or Standby.inStandby is not self.wakeupStandby):
 			log("Automatic shutdown cancelled: standby or timer settings changed")
+			self.stopWakeupTracking()
+			self.userbouquetCategoriesUpdate()
+			return
+		service = self.session.nav.getCurrentService()
+		timeshift = service and service.timeshift()
+		if timeshift and timeshift.isTimeshiftActive():
+			log("Automatic shutdown cancelled: timeshift is active")
+			self.stopWakeupTracking()
 			self.userbouquetCategoriesUpdate()
 			return
 		get_reasons = getattr(Standby, "getReasons", None)
-		if get_reasons is None or get_reasons(self.session):
+		if get_reasons is not None:
+			pending_activity = get_reasons(self.session)
+		else:
+			from Components.Task import job_manager
+			from Components.Sources.StreamService import StreamServiceList
+			from Screens.InfoBar import InfoBar
+			from enigma import eStreamServer
+			nav = self.session.nav
+			next_recording = nav.RecordTimer.getNextRecordingTime()
+			clients = eStreamServer.getInstance().getConnectedClients()
+			info_bar = InfoBar.instance
+			pending_activity = (nav.getRecordings() or job_manager.getPendingJobs()
+				or (next_recording > 0 and next_recording - time() < 360)
+				or (info_bar and (info_bar.ptsGetTimeshiftStatus() or info_bar.save_current_timeshift))
+				or [client for client in clients if client[0] not in ("127.0.0.1", "::1", "::ffff:127.0.0.1")]
+				or StreamServiceList)
+		if pending_activity:
 			log("Automatic shutdown cancelled: receiver has pending activity")
+			self.stopWakeupTracking()
 			self.userbouquetCategoriesUpdate()
 			return
 		nav = self.session.nav
 		now = time()
 		next_zap = nav.RecordTimer.getNextZapTime()
-		power_timer = getattr(nav, "PowerTimer", None)
+		power_timer = getattr(nav, "PowerTimer", None) or getattr(nav, "Scheduler", None)
 		if power_timer and (not hasattr(power_timer, "isProcessing") or power_timer.isProcessing()):
 			log("Automatic shutdown cancelled: power timer activity cannot be ruled out")
+			self.stopWakeupTracking()
 			self.userbouquetCategoriesUpdate()
 			return
 		next_power = power_timer.getNextPowerManagerTime() if power_timer else -1
 		if any(0 <= scheduled - now < 360 for scheduled in (next_zap, next_power) if scheduled > 0):
 			log("Automatic shutdown cancelled: another timer is due")
+			self.stopWakeupTracking()
 			self.userbouquetCategoriesUpdate()
 			return
 		if isPluginInstalled("EPGImport"):
@@ -1594,13 +1670,25 @@ class TimerUpdateCategories:
 				from Plugins.Extensions.EPGImport import plugin as epgimport_plugin
 			except ImportError as err:
 				log("Automatic shutdown cancelled: cannot check EPG import: " + str(err))
+				self.stopWakeupTracking()
 				self.userbouquetCategoriesUpdate()
 				return
 			importer = getattr(epgimport_plugin, "epgimport", None)
-			if importer is None or not hasattr(importer, "isImportRunning") or importer.isImportRunning():
-				log("Automatic shutdown cancelled: EPG import is running or cannot be checked")
+			if importer is None or not hasattr(importer, "isImportRunning"):
+				log("Automatic shutdown cancelled: EPG import cannot be checked")
+				self.stopWakeupTracking()
 				self.userbouquetCategoriesUpdate()
 				return
+			if importer.isImportRunning():
+				if now < self.shutdownDeadline:
+					log("Automatic shutdown waiting for EPG import to finish")
+					self.shutdownTimer.startLongTimer(30)
+				else:
+					log("Automatic shutdown cancelled: EPG import did not finish in time")
+					self.stopWakeupTracking()
+					self.userbouquetCategoriesUpdate()
+				return
+		self.stopWakeupTracking()
 		self.updating = False
 		global bouquet_update  # noqa: F824
 		bouquet_updated = getmtime(str(BOUQUET_IPTV_NORHAP)) if exists(str(BOUQUET_IPTV_NORHAP)) else None
@@ -1622,6 +1710,7 @@ class TimerUpdateCategories:
 		self.categoriestimer.stop()
 		if self.shutdownTimer.isActive():
 			self.userbouquetCategoriesUpdate()
+		self.stopWakeupTracking()
 		self.shutdownTimer.stop()
 		if config.plugins.IPToSAT.autotimerbouquets.value:
 			if delay:

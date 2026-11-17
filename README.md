@@ -20,3 +20,13 @@ deja sin asignación en lugar de escoger una guía potencialmente incorrecta.
 
 Tras actualizar el plugin y el mapa de EPGImport instalado, hay que regenerar
 los bouquets IPTV para aplicar las referencias nuevas.
+
+## Actualización automática y apagado
+
+Si el receptor despierta por el temporizador de IPToSAT y está configurado
+para volver a deep standby, espera a que termine la importación EPG (hasta
+dos horas). El apagado se cancela si se usa el mando, cambia el estado de
+standby, se está usando timeshift o hay actividad que impida apagar. Un búfer
+automático de timeshift que no se esté usando no impide el apagado por sí solo.
+Los motivos se registran en
+`/tmp/IPToSAT.log`.
