@@ -1958,7 +1958,87 @@ class IPToSAT(Screen):
 		END Card timer, unused code.
 		"""
 		self.container = eConsoleAppContainer()
+		try:
+			self.container.appClosed.append(self.__playerClosed)
+		except AttributeError:
+			self.playerClosedConn = self.container.appClosed.connect(self.__playerClosed)
+		self.playerStopRequested = False
 		self.ip_sat = False
+		self.pendingPlayback = None
+		self.playerExitTimer = eTimer()
+		self.playerExitTimer.callback.append(self.__playerExitTimeout)
+		self.resumePlaybackTimer = eTimer()
+		self.resumePlaybackTimer.callback.append(self.__resumePlayback)
+		if hasattr(self.session.nav, "playServiceExtensions") and hasattr(self.session.nav, "originalPlayingServiceReference"):
+			self.session.nav.playServiceExtensions.insert(0, self.__deferPlayback)
+			self.onClose.append(self.__removePlaybackExtension)
+		else:
+			print("[IPToSAT] IPTV handover unavailable: Navigation extension support missing")
+
+	def __removePlaybackExtension(self):
+		self.pendingPlayback = None
+		self.playerExitTimer.stop()
+		self.resumePlaybackTimer.stop()
+		self.session.nav.playServiceExtensions.remove(self.__deferPlayback)
+
+	def __deferPlayback(self, navigation, ref, event, infoBar):
+		self.pendingPlayback = None
+		self.playerExitTimer.stop()
+		self.resumePlaybackTimer.stop()
+		if (self.playerStopRequested and self.container.running()
+				and ref.type == 4097 and ref.getPath().lower().startswith(("http://", "https://"))):
+			self.pendingPlayback = (navigation.originalPlayingServiceReference, navigation.currentlyPlayingServiceReference)
+			self.playerExitTimer.start(10000, True)
+			print("[IPToSAT] waiting for player exit before starting IPTV")
+			return ref, True
+		return ref
+
+	def __pendingPlaybackIsCurrent(self):
+		if self.pendingPlayback is None:
+			return False
+		logical, service = self.pendingPlayback
+		navigation = self.session.nav
+		return (navigation.originalPlayingServiceReference == logical
+			and navigation.getCurrentlyPlayingServiceReference() == service
+			and navigation.getCurrentService() is None)
+
+	def __resumePlayback(self):
+		if not self.__pendingPlaybackIsCurrent():
+			self.pendingPlayback = None
+			return
+		logical, _service = self.pendingPlayback
+		self.pendingPlayback = None
+		print("[IPToSAT] player exited; resuming IPTV")
+		self.session.nav.playService(logical, checkParentalControl=False, forceRestart=True)
+
+	def __playerExitTimeout(self):
+		if self.__pendingPlaybackIsCurrent():
+			print("[IPToSAT] player did not exit; IPTV start cancelled")
+			self.pendingPlayback = None
+			self.session.nav.stopService()
+			AddPopup(_("IPToSAT: The player did not stop. Unable to start the stream."), type=MessageBox.TYPE_ERROR, timeout=10)
+		else:
+			self.pendingPlayback = None
+
+	def __playerClosed(self, exitCode):
+		if self.playerStopRequested:
+			print(f"[IPToSAT] player stopped with exit code {exitCode}")
+		self.playerStopRequested = False
+		if self.pendingPlayback is not None:
+			self.playerExitTimer.stop()
+			self.resumePlaybackTimer.start(0, True)
+
+	def __stopPlayer(self):
+		player = config.plugins.IPToSAT.player.value
+		running = self.container.running()
+		if running and self.playerStopRequested:
+			return
+		if running:
+			self.playerStopRequested = True
+		if player == "exteplayer3":
+			self.container.write("q\n", 2)
+		else:
+			self.container.sendCtrlC()
 
 	def current_channel(self, channel, lastservice):
 		if isPluginInstalled("FastChannelChange"):
@@ -1973,7 +2053,9 @@ class IPToSAT(Screen):
 					if isPluginInstalled("FastChannelChange"):
 						eFCCServiceManager.getInstance().setFCCEnable(False)
 					self.session.nav.stopService()
-					self.container.execute(f"{player} {ch['url']}")
+					result = self.container.execute(f"{player} {ch['url']}")
+					if result:
+						print(f"[IPToSAT] player start failed: {result}")
 					self.session.nav.playService(lastservice)
 					self.ip_sat = True
 					if isPluginInstalled("FastChannelChange"):
@@ -2008,7 +2090,7 @@ class IPToSAT(Screen):
 							self.recording = True
 							self.__InfoallowsMultipleRecordingsFBC()
 						if self.ip_sat:
-							self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+							self.__stopPlayer()
 							self.ip_sat = False
 						if allowsMultipleRecordings() is False and not self.recordingASingleConnection:
 							if recording_same_subscription and config.plugins.IPToSAT.typecategories.value in ("all", "live"):
@@ -2033,7 +2115,7 @@ class IPToSAT(Screen):
 									self.current_channel(channel_name, lastservice)
 							else:
 								if self.ip_sat:
-									self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+									self.__stopPlayer()
 									self.ip_sat = False
 			else:
 				self._retryCount = 0
@@ -2048,7 +2130,7 @@ class IPToSAT(Screen):
 			self.Timer.start(initializetime)
 
 	def __recordingInfo(self):
-		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+		self.__stopPlayer()
 		self.Timer.stop()
 		if not isPluginInstalled("FastChannelChange"):
 			AddPopup(language.get(lang, "214"), MessageBox.TYPE_INFO, timeout=0)
@@ -2056,7 +2138,7 @@ class IPToSAT(Screen):
 			AddPopup(language.get(lang, "218"), MessageBox.TYPE_INFO, timeout=0)
 
 	def __InfoallowsMultipleRecordingsFBC(self):
-		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+		self.__stopPlayer()
 		self.Timer.stop()
 		AddPopup(language.get(lang, "215"), MessageBox.TYPE_INFO, timeout=0)
 
@@ -2067,7 +2149,7 @@ class IPToSAT(Screen):
 			copy(resolveFilename(SCOPE_CONFIG, "lamedb5"), resolveFilename(SCOPE_PLUGINS, "Extensions/IPToSAT/lamedb5"))
 
 	def deactivateFCC(self):
-		self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+		self.__stopPlayer()
 		self.Timer.stop()
 
 		def restartDisableFCC(answer=False):
@@ -2092,7 +2174,7 @@ class IPToSAT(Screen):
 		self.Timer.stop()
 		player_ative = str(ProcessList().named(f"{config.plugins.IPToSAT.player.value}")).strip("[]")
 		if player_ative:
-			self.container.write("q\n", 2) if config.plugins.IPToSAT.player.value == "exteplayer3" else self.container.sendCtrlC()
+			self.__stopPlayer()
 
 
 class ManualM3UUpdate:
