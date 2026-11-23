@@ -2617,14 +2617,6 @@ class AssignService(ChannelSelectionBase):
 							self["description"].setText(language.get(lang, "78"))
 						backupfiles = ""
 						bouquetiptosatepg = ""
-						# ###################REMOVE IN A FEW MONTHS ###################
-						if BoxInfo.getItem("distro") == "openspa" and not exists(str(self.backupdirectory)):
-							if exists(str(self.backupdirectory).replace("SPA", "")):
-								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("SPA", "") + " " + str(self.backupdirectory))
-						elif BoxInfo.getItem("distro") == "norhap" and not exists(str(self.backupdirectory)):
-							if exists(str(self.backupdirectory).replace("Norhap", "")):
-								eConsoleAppContainer().execute('mv -f ' + str(self.backupdirectory).replace("Norhap", "") + " " + str(self.backupdirectory))
-						# ################### END ###################
 						if not exists(str(self.m3ufolder)):
 							eConsoleAppContainer().execute('mkdir -p ' + str(self.m3ufolder))
 						if not exists(str(self.piconfolder)):
@@ -3082,10 +3074,6 @@ class AssignService(ChannelSelectionBase):
 
 	def dobackupChannelsList(self, answer):
 		try:
-			backupfiles = ""
-			enigma2files = ""
-			bouquetiptosatepg = ""
-			tuxboxfiles = ""
 			camfolderspath = FILES_TUXBOX + '/config'
 			if answer:
 				self['managerlistchannels'].hide()
@@ -3093,41 +3081,44 @@ class AssignService(ChannelSelectionBase):
 					eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/binary-spa ; cp -f /usr/bin/*cam*' + ' ' + self.backupdirectory + '/binary-spa/')
 				for files in [x for x in listdir(self.backupdirectory) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or "iptosat.conf" in x or "iptosat.json" in x or "iptosatjsonall" in x or "iptosatjsoncard" in x or "iptosatcategories.json" in x or "iptosatreferences" in x or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or ".xml" in x or "fstab" in x or "auto.network" in x or "epgimport.conf" in x or "CCcam.cfg" in x]:
 					backupfiles = join(self.backupdirectory, files)
-					remove(backupfiles)
-					eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
+					if exists(str(backupfiles)):
+						remove(backupfiles)
+						eConsoleAppContainer().execute('rm -rf ' + self.backupdirectory + '/*oscam*' + " " + self.backupdirectory + '/*ncam*' + " " + self.backupdirectory + '/*wicardd*')
 				for fileschannelslist in [x for x in listdir(ENIGMA2_PATH) if "alternatives." in x or x.startswith("whitelist") or "lamedb" in x or x.endswith("iptosat.conf") or x.endswith("iptosat.json") or "iptosatjsonall" in x or "iptosatjsoncard" in x or x.endswith("iptosatcategories.json") or x.endswith("iptosatreferences") or "iptosatyourcatall" in x or x.endswith(".radio") or x.endswith(".tv") or "blacklist" in x or "settings" in x or "automounts.xml" in x or "epgimport.conf" in x]:
 					enigma2files = join(ENIGMA2_PATH, fileschannelslist)
-					if enigma2files:
+					if exists(str(enigma2files)):
 						copy(enigma2files, self.backupdirectory)
 						self['managerlistchannels'].show()
 						self.assignWidgetScript("#86dc3d", language.get(lang, "66"))
-				for files in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
-					etc_files = join("/etc", files)
-					if etc_files:
+				for files_etc in [x for x in listdir("/etc") if "fstab" in x or "auto.network" in x or x.startswith("wpa_supplicant.wlan") or "CCcam.cfg" in x or "shadow" in x or "inadyn.conf" in x and "inadyn.conf-opkg" not in x or "Camd" in x]:
+					etc_files = join("/etc", files_etc)
+					if exists(str(etc_files)):
 						copy(etc_files, self.backupdirectory)
 				for camfolders in [x for x in listdir(camfolderspath) if "oscam" in x or "ncam" in x or "wicardd" in x]:
 					camfolder = join(camfolderspath, camfolders)
-					if camfolder:
+					if exists(str(camfolder)):
 						eConsoleAppContainer().execute('cp -rf ' + camfolderspath + "/" + camfolders + ' ' + self.backupdirectory + '/')
 				for scripts in [x for x in listdir("/usr") if "script" in x]:
 					scriptsfolder = join("/usr", scripts)
-					eConsoleAppContainer().execute('cp -rf ' + scriptsfolder + ' ' + self.backupdirectory + '/')
-				for files in [x for x in listdir("/etc/network") if "interfaces" in x]:
-					interfaces = join("/etc/network", files)
+					if exists(str(scriptsfolder)):
+						eConsoleAppContainer().execute('cp -rf ' + scriptsfolder + ' ' + self.backupdirectory + '/')
+				for files_interfaces in [x for x in listdir("/etc/network") if "interfaces" in x]:
+					interfaces = join("/etc/network", files_interfaces)
 					for file in [x for x in listdir("/sys/class/net") if x.startswith("wlan")]:
 						wlan = join(file)
 						if exists(f"/etc/wpa_supplicant.{wlan}.conf"):
 							copy(interfaces, self.backupdirectory)
 				for fileschannelslist in [x for x in listdir(FILES_TUXBOX) if ".xml" in x and "timezone.xml" not in x]:
 					tuxboxfiles = join(FILES_TUXBOX, fileschannelslist)
-					if tuxboxfiles:
+					if exists(str(tuxboxfiles)):
 						copy(tuxboxfiles, self.backupdirectory)
 					if fileContains(CONFIG_PATH, "pass"):
 						self["status"].show()
-				for zerotierone in [x for x in listdir(FOLDER_TOKEN_ZEROTIER) if ".public" in x or ".secret" in x or ".prom" in x or "planet" in x or ".pid" in x or ".te" in x or ".port" in x or ".d" in x]:
-					zerotierfiles = join(str(FOLDER_TOKEN_ZEROTIER), zerotierone)
-					if zerotierfiles:
-						eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/') if exists(str(self.backupdirectory) + '/zerotier-one') else eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one ; cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
+				if exists(FOLDER_TOKEN_ZEROTIER):
+					for zerotierone in [x for x in listdir(FOLDER_TOKEN_ZEROTIER) if ".public" in x or ".secret" in x or ".prom" in x or "planet" in x or ".pid" in x or ".te" in x or ".port" in x or ".d" in x]:
+						zerotierfiles = join(str(FOLDER_TOKEN_ZEROTIER), zerotierone)
+						if exists(str(zerotierfiles)):
+							eConsoleAppContainer().execute('cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/') if exists(str(self.backupdirectory) + '/zerotier-one') else eConsoleAppContainer().execute('mkdir -p ' + self.backupdirectory + '/zerotier-one ; cp -rf ' + zerotierfiles + ' ' + self.backupdirectory + '/zerotier-one/')
 				self["key_rec"].setText("REC")
 				self["key_audio"].setText("AUDIO")
 				bouquetiptosatepg = join(self.backupdirectory, FILE_IPToSAT_EPG)
