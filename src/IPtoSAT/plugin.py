@@ -5,13 +5,16 @@ from process import ProcessList
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from twisted.web.client import getPage
+from twisted.internet import reactor
 from twisted.internet.threads import deferToThread
 from datetime import datetime
 from json import dump, loads
 from glob import glob
-from os import listdir, makedirs, remove, unlink, symlink
-from os.path import join, exists, getmtime, normpath, islink, splitext, basename
+from os import listdir, makedirs, remove, unlink, symlink, replace
+from os.path import join, exists, getmtime, normpath, islink, splitext, basename, dirname
 from configparser import ConfigParser
+from io import BytesIO
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from time import sleep, localtime, mktime, time
 from shutil import move, copy
 from re import search, sub, match
@@ -4758,6 +4761,9 @@ class InstallChannelsLists(Screen):
 	def __init__(self, session, *args):
 		self.session = session
 		Screen.__init__(self, session)
+		self._listScreenClosed = False
+		self._updatingLists = False
+		self.onClose.append(self._markListScreenClosed)
 		self.storage = False
 		self.folderlistchannels = None
 		self.zip_jungle = None
@@ -4794,6 +4800,16 @@ class InstallChannelsLists(Screen):
 			"0": self.restoreBackupChannelsList,
 			"1": self.restoreSettingsIPTOSAT
 		}, -2)
+		self["listprogressactions"] = ActionMap(["IPToSATActions"],
+		{
+			"left": self.goLeft,
+			"right": self.goRight,
+			"down": self.moveDown,
+			"up": self.moveUp,
+			"pageUp": self.pageUp,
+			"pageDown": self.pageDown
+		}, -2)
+		self["listprogressactions"].setEnabled(False)
 		self.listChannels = getChannelsLists()
 		self.chekScenarioToInstall()
 
@@ -4867,91 +4883,105 @@ class InstallChannelsLists(Screen):
 		self.close(True)
 
 	def doindexListsRepositories(self, answer):
-		self.satList = []
-		self.satellites = {}
-		self.transponders = {}
+		if not answer or self._updatingLists:
+			return
+		self._updatingLists = True
+		self["iptosatactions"].setEnabled(False)
+		self["listprogressactions"].setEnabled(True)
+		self._setListProgress("236")
+		deferToThread(self._indexListsRepositories).addCallbacks(self._listsIndexed, self._listsIndexFailed)
+
+	def _markListScreenClosed(self):
+		self._listScreenClosed = True
+
+	def _setListProgress(self, step):
+		if not getattr(self, "_listScreenClosed", True) and self._updatingLists:
+			self["status"].setText(language.get(lang, step))
+
+	def _indexListsRepositories(self):
 		from zipfile import ZipFile
-		if answer:
+
+		def download(url):
+			response = get(url, timeout=10)
 			try:
-				urljungle = 'https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip'
-				urlnorhap = 'https://github.com/norhap/channelslists/archive/refs/heads/main.zip'
-				junglerepository = get(urljungle, timeout=10)
-				norhaprepository = get(urlnorhap, timeout=10)
-				with open(CHANNELS_LISTS_PATH, 'w') as fw:
-					fw.write("{" + "\n" + '	"channelslists": []' + "\n" + "}")
-				with open(str(self.zip_jungle), "wb") as jungle:
-					jungle.write(junglerepository.content)
-				with open(str(self.zip_sorys_vuplusmania), "wb") as norhap:
-					norhap.write(norhaprepository.content)
-				# JUNGLE TEAM
-				if exists(str(self.zip_jungle)):
-					with ZipFile(self.zip_jungle, 'r') as zipfile:
-						zipfile.extractall(self.folderlistchannels)
-				junglerepo = self.folderlistchannels + '/*/*Jungle-*'
-				jungleupdatefile = self.folderlistchannels + '/**/*actualizacion*'
-				junglelists = ""
-				indexdate = ""
-				indexlistssources = getChannelsLists()
-				for file in glob(jungleupdatefile, recursive=True):
-					with open(file, 'r') as fr:
-						update = fr.readlines()
-						for indexdate in update:
-							indexdate = indexdate.replace("[", "")
-				for folders in glob(junglerepo, recursive=True):
-					junglelists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
-					indexlistssources['channelslists'].append({'listtype': junglelists})
-					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent=4)
-				# SORYS VUPLUSMANIA REPOSITORY CHANNELSLISTS NORHAP
-				if exists(str(self.zip_sorys_vuplusmania)):
-					with ZipFile(self.zip_sorys_vuplusmania, 'r') as zipfile:
-						zipfile.extractall(self.folderlistchannels)
-				sorysrepository = self.folderlistchannels + '/*/*Sorys-*'
-				sorysupdatefile = self.folderlistchannels + '/*/*Sorys-*/*actualizacion*'
-				soryslists = ""
-				indexdatecomunitarias = ""
-				for file in glob(sorysupdatefile, recursive=True):
+				response.raise_for_status()
+				return response.content
+			finally:
+				response.close()
+
+		jungle = download('https://github.com/jungla-team/Canales-enigma2/archive/refs/heads/main.zip')
+		reactor.callFromThread(self._setListProgress, "237")
+		norhap = download('https://github.com/norhap/channelslists/archive/refs/heads/main.zip')
+		reactor.callFromThread(self._setListProgress, "238")
+		indexlistssources = {"channelslists": []}
+		with TemporaryDirectory(prefix="iptosat-lists-", dir=self.folderlistchannels) as folder:
+			with ZipFile(BytesIO(jungle)) as archive:
+				archive.extractall(folder)
+			indexdate = ""
+			for file in glob(join(folder, '**', '*actualizacion*'), recursive=True):
+				with open(file, 'r') as fr:
+					for indexdate in fr:
+						indexdate = indexdate.replace("[", "")
+			for entry in glob(join(folder, '*', '*Jungle-*')):
+				name = str([basename(entry), indexdate])[1:-1].replace('\'', '').replace(',', '   ')
+				indexlistssources['channelslists'].append({'listtype': name})
+
+			with ZipFile(BytesIO(norhap)) as archive:
+				archive.extractall(folder)
+			indexdatecomunitarias = ""
+			for file in glob(join(folder, '*', '*Sorys-*', '*actualizacion*')):
+				with open(file, 'r') as fr:
 					if "comunitarias" not in file:
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for indexdate in update:
-								indexdate = indexdate.replace("[", "")
-					else:
-						with open(file, 'r') as fr:
-							update = fr.readlines()
-							for indexdatecomunitarias in update:
-								indexdatecomunitarias = indexdatecomunitarias.replace("[", "")
-				for folders in glob(sorysrepository, recursive=True):
-					if "Comunitarias" not in folders:
-						soryslists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
-						indexlistssources['channelslists'].append({'listtype': soryslists})
-					else:
-						soryslists = str([folders.split('main/')[1], indexdatecomunitarias])[1:-1].replace('\'', '').replace(',', '   ')
-						indexlistssources['channelslists'].append({'listtype': soryslists})
-					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent=4)
-				vuplusmaniarepository = self.folderlistchannels + '/*/*Vuplusmania-*'
-				vuplusmaniaupdatefile = self.folderlistchannels + '/*/*Vuplusmania-*/*actualizacion*'
-				vuplusmanialists = ""
-				for file in glob(vuplusmaniaupdatefile, recursive=True):
-					with open(file, 'r') as fr:
-						update = fr.readlines()
-						for indexdate in update:
+						for indexdate in fr:
 							indexdate = indexdate.replace("[", "")
-				for folders in glob(vuplusmaniarepository, recursive=True):
-					vuplusmanialists = str([folders.split('main/')[1], indexdate])[1:-1].replace('\'', '').replace(',', '   ')
-					indexlistssources['channelslists'].append({'listtype': vuplusmanialists})
-					with open(CHANNELS_LISTS_PATH, 'w') as f:
-						dump(indexlistssources, f, indent=4)
-				sleep(5)  # TODO
-				self.listChannels = getChannelsLists()
-				workdirectory = self.folderlistchannels + '/*'
-				for dirfiles in glob(workdirectory, recursive=True):
-					if exists(str(dirfiles)):
-						eConsoleAppContainer().execute('rm -rf ' + dirfiles)
-				self.iniMenu()
-			except Exception as err:
-				print("ERROR: %s" % str(err))
+					else:
+						for indexdatecomunitarias in fr:
+							indexdatecomunitarias = indexdatecomunitarias.replace("[", "")
+			for entry in glob(join(folder, '*', '*Sorys-*')):
+				date = indexdatecomunitarias if "Comunitarias" in entry else indexdate
+				name = str([basename(entry), date])[1:-1].replace('\'', '').replace(',', '   ')
+				indexlistssources['channelslists'].append({'listtype': name})
+			for file in glob(join(folder, '*', '*Vuplusmania-*', '*actualizacion*')):
+				with open(file, 'r') as fr:
+					for indexdate in fr:
+						indexdate = indexdate.replace("[", "")
+			for entry in glob(join(folder, '*', '*Vuplusmania-*')):
+				name = str([basename(entry), indexdate])[1:-1].replace('\'', '').replace(',', '   ')
+				indexlistssources['channelslists'].append({'listtype': name})
+
+		reactor.callFromThread(self._setListProgress, "239")
+		tempname = None
+		try:
+			with NamedTemporaryFile(mode='w', encoding='utf-8', dir=dirname(CHANNELS_LISTS_PATH), prefix='.iptosat-lists-', delete=False) as file:
+				tempname = file.name
+				dump(indexlistssources, file, indent=4)
+			replace(tempname, CHANNELS_LISTS_PATH)
+			tempname = None
+		finally:
+			if tempname is not None:
+				unlink(tempname)
+		return indexlistssources
+
+	def _listsIndexed(self, lists):
+		if getattr(self, "_listScreenClosed", True):
+			return
+		self._updatingLists = False
+		self["listprogressactions"].setEnabled(False)
+		self["iptosatactions"].setEnabled(True)
+		self.listChannels = lists
+		if not lists['channelslists']:
+			self['list'].l.setList([])
+			self["key_green"].setText("")
+		self.iniMenu()
+
+	def _listsIndexFailed(self, failure):
+		print("[IPToSAT] Channel list update failed: %s" % failure.getErrorMessage())
+		if not getattr(self, "_listScreenClosed", True):
+			self._updatingLists = False
+			self["listprogressactions"].setEnabled(False)
+			self["iptosatactions"].setEnabled(True)
+			self.iniMenu()
+			self.session.open(MessageBox, language.get(lang, "240") + "\n" + failure.getErrorMessage(), MessageBox.TYPE_ERROR, timeout=10)
 
 	def getinstallXMLUpdated(self):
 		def restarGUI(answer):

@@ -1,6 +1,13 @@
 # IPtoSAT
 ENIGMA2 PLUGIN IPtoSAT
 
+## Actualización del catálogo de listas
+
+El botón amarillo descarga e indexa las listas de Jungle y ChannelLists en
+segundo plano, mostrando las fases en pantalla. Si la actualización falla, se
+mantiene el catálogo anterior. La instalación de una lista sigue siendo una
+acción independiente.
+
 ## EPG IPTV y DVB
 
 Los canales TDT y autonómicos identificados en la lista IPTV pueden utilizar
