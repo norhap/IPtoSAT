@@ -2084,7 +2084,6 @@ class IPToSAT(Screen):
 							self.ip_sat = False
 						print("[IPToSAT] playback blocked until FCC is disabled and Enigma2 is restarted")
 						return
-				self.session.nav.streamRetryOverride = False
 				if self.session.nav.getCurrentlyPlayingServiceReference():
 					if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 						recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
@@ -2121,10 +2120,6 @@ class IPToSAT(Screen):
 								if self.ip_sat:
 									self.__stopPlayer()
 									self.ip_sat = False
-			else:
-				self._retryCount = 0
-				self.currentservice = self.session.nav.getCurrentlyPlayingServiceReference().toString()
-				self.session.nav.streamRetryOverride = True
 		except Exception as error:
 			print(f"[IPToSAT] get_channel failed: {type(error).__name__}")
 
