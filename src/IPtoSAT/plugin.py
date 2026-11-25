@@ -1967,6 +1967,7 @@ class IPToSAT(Screen):
 			self.playerClosedConn = self.container.appClosed.connect(self.__playerClosed)
 		self.playerStopRequested = False
 		self.ip_sat = False
+		self.fccRestartRequired = False
 		self.pendingPlayback = None
 		self.playerExitTimer = eTimer()
 		self.playerExitTimer.callback.append(self.__playerExitTimeout)
@@ -2044,25 +2045,17 @@ class IPToSAT(Screen):
 			self.container.sendCtrlC()
 
 	def current_channel(self, channel, lastservice):
-		if isPluginInstalled("FastChannelChange"):
-			from enigma import eFCCServiceManager  # noqa: E402
-			if config.usage.remote_fallback_enabled.value:
-				eFCCServiceManager.getInstance().setFCCEnable(False)
 		playlist = getPlaylist()
 		player = config.plugins.IPToSAT.player.value
 		if channel and playlist and not self.ip_sat:
 			for ch in playlist['playlist']:
 				if ch['sref'] == str(ServiceReference(lastservice)):
-					if isPluginInstalled("FastChannelChange"):
-						eFCCServiceManager.getInstance().setFCCEnable(False)
 					self.session.nav.stopService()
 					result = self.container.execute(f"{player} {ch['url']}")
 					if result:
 						print(f"[IPToSAT] player start failed: {result}")
 					self.session.nav.playService(lastservice)
 					self.ip_sat = True
-					if isPluginInstalled("FastChannelChange"):
-						eFCCServiceManager.getInstance().setFCCEnable(False)
 					break
 		if not self.session.nav.getRecordings():
 			self.recording = False
@@ -2078,12 +2071,20 @@ class IPToSAT(Screen):
 	def get_channel(self):
 		try:
 			if not getChannelOnFallbackTuner():
-				self.session.nav.streamRetryOverride = False
 				if isPluginInstalled("FastChannelChange"):
 					if config.plugins.fccsetup.activate.value:
 						config.plugins.fccsetup.activate.value = False
 						config.plugins.fccsetup.activate.save()
+						self.fccRestartRequired = True
 						self.deactivateFCC()
+						return
+					if self.fccRestartRequired or BoxInfo.getItem("FCCactive", False):
+						if self.ip_sat:
+							self.__stopPlayer()
+							self.ip_sat = False
+						print("[IPToSAT] playback blocked until FCC is disabled and Enigma2 is restarted")
+						return
+				self.session.nav.streamRetryOverride = False
 				if self.session.nav.getCurrentlyPlayingServiceReference():
 					if "http" in self.session.nav.getCurrentlyPlayingServiceReference().toString() and self.session.nav.getRecordings():
 						recording_same_subscription = config.plugins.IPToSAT.username.value in self.session.nav.getCurrentlyPlayingServiceReference().toString() or config.plugins.IPToSAT.domain.value.replace("http://", "").replace("https://", "") in self.session.nav.getCurrentlyPlayingServiceReference().toString()
@@ -2128,7 +2129,7 @@ class IPToSAT(Screen):
 			print(f"[IPToSAT] get_channel failed: {type(error).__name__}")
 
 	def __evStart(self):
-		initializetime = 1000 if not isPluginInstalled("FastChannelChange") else 2000
+		initializetime = 1000
 		if not self.Timer.isActive() or not isIPToSAT():
 			self.Timer.start(initializetime)
 
@@ -2153,6 +2154,7 @@ class IPToSAT(Screen):
 
 	def deactivateFCC(self):
 		self.__stopPlayer()
+		self.ip_sat = False
 		self.Timer.stop()
 
 		def restartDisableFCC(answer=False):
