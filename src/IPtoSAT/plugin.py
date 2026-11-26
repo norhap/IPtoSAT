@@ -39,8 +39,10 @@ from Components.Harddisk import harddiskmanager
 from Screens.Screen import Screen
 from Screens.ChannelSelection import ChannelSelectionBase
 from Screens.MessageBox import MessageBox
+from Screens.ChoiceBox import ChoiceBox
 from Screens.Standby import TryQuitMainloop
 from .epgchannels import updateEPGChannelIds
+from .vodposters import MARKED_CATEGORIES, POSTER_INDEX, image_url, marked_categories, save_json, service_key
 import NavigationInstance
 
 refSat = None
@@ -167,6 +169,7 @@ config.plugins.IPToSAT.assign = ConfigSelection(choices=[("1", language.get(lang
 config.plugins.IPToSAT.typecategories = ConfigSelection(choices=[("live", language.get(lang, "148")), ("vod", language.get(lang, "149")), ("series", language.get(lang, "150")), ("all", language.get(lang, "157")), ("none", language.get(lang, "158"))], default="live")
 config.plugins.IPToSAT.playlist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.categories = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
+config.plugins.IPToSAT.vodcategories = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.installchannelslist = ConfigSelection(choices=[("1", language.get(lang, "34"))], default="1")
 config.plugins.IPToSAT.domain = ConfigText(default="http://domain", fixed_size=False)
 config.plugins.IPToSAT.serverport = ConfigText(default="80", fixed_size=False)
@@ -534,6 +537,8 @@ def buildBouquetsFromM3U(input_file):
 	if not exists(input_file) or not exists(REFERENCES_FILE):
 		return False
 	categories = getCategories() or {}
+	_, _, vod_categories = marked_categories(config.plugins.IPToSAT)
+	vod_posters = {}
 	bouquets_categories = {categorie: [] for categorie in categories.keys()}
 	satellite_reference = loadSatelliteReference(REFERENCES_FILE)
 	favorite_name = splitext(basename(input_file))[0]
@@ -556,6 +561,7 @@ def buildBouquetsFromM3U(input_file):
 				except UnicodeDecodeError:
 					continue
 				if line.startswith("#EXTINF:"):
+					channel_logo = ""
 					if skip_channel:
 						skip_channel = False
 						continue
@@ -577,6 +583,9 @@ def buildBouquetsFromM3U(input_file):
 					group_title_match = search(r"group-title\s*=\s*[\"'](.*?)[\"']", line)
 					if group_title_match:
 						group_title = group_title_match.group(1)
+					logo_match = search(r"tvg-logo\s*=\s*[\"'](.*?)[\"']", line)
+					if logo_match:
+						channel_logo = image_url(logo_match.group(1))
 					channel_reference = "4097:0:1:0:0:0:0:0:0:0:"
 					order = None
 					if "FHD" in channel_name:
@@ -690,6 +699,8 @@ def buildBouquetsFromM3U(input_file):
 							for prefix in prefixes:
 								if readprefix.startswith(prefix):
 									bouquets_categories[categorie].append((order, channel_reference, stream_iptv, channel_name))
+									if categorie in vod_categories:
+										vod_posters[service_key(channel_url)] = channel_logo
 									added_to_favorites = True
 									break
 						channels.append((order, channel_reference, stream_iptv, channel_name))
@@ -726,6 +737,8 @@ def buildBouquetsFromM3U(input_file):
 			if channel_counter > 0:
 				addBouquetsTVEntry(categorie_favorite_name)
 				addBouquetsTVEntry(favorite_name)
+	if vod_categories or exists(POSTER_INDEX):
+		save_json(POSTER_INDEX, vod_posters)
 	return True
 def allowsMultipleRecordings():
 	if not exists(SUSCRIPTION_USER_DATA):
@@ -950,6 +963,8 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
 					self.list.append(getConfigListEntry(typeselectcategorie(),
 						config.plugins.IPToSAT.categories, language.get(lang, "74")))
+					self.list.append(getConfigListEntry(language.get(lang, "241"),
+						config.plugins.IPToSAT.vodcategories, language.get(lang, "242")))
 				else:
 					self.list.append(getConfigListEntry(typeselectcategorie(),
 						config.plugins.IPToSAT.categories, language.get(lang, "156")))
@@ -1037,8 +1052,38 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.session.open(EditPlaylist)
 		elif current[1] == config.plugins.IPToSAT.categories:
 			self.session.openWithCallback(self.categoriesEditorClosed, EditCategories)
+		elif current[1] == config.plugins.IPToSAT.vodcategories:
+			self.selectVodCategories()
 		elif current[1] == config.plugins.IPToSAT.installchannelslist:
 			self.session.open(InstallChannelsLists)
+
+	def selectVodCategories(self, selected=None):
+		try:
+			_, _, marked = marked_categories(config.plugins.IPToSAT)
+			categories = getCategories() or {}
+		except (OSError, ValueError, TypeError) as error:
+			self.session.open(MessageBox, language.get(lang, "244") + "\n" + str(error), MessageBox.TYPE_ERROR)
+			return
+		choices = [("[x] " + name if name in marked else "[ ] " + name, name) for name in sorted(categories)]
+		selection = next((index for index, choice in enumerate(choices) if choice[1] == selected), 0)
+		self.session.openWithCallback(self.toggleVodCategory, ChoiceBox, title=language.get(lang, "243"), list=choices, selection=selection)
+
+	def toggleVodCategory(self, result):
+		if not result:
+			return
+		try:
+			provider, providers, marked = marked_categories(config.plugins.IPToSAT)
+			name = result[1]
+			if name in marked:
+				marked.remove(name)
+			else:
+				marked.add(name)
+			providers[provider] = sorted(marked)
+			save_json(MARKED_CATEGORIES, providers)
+		except (OSError, ValueError, TypeError) as error:
+			self.session.open(MessageBox, language.get(lang, "244") + "\n" + str(error), MessageBox.TYPE_ERROR)
+			return
+		self.selectVodCategories(name)
 
 	def categoriesEditorClosed(self, ret=None):
 		self.createSetup()

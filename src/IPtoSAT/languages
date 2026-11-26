@@ -240,6 +240,10 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sync
 237 = Updating lists (2/4): downloading ChannelLists...
 238 = Updating lists (3/4): processing the lists...
 239 = Updating lists (4/4): saving the catalogue...
+241 = Mark VOD bouquets
+242 = Select movie categories, then update the bouquets to enable their posters.
+243 = Mark or unmark VOD categories with OK. Exit to finish.
+244 = Could not save or read VOD categories.
 240 = The channel lists could not be updated. The previous catalogue has been kept.
 
 [es]
@@ -483,4 +487,8 @@ Synchronize and view satellite channels through IPTV. Setup 2.1 by norhap = Sinc
 237 = Actualizando listas (2/4): descargando ChannelLists...
 238 = Actualizando listas (3/4): procesando las listas...
 239 = Actualizando listas (4/4): guardando el catálogo...
+241 = Marcar bouquets de películas VOD
+242 = Seleccione las categorías de películas y actualice los bouquets para activar sus carátulas.
+243 = Marque o desmarque categorías VOD con OK. Salga para terminar.
+244 = No se pudieron guardar o leer las categorías VOD.
 240 = No se han podido actualizar las listas. Se ha conservado el catálogo anterior.

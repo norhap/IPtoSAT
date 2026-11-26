@@ -1,6 +1,31 @@
 # IPtoSAT
 ENIGMA2 PLUGIN IPtoSAT
 
+## Carátulas VOD con XtraEvent
+
+Instale las versiones compatibles de IPToSAT y XtraEvent y reinicie Enigma2.
+En IPToSAT, abra «Marcar bouquets de películas VOD» y marque con OK solo las
+categorías que contienen películas. Salga y actualice los bouquets para guardar
+la asociación entre cada servicio y el `tvg-logo` de la lista del proveedor.
+Las marcas son independientes para cada suscripción. Después, en la
+configuración de XtraEvent, active «Carátulas VOD de IPToSAT» y configure su
+ubicación de almacenamiento. La skin debe usar `xtraPoster` con
+`session.Event_Now` en la InfoBar.
+
+La reproducción sigue usando la referencia existente. La imagen se descarga
+en segundo plano desde la dirección proporcionada por el proveedor y se guarda
+en la carpeta de XtraEvent. Si una entrada no trae imagen válida, no se muestra
+una carátula alternativa. Tras cambiar las categorías marcadas, regenere los
+bouquets; sin el `tvg-logo` del proveedor no se realiza ninguna búsqueda por
+título. Las direcciones con redirección no se admiten en esta primera versión.
+Para limitar el uso de memoria, solo se descarga una carátula VOD a la vez y
+se rechazan imágenes de más de 5 MiB o 4 millones de píxeles.
+
+El índice `/etc/enigma2/iptosat_vod_posters.json` contiene las direcciones de
+las imágenes, que podrían incluir datos privados del proveedor: no lo comparta.
+Si el mismo servicio aparece también en un bouquet no marcado, se identifica
+por su dirección de reproducción y utilizará igualmente su carátula.
+
 ## Actualización del catálogo de listas
 
 El botón amarillo descarga e indexa las listas de Jungle y ChannelLists en
