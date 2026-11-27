@@ -1,6 +1,29 @@
 # IPtoSAT
 ENIGMA2 PLUGIN IPtoSAT
 
+## Selección de categorías
+
+En los ajustes, elija directo, VOD, series o «Mis categorías» y abra la
+edición de categorías. El catálogo se consulta al proveedor al abrir el editor.
+Todas las categorías empiezan incluidas: pulse OK para marcar únicamente las
+que desea excluir. Las marcas se guardan por suscripción y también se
+mantienen si una categoría desaparece temporalmente del catálogo.
+
+«Mis categorías» reúne las categorías disponibles de los tres tipos, excepto
+las marcadas. Las categorías con el mismo nombre en distintos tipos comparten
+la marca, ya que el grupo de la lista M3U no permite distinguirlas. Al salir,
+actualice los bouquets: los excluidos se retiran de la lista, pero el bouquet
+general sigue conteniendo todos los servicios. Las actualizaciones automáticas
+usan el último catálogo consultado; abra de nuevo el editor para incorporar
+categorías nuevas del proveedor.
+Mientras una actualización manual o programada siga activa, espere a que
+termine antes de cambiar el tipo o editar las categorías.
+
+En el editor, el botón verde guarda una copia de las exclusiones en un
+dispositivo de almacenamiento local y el azul la restaura para la misma
+suscripción. La selección nueva empieza sin marcas y no importa la selección
+antigua. Las marcas para carátulas VOD se gestionan por separado.
+
 ## Carátulas VOD con XtraEvent
 
 Instale las versiones compatibles de IPToSAT y XtraEvent y reinicie Enigma2.

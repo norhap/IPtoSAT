@@ -42,7 +42,8 @@ from Screens.MessageBox import MessageBox
 from Screens.ChoiceBox import ChoiceBox
 from Screens.Standby import TryQuitMainloop
 from .epgchannels import updateEPGChannelIds
-from .vodposters import MARKED_CATEGORIES, POSTER_INDEX, image_url, marked_categories, save_json, service_key
+from .vodposters import MARKED_CATEGORIES, POSTER_INDEX, image_url, marked_categories, read_json, save_json, service_key
+from .categories import SELECTION_FILE, category_map, category_matchers, current_provider, entries, excluded_bouquets, fetch_catalog, match_category, read_selections, remove_excluded_entries, save_provider
 import NavigationInstance
 
 refSat = None
@@ -103,8 +104,6 @@ REFERENCES_FILE = resolveFilename(SCOPE_CONFIG, "iptosatreferences")
 CONFIG_PATH_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategories.json")
 WILD_CARD_ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcatall")
 WILD_CARD_CATYOURLIST = resolveFilename(SCOPE_CONFIG, "iptosatyourcatall")
-BACKUP_CATEGORIES = "iptosatyourcatbackup"
-WILD_CARD_CATEGORIES_FILE = resolveFilename(SCOPE_CONFIG, "wildcardcategories")
 ALL_CATEGORIES = resolveFilename(SCOPE_CONFIG, "iptosatcategoriesall.json")
 CATEGORIES_TIMER_OK = "/home/root/logs/timercatiptosat.log"
 TIMER_OK = ""
@@ -319,6 +318,12 @@ def getPlaylist():
 
 
 def getCategories():
+	if exists(SELECTION_FILE):
+		entry = read_selections().get(current_provider(config.plugins.IPToSAT))
+		if entry is None:
+			raise ValueError("No category catalog for this subscription")
+		kind = config.plugins.IPToSAT.typecategories.value
+		return category_map(entry, kind) if kind != "none" else {}
 	if fileExists(CONFIG_PATH_CATEGORIES):
 		with open(CONFIG_PATH_CATEGORIES, 'r') as f:
 			try:
@@ -327,6 +332,19 @@ def getCategories():
 				trace_error()
 	else:
 		return None
+
+
+def categoriesAvailable():
+	if config.plugins.IPToSAT.typecategories.value == "none":
+		return False
+	if exists(SELECTION_FILE):
+		getCategories()
+		return True
+	return not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":")
+
+
+def categoriesUpdateInProgress():
+	return manual_m3u_job is not None or (timerupdatecategories is not None and timerupdatecategories.updating)
 
 
 def getChannelsLists():
@@ -537,6 +555,12 @@ def buildBouquetsFromM3U(input_file):
 	if not exists(input_file) or not exists(REFERENCES_FILE):
 		return False
 	categories = getCategories() or {}
+	selection = None
+	matchers = None
+	kind = config.plugins.IPToSAT.typecategories.value
+	if exists(SELECTION_FILE):
+		selection = read_selections()[current_provider(config.plugins.IPToSAT)]
+		matchers = category_matchers(selection, kind)
 	_, _, vod_categories = marked_categories(config.plugins.IPToSAT)
 	vod_posters = {}
 	bouquets_categories = {categorie: [] for categorie in categories.keys()}
@@ -693,16 +717,23 @@ def buildBouquetsFromM3U(input_file):
 						stream_iptv = stream.replace(channel_name + enigma2_url + ":" + channel_name, channel_name)
 						readprefix = group_title if group_title else ""
 						added_to_favorites = False
-						for categorie, prefixes in (categories or {}).items():
-							if added_to_favorites or not isinstance(prefixes, (list, tuple)):
-								continue
-							for prefix in prefixes:
-								if readprefix.startswith(prefix):
-									bouquets_categories[categorie].append((order, channel_reference, stream_iptv, channel_name))
-									if categorie in vod_categories:
-										vod_posters[service_key(channel_url)] = channel_logo
-									added_to_favorites = True
-									break
+						if matchers is not None:
+							categorie = match_category(matchers, readprefix)
+							if categorie in bouquets_categories:
+								bouquets_categories[categorie].append((order, channel_reference, stream_iptv, channel_name))
+								if categorie in vod_categories:
+									vod_posters[service_key(channel_url)] = channel_logo
+						else:
+							for categorie, prefixes in (categories or {}).items():
+								if added_to_favorites or not isinstance(prefixes, (list, tuple)):
+									continue
+								for prefix in prefixes:
+									if readprefix.startswith(prefix):
+										bouquets_categories[categorie].append((order, channel_reference, stream_iptv, channel_name))
+										if categorie in vod_categories:
+											vod_posters[service_key(channel_url)] = channel_logo
+										added_to_favorites = True
+										break
 						channels.append((order, channel_reference, stream_iptv, channel_name))
 					elif skip_channel:
 						skip_channel = False
@@ -739,6 +770,8 @@ def buildBouquetsFromM3U(input_file):
 				addBouquetsTVEntry(favorite_name)
 	if vod_categories or exists(POSTER_INDEX):
 		save_json(POSTER_INDEX, vod_posters)
+	if selection is not None:
+		remove_excluded_entries(BOUQUETS_TV, favorite_name, excluded_bouquets(selection, "all"))
 	return True
 def allowsMultipleRecordings():
 	if not exists(SUSCRIPTION_USER_DATA):
@@ -960,17 +993,11 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				self.list.append(getConfigListEntry(language.get(lang, "160"),
 					config.plugins.IPToSAT.typecategories, language.get(lang, "168")))
 			else:
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					self.list.append(getConfigListEntry(typeselectcategorie(),
-						config.plugins.IPToSAT.categories, language.get(lang, "74")))
+				self.list.append(getConfigListEntry(typeselectcategorie(),
+					config.plugins.IPToSAT.categories, language.get(lang, "246")))
+				if fileContains(CONFIG_PATH_CATEGORIES, ":") or exists(SELECTION_FILE):
 					self.list.append(getConfigListEntry(language.get(lang, "241"),
 						config.plugins.IPToSAT.vodcategories, language.get(lang, "242")))
-				else:
-					self.list.append(getConfigListEntry(typeselectcategorie(),
-						config.plugins.IPToSAT.categories, language.get(lang, "156")))
-				if config.plugins.IPToSAT.typecategories.value != "all":
-					self.list.append(getConfigListEntry(language.get(lang, "171") + " " + typeselectcategorie(),
-						config.plugins.IPToSAT.usercategories, language.get(lang, "172") + " " + typeselectcategorie() + "."))
 				if fileContains(BOUQUETS_TV, "iptosat_norhap"):
 					self.list.append(getConfigListEntry(language.get(lang, "127"),
 						config.plugins.IPToSAT.deletecategories, language.get(lang, "122")))
@@ -1051,7 +1078,7 @@ class IPToSATSetup(Screen, ConfigListScreen):
 		elif current[1] == config.plugins.IPToSAT.playlist:
 			self.session.open(EditPlaylist)
 		elif current[1] == config.plugins.IPToSAT.categories:
-			self.session.openWithCallback(self.categoriesEditorClosed, EditCategories)
+			self.session.openWithCallback(self.categoriesEditorClosed, CategoryExclusions)
 		elif current[1] == config.plugins.IPToSAT.vodcategories:
 			self.selectVodCategories()
 		elif current[1] == config.plugins.IPToSAT.installchannelslist:
@@ -1095,6 +1122,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self.createSetup()
 
 	def keySave(self):
+		if self.typecategories != config.plugins.IPToSAT.typecategories.value and categoriesUpdateInProgress():
+			self.session.open(MessageBox, language.get(lang, "250"), MessageBox.TYPE_INFO)
+			return
 		if config.plugins.IPToSAT.typecategories.value == "none":
 			self.deleteBouquetsNorhap()
 		if self.timerupdatebouquets != tuple(config.plugins.IPToSAT.timebouquets.value):
@@ -1102,7 +1132,9 @@ class IPToSATSetup(Screen, ConfigListScreen):
 				remove(CATEGORIES_TIMER_ERROR)
 		if not config.plugins.IPToSAT.timebouquetsdeepstandby.value and config.plugins.IPToSAT.deepstandby.value:
 			config.plugins.IPToSAT.deepstandby.value = False
-		if config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
+		if exists(SELECTION_FILE):
+			pass
+		elif config.plugins.IPToSAT.typecategories.value not in ("all", "none"):
 			if self.typecategories != config.plugins.IPToSAT.typecategories.value and config.plugins.IPToSAT.usercategories.value:
 				config.plugins.IPToSAT.usercategories.value = False
 				config.plugins.IPToSAT.usercategories.save()
@@ -1238,14 +1270,25 @@ class IPToSATSetup(Screen, ConfigListScreen):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyLeft(self):
+		if self.categoryTypeChangeBlocked():
+			return
 		ConfigListScreen.keyLeft(self)
 		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
 
 	def keyRight(self):
+		if self.categoryTypeChangeBlocked():
+			return
 		ConfigListScreen.keyRight(self)
 		if BoxInfo.getItem("distro") not in ("norhap", "openspa"):
 			self["description"].text = self.getCurrentDescription()
+
+	def categoryTypeChangeBlocked(self):
+		current = self["config"].getCurrent()
+		if current and current[1] is config.plugins.IPToSAT.typecategories and categoriesUpdateInProgress():
+			self.session.open(MessageBox, language.get(lang, "250"), MessageBox.TYPE_INFO)
+			return True
+		return False
 
 	def saveiptosatconf(self):
 		"""
@@ -1447,7 +1490,7 @@ class TimerUpdateCategories:
 			remove(CATEGORIES_TIMER_OK)
 		try:
 			storagefile = self.getM3UStorageFile()
-			if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":") and m3u:
+			if categoriesAvailable() and m3u:
 				deferToThread(
 					self._prepareDownloadedM3U,
 					m3u,
@@ -1488,6 +1531,8 @@ class TimerUpdateCategories:
 		return storagefile
 
 	def _prepareDownloadedM3U(self, m3u, deletecategories, storagefile):
+		if not categoriesAvailable():
+			raise ValueError("No categories available")
 		if deletecategories:
 			bouquets_iptosat_norhap = [x for x in listdir(ENIGMA2_PATH) if "iptosat_norhap" in x]
 			if bouquets_iptosat_norhap:
@@ -2246,6 +2291,8 @@ class ManualM3UUpdate:
 			m3u = response.read()
 		if not m3u:
 			raise ValueError("The M3U download was empty")
+		if not categoriesAvailable():
+			raise ValueError("No categories available")
 		if deletecategories:
 			bouquets = [name for name in listdir(ENIGMA2_PATH) if "iptosat_norhap" in name]
 			if bouquets:
@@ -3196,7 +3243,7 @@ class AssignService(ChannelSelectionBase):
 			channel_name = str(ServiceReference(sref).getServiceName())
 		if exists(CONFIG_PATH) and not fileContains(CONFIG_PATH, "pass"):
 			try:
-				if not fileContains(CONFIG_PATH_CATEGORIES, "null") and fileContains(CONFIG_PATH_CATEGORIES, ":"):
+				if categoriesAvailable():
 					if manual_m3u_job is not None or (timerupdatecategories is not None and timerupdatecategories.updating):
 						log("Bouquet update already in progress")
 						return
@@ -3681,7 +3728,7 @@ class AssignService(ChannelSelectionBase):
 				if config.plugins.IPToSAT.usercategories.value:
 					config.plugins.IPToSAT.usercategories.value = False
 					config.plugins.IPToSAT.usercategories.save()
-				if config.plugins.IPToSAT.typecategories.value == "all":
+				if config.plugins.IPToSAT.typecategories.value == "all" and not exists(SELECTION_FILE):
 					if exists(str(ALL_CATEGORIES)):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
@@ -3763,7 +3810,7 @@ class AssignService(ChannelSelectionBase):
 					move(self.iptosatconfchange, self.iptosatlist1conf)
 				if exists(str(self.iptosatjsonchange)):
 					move(self.iptosatjsonchange, self.iptosatlist1json)
-					if config.plugins.IPToSAT.typecategories.value == "all":
+					if config.plugins.IPToSAT.typecategories.value == "all" and not exists(SELECTION_FILE):
 						if exists(str(ALL_CATEGORIES)):
 							remove(ALL_CATEGORIES)
 						if exists(str(WILD_CARD_ALL_CATEGORIES)):
@@ -3785,7 +3832,7 @@ class AssignService(ChannelSelectionBase):
 			if answer:
 				move(self.iptosatconfchange, self.iptosatlist2conf)
 				move(self.iptosatjsonchange, self.iptosatlist2json)
-				if config.plugins.IPToSAT.typecategories.value == "all":
+				if config.plugins.IPToSAT.typecategories.value == "all" and not exists(SELECTION_FILE):
 					if exists(str(ALL_CATEGORIES)):
 						remove(ALL_CATEGORIES)
 					if exists(str(WILD_CARD_ALL_CATEGORIES)):
@@ -3817,7 +3864,7 @@ class AssignService(ChannelSelectionBase):
 					move(self.iptosatconfchange, self.fileconf)
 					move(self.filejson, self.iptosatlist1json)
 					move(self.iptosatjsonchange, self.filejson)
-					if config.plugins.IPToSAT.typecategories.value == "all":
+					if config.plugins.IPToSAT.typecategories.value == "all" and not exists(SELECTION_FILE):
 						move(CONFIG_PATH_CATEGORIES, self.categoriesallwildcardchanged)
 						if exists(str(ALL_CATEGORIES)):
 							remove(ALL_CATEGORIES)
@@ -3942,7 +3989,7 @@ class AssignService(ChannelSelectionBase):
 				list.append((str(cat['category_name']),
 					str(cat['category_id'])))
 				bouquets_categories.append((str(cat['category_name'].replace(':', '').replace('.', '').replace('|', '').replace('   ', ' ').replace('  ', ' ').replace(u'\u00f1', '').replace(u'\u00c7', '').replace(u'\u00c2', '').replace(u'\u00da', '').replace(u'\u00cd', '').replace(u'\u00c9', '').replace(u'\u00d3', '').replace(u'\u2b50', '').replace('/', '').replace(u'\u2022', '').replace(u'\u26a1', '').replace(u'\u26bd', '').replace(u'\u00d1', 'N').replace(u'\u00cb', 'E')), str(cat['category_name'])))
-		if config.plugins.IPToSAT.typecategories.value != "all" and not config.plugins.IPToSAT.usercategories.value:
+		if not exists(SELECTION_FILE) and config.plugins.IPToSAT.typecategories.value != "all" and not config.plugins.IPToSAT.usercategories.value:
 			iptosatcategoriesjson = ""
 			with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
 				catclean.write("null")
@@ -4002,6 +4049,8 @@ class AssignService(ChannelSelectionBase):
 					self.assignWidgetScript("#00ff2525", language.get(lang, "105") + " " + expires + "\n" + language.get(lang, "106") + " " + language.get(lang, "117") + "\n" + language.get(lang, "107") + " " + max_connections)
 		except Exception as err:
 			print("ERROR: %s" % str(err))
+		if exists(SELECTION_FILE):
+			return
 		try:
 			if config.plugins.IPToSAT.typecategories.value == "live":
 				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
@@ -4265,509 +4314,177 @@ class EditPlaylist(Screen):
 		self["list"].self["list"].instance.pageDown
 
 
-class EditCategories(Screen):
-	skin = """
-	<screen name="EditCategories" position="center,center" size="1600,960" title="IPToSAT - Edit">
-		<widget name="list" itemHeight="41" position="18,14" size="1566,698" font="Regular;27" scrollbarMode="showOnDemand" scrollbarForegroundColor="#0044a2ff" scrollbarBorderColor="#0044a2ff" />
-		<widget source="key_red" render="Label" objectTypes="key_red,StaticText" position="7,895" zPosition="2" size="165,57" backgroundColor="key_red" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget source="key_green" render="Label" objectTypes="key_green,StaticText" position="183,895" zPosition="2" size="165,57" backgroundColor="key_green" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget source="key_yellow" render="Label" objectTypes="key_yellow,StaticText" position="359,895" zPosition="2" size="165,57" backgroundColor="key_yellow" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget source="key_blue" render="Label" objectTypes="key_blue,StaticText" position="535,895" zPosition="2" size="165,57" backgroundColor="key_blue" font="Regular;20" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget source="key_0" render="Label" position="7,860" size="80,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget source="key_1" render="Label" position="92,860" size="80,25" zPosition="12" backgroundColor="key_back" font="Regular;18" horizontalAlignment="center" verticalAlignment="center">
-			<convert type="ConditionalShowHide"/>
-		</widget>
-		<widget name="footnote" conditional="footnote" position="18,712" size="1566,70" foregroundColor="#e5e619" font="Regular;24" zPosition="3" />
-		<widget name="status" position="755,783" size="830,175" font="Regular;23" horizontalAlignment="left" verticalAlignment="center" zPosition="3"/>
-		<widget name="HelpWindow" position="0,0" size="0,0" alphaTest="blend" conditional="HelpWindow" transparent="1" zPosition="+1" />
+class CategoryExclusions(Screen):
+	if screenWidth == 1920:
+		skin = """
+	<screen name="IPToSATCategoryExclusions" position="center,center" size="1400,850" title="IPToSAT">
+		<widget name="list" itemHeight="41" position="18,14" size="1364,690" font="Regular;27" scrollbarMode="showOnDemand" />
+		<widget name="status" position="18,715" size="1364,65" font="Regular;24" />
+		<widget source="key_red" render="Label" position="18,790" size="180,45" font="Regular;22" horizontalAlignment="center" backgroundColor="key_red" />
+		<widget source="key_green" render="Label" position="210,790" size="180,45" font="Regular;22" horizontalAlignment="center" backgroundColor="key_green" />
+		<widget source="key_blue" render="Label" position="402,790" size="180,45" font="Regular;22" horizontalAlignment="center" backgroundColor="key_blue" />
+	</screen>"""
+	else:
+		skin = """
+	<screen name="IPToSATCategoryExclusions" position="center,center" size="1000,620" title="IPToSAT">
+		<widget name="list" itemHeight="30" position="12,10" size="976,495" font="Regular;20" scrollbarMode="showOnDemand" />
+		<widget name="status" position="12,512" size="976,52" font="Regular;18" />
+		<widget source="key_red" render="Label" position="12,570" size="130,36" font="Regular;18" horizontalAlignment="center" backgroundColor="key_red" />
+		<widget source="key_green" render="Label" position="150,570" size="130,36" font="Regular;18" horizontalAlignment="center" backgroundColor="key_green" />
+		<widget source="key_blue" render="Label" position="288,570" size="130,36" font="Regular;18" horizontalAlignment="center" backgroundColor="key_blue" />
 	</screen>"""
 
-	def __init__(self, session, *args):
-		self.session = session
+	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.skinName = ["EditCategories"]
-		self.setTitle(typeselectcategorie())
-		self['list'] = MenuList([])
-		self["key_red"] = StaticText("")
-		self["key_green"] = StaticText("")
-		self["key_yellow"] = StaticText("")
-		self["key_blue"] = StaticText("")
-		self["key_0"] = StaticText("")
-		self["key_1"] = StaticText("")
-		self["status"] = Label()
-		self["footnote"] = Label()
-		self.folderBackupCategories = None
-		self.backup_categories = None
-		self.path = None
-		self.storage = False
-		self["iptosatactions"] = ActionMap(["IPToSATActions"],
-		{
-			"back": self.close,
+		self["list"] = MenuList([])
+		self["status"] = Label(language.get(lang, "247"))
+		self["key_red"] = StaticText(_("Close"))
+		self["key_green"] = StaticText(language.get(lang, "251"))
+		self["key_blue"] = StaticText(language.get(lang, "252"))
+		self["actions"] = ActionMap(["IPToSATActions"], {
+			"back": self.exit,
 			"cancel": self.exit,
-			"red": self.keyRed,
-			"green": self.keyGreen,
-			"yellow": self.keyYellow,
-			"blue": self.keyBlue,
-			"ok": self.keyGreen,
-			"left": self.goLeft,
-			"right": self.goRight,
-			"down": self.moveDown,
-			"up": self.moveUp,
-			"pageUp": self.pageUp,
-			"pageDown": self.pageDown,
-			"0": self.restoreCategories,
-			"1": self.deleteBackupCategories,
+			"red": self.exit,
+			"green": self.backup,
+			"blue": self.restore,
+			"ok": self.toggle,
+			"up": self["list"].up,
+			"down": self["list"].down,
+			"left": self["list"].pageUp,
+			"right": self["list"].pageDown,
 		}, -2)
-		self.chekScenarioToBackup()
-		self.bouquets = []
-		self.categories = getCategories()
-		self.iniMenu()
+		self.provider = current_provider(config.plugins.IPToSAT)
+		self.kind = config.plugins.IPToSAT.typecategories.value
+		self.entry = None
+		self.closed = False
+		self.catalogActive = [True]
+		self.catalogStarted = False
+		self.onShown.append(self.loadCatalog)
+		active = self.catalogActive
+		self.onClose.append(lambda: active.__setitem__(0, False))
 
-	def chekScenarioToBackup(self):
-		for partition in harddiskmanager.getMountedPartitions():
-			if exists("/media/usb/") and listdir("/media/usb"):
-				self.path = "/media/usb/"
-			elif exists("/media/hdd/") and listdir("/media/hdd"):
-				self.path = "/media/hdd/"
-			else:
-				self.path = normpath(partition.mountpoint)
-			if self.path != "/" and "net" not in self.path and "autofs" not in self.path:
-				self.storage = True
-				backupfolder = ("BackupChannelsListNorhap" if BoxInfo.getItem("distro") == "norhap" else "BackupChannelsListSPA" if BoxInfo.getItem("distro") == "openspa" else "BackupChannelsList")
-				self.folderBackupCategories = join(self.path, f"IPToSAT/{MODEL}/{backupfolder}")
-				self.backup_categories = join(self.folderBackupCategories, BACKUP_CATEGORIES)
+	def exit(self, *args):
+		self.closed = True
+		self.catalogActive[0] = False
+		self.close()
 
-	def iniMenu(self):
-		list = []
-		if self.categories:
-			try:
-				for bouquets in self.categories:
-					list.append(str(bouquets))
-			except Exception:
-				pass
-			if len(list) > 0:
-				self['list'].l.setList(list)
-				self.bouquets = sorted(list)
-				self["key_red"].setText(language.get(lang, "137"))
-				self["key_green"].setText(language.get(lang, "138"))
-				self["key_yellow"].setText(language.get(lang, "27"))
-				self["key_blue"].setText(language.get(lang, "161"))
-				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage or exists(str(self.backup_categories)):
-					self["key_0"].setText("0")
-				if exists(str(self.backup_categories)):
-					self["key_1"].setText("1")
-				if config.plugins.IPToSAT.typecategories.value != "all":
-					if not config.plugins.IPToSAT.usercategories.value:
-						if not self.storage:
-							self["status"].setText(language.get(lang, "139"))
-						else:
-							if exists(str(self.backup_categories)):
-								self["status"].setText(language.get(lang, "175"))
-							else:
-								if fileContains(WILD_CARD_CATYOURLIST, ":"):
-									self["status"].setText(language.get(lang, "180"))
-								else:
-									self["status"].setText(language.get(lang, "169"))
-					else:
-						if not self.storage:
-							self["status"].setText(language.get(lang, "173"))
-						else:
-							if exists(str(self.backup_categories)):
-								self["status"].setText(language.get(lang, "175"))
-							else:
-								if fileContains(WILD_CARD_CATYOURLIST, ":"):
-									self["status"].setText(language.get(lang, "180"))
-								else:
-									self["status"].setText(language.get(lang, "169"))
-				else:
-					if not self.storage:
-						self["status"].setText(language.get(lang, "169"))
-					else:
-						if exists(str(self.backup_categories)):
-							self["status"].setText(language.get(lang, "175"))
-						else:
-							if fileContains(WILD_CARD_CATYOURLIST, ":"):
-								self["status"].setText(language.get(lang, "180"))
-							else:
-								self["status"].setText(language.get(lang, "169"))
-			else:
-				self["status"].setText(language.get(lang, "140"))
-				self['list'].hide()
-		else:
-			try:
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					index = self['list'].getCurrent()
-					with open(CONFIG_PATH_CATEGORIES, "r") as categoriesjsonread:
-						with open(WILD_CARD_CATEGORIES_FILE, "w") as fwildcardwrite:
-							for bouquet in categoriesjsonread.readlines():
-								if str(index) not in bouquet and "}" not in bouquet:
-									fwildcardwrite.write(bouquet)
-					with open(WILD_CARD_CATEGORIES_FILE, "r") as frwildcardread:
-						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
-							for last in frwildcardread.readlines()[-2]:
-								last = last.replace("}", "").replace(",", "")
-								fwildcardwrite.write(last)
-					with open(WILD_CARD_CATEGORIES_FILE, "r") as frwildcardread:
-						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
-							for last in frwildcardread.readlines()[-2]:
-								last = last.replace(last, "")
-								fwildcardwrite.write(last)
-						with open(WILD_CARD_CATEGORIES_FILE, "a") as fwildcardwrite:
-							fwildcardwrite.write("}")
-					move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-			except Exception:
-				pass
-			try:
-				for bouquets in getCategories():
-					list.append(str(bouquets))
-			except Exception:
-				pass
-			if len(list) > 0:
-				self['list'].l.setList(list)
-				self["key_green"].setText(language.get(lang, "138"))
-				if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-					self["key_blue"].setText(language.get(lang, "161"))
-				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage:
-					self["key_0"].setText("0")
-				self["status"].show()
-				self["key_red"].setText(language.get(lang, "137"))
-				self["status"].setText(language.get(lang, "136"))
-			else:
-				if not fileContains(CONFIG_PATH_CATEGORIES, "null"):
-					if not exists(str(self.backup_categories)):
-						self["status"].setText(language.get(lang, "134"))
-					else:
-						self["status"].setText(language.get(lang, "177"))
-					self["key_red"].setText(language.get(lang, "137"))
-					with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
-						catclean.write("null")
-				else:
-					if config.plugins.IPToSAT.typecategories.value != "all":
-						with open(CONFIG_PATH_CATEGORIES, "w") as catclean:
-							catclean.write("null")
-						if not config.plugins.IPToSAT.usercategories.value:
-							self["status"].setText(language.get(lang, "143"))
-						else:
-							config.plugins.IPToSAT.usercategories.value = False
-							config.plugins.IPToSAT.usercategories.save()
-							AssignService(self.session)
-					else:
-						if not exists(str(self.backup_categories)):
-							if not fileContains(WILD_CARD_CATYOURLIST, ":"):
-								self["status"].setText(language.get(lang, "134"))
-							else:
-								self["status"].setText(language.get(lang, "183"))
-						else:
-							self["status"].setText(language.get(lang, "177"))
-				AssignService(self.session)
-				self["status"].show()
-				self['list'].hide()
-				self["key_red"].setText(language.get(lang, "137"))
-				self["key_green"].setText("")
-				self["key_yellow"].setText("")
-				if fileContains(CONFIG_PATH_CATEGORIES, ":") and fileContains(WILD_CARD_CATYOURLIST, ":"):
-					self["key_blue"].setText(language.get(lang, "161"))
-				else:
-					self["key_blue"].setText("")
-				if fileContains(WILD_CARD_CATYOURLIST, ":") and self.storage:
-					self["key_0"].setText("0")
-				if fileContains(WILD_CARD_CATYOURLIST, ":") and fileContains(WILD_CARD_CATEGORIES_FILE, ":"):
-					if not self.storage:
-						self["status"].setText(language.get(lang, "165"))
-						self["key_blue"].setText(language.get(lang, "161"))
-					else:
-						self["key_blue"].setText(language.get(lang, "161"))
-						if not exists(str(self.backup_categories)):
-							self["status"].setText(language.get(lang, "176"))
-						else:
-							self["status"].setText(language.get(lang, "181"))
-				else:
-					if config.plugins.IPToSAT.typecategories.value == "all":
-						if fileContains(WILD_CARD_CATYOURLIST, ":"):
-							with open(WILD_CARD_CATYOURLIST, "r") as f:
-								for line in f.readlines():
-									if len(line) > 2 and fileContains(WILD_CARD_CATYOURLIST, "}"):
-										if not self.storage:
-											self["key_blue"].setText(language.get(lang, "161"))
-											self["status"].setText(language.get(lang, "165"))
-										else:
-											self["key_blue"].setText(language.get(lang, "161"))
-											if not exists(str(self.backup_categories)):
-												self["status"].setText(language.get(lang, "176"))
-											else:
-												self["status"].setText(language.get(lang, "181"))
-						else:
-							self["key_blue"].setText("")
-							if not exists(str(self.backup_categories)):
-								self["status"].setText(language.get(lang, "123"))
-							else:
-								self["key_0"].setText("0")
-								self["key_1"].setText("1")
-								self["status"].setText(language.get(lang, "178"))
-					else:
-						if not config.plugins.IPToSAT.usercategories.value:
-							self["status"].setText(language.get(lang, "143"))
-						else:
-							self["status"].setText(language.get(lang, "143"))
-							config.plugins.IPToSAT.usercategories.value = False
-							config.plugins.IPToSAT.usercategories.save()
-						AssignService(self.session)
+	def updating(self):
+		return categoriesUpdateInProgress()
 
-	def keyGreen(self):
-		index = self['list'].getCurrent()
-		if fileContains(WILD_CARD_CATYOURLIST, ":") and config.plugins.IPToSAT.typecategories.value != "all":
-			message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "155")
-		else:
-			if config.plugins.IPToSAT.typecategories.value == "all":
-				message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index) + "\n\n" + language.get(lang, "166")
-			else:
-				message = language.get(lang, "135") + "\n" + "iptosat_norhap_" + str(index)
-		if index and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
-			self.session.openWithCallback(self.deleteBouquet, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+	def loadCatalog(self):
+		if self.catalogStarted:
+			return
+		self.catalogStarted = True
+		self.setTitle(typeselectcategorie())
+		if self.updating():
+			self.session.openWithCallback(self.exit, MessageBox, language.get(lang, "250"), MessageBox.TYPE_INFO)
+			return
+		settings = config.plugins.IPToSAT
+		active = self.catalogActive
+		deferToThread(fetch_catalog, settings.domain.value, settings.serverport.value, settings.username.value, settings.password.value).addCallbacks(
+			lambda catalog: self.catalogLoaded(catalog) if active[0] else None,
+			lambda failure: self.catalogFailed(failure) if active[0] else None)
 
-	def deleteBouquet(self, answer):
-		if not answer:
+	def catalogLoaded(self, catalog):
+		if self.closed:
 			return
 		try:
-			index = self['list'].getCurrent()
-			with open(CONFIG_PATH_CATEGORIES, "r", encoding="utf-8") as categoriesjsonread:
-				categories = loads(categoriesjsonread.read())
-			if not isinstance(categories, dict) or index not in categories:
-				return
-			if config.plugins.IPToSAT.typecategories.value == "all":
-				with open(CONFIG_PATH_CATEGORIES, "r", encoding="utf-8") as categoriesjsonread:
-					with open(WILD_CARD_CATYOURLIST, "w", encoding="utf-8") as wildcardwrite:
-						for line in categoriesjsonread.readlines():
-							if "{" not in line and "}" not in line and "null" not in line:
-								wildcardwrite.write(line)
-			del categories[index]
-			with open(WILD_CARD_CATEGORIES_FILE, "w", encoding="utf-8") as categoriesjsonwrite:
-				dump(categories, categoriesjsonwrite, ensure_ascii=False, indent=4)
-				categoriesjsonwrite.write("\n")
-			move(WILD_CARD_CATEGORIES_FILE, CONFIG_PATH_CATEGORIES)
-		except Exception as err:
-			self.session.open(
-				MessageBox,
-				"ERROR: %s" % str(err),
-				MessageBox.TYPE_ERROR,
-				default=False,
-				timeout=10)
+			if self.updating() or self.provider != current_provider(config.plugins.IPToSAT):
+				raise ValueError(language.get(lang, "250"))
+			current = read_selections().get(self.provider, {})
+			excluded = current.get("excluded", [])
+			save_provider(self.provider, catalog, excluded)
+			self.entry = {"catalog": catalog, "excluded": excluded}
+			self.refreshList()
+		except (OSError, ValueError, TypeError) as error:
+			self.showError(language.get(lang, "249") + "\n" + str(error))
+
+	def catalogFailed(self, failure):
+		if not self.closed:
+			log("Category catalog download failed: " + failure.type.__name__)
+			self.showError(language.get(lang, "248"))
+		return None
+
+	def showError(self, message):
+		self["status"].setText(message)
+		self.session.open(MessageBox, message, MessageBox.TYPE_ERROR)
+
+	def refreshList(self):
+		self.rows = sorted(entries(self.entry, self.kind), key=lambda row: (row[0], row[1].casefold()))
+		excluded = set(self.entry["excluded"])
+		self["list"].setList([("[x] " if name in excluded else "[ ] ") + ("[%s] " % kind.upper() if self.kind == "all" else "") + name for kind, name in self.rows])
+		self["status"].setText(language.get(lang, "245"))
+
+	def toggle(self):
+		if self.entry is None or self.updating() or not self.rows:
+			if self.updating():
+				self.showError(language.get(lang, "250"))
 			return
-		if config.plugins.IPToSAT.typecategories.value != "all":
-			if not config.plugins.IPToSAT.usercategories.value:
-				config.plugins.IPToSAT.usercategories.value = True
-				config.plugins.IPToSAT.usercategories.save()
-		self.categories = getCategories() or {}
-		self.bouquets = sorted(self.categories)
-		self['list'].l.setList(self.bouquets)
-		if self.bouquets:
-			self['list'].show()
+		index = self["list"].getSelectedIndex()
+		if index < 0 or index >= len(self.rows):
+			return
+		name = self.rows[index][1]
+		excluded = set(self.entry["excluded"])
+		if name in excluded:
+			excluded.remove(name)
 		else:
-			self['list'].hide()
-			self["status"].setText(language.get(lang, "140"))
-			self["status"].show()
-			self["key_green"].setText("")
-			self["key_yellow"].setText("")
-			self["key_blue"].setText("")
+			excluded.add(name)
+		try:
+			save_provider(self.provider, self.entry["catalog"], excluded)
+			self.entry["excluded"] = sorted(excluded)
+			self.refreshList()
+			self["list"].moveToIndex(index)
+		except (OSError, ValueError, TypeError) as error:
+			self.showError(language.get(lang, "249") + "\n" + str(error))
 
-	def deleteBouquetsList(self, answer):
-		if answer:
-			self.categories = None
-			with open(CONFIG_PATH_CATEGORIES, 'w') as f:
-				dump(self.categories, f)
-			if config.plugins.IPToSAT.typecategories.value == "all":
-				if exists(str(ALL_CATEGORIES)):
-					remove(ALL_CATEGORIES)
-				if exists(str(WILD_CARD_ALL_CATEGORIES)):
-					remove(WILD_CARD_ALL_CATEGORIES)
-				if exists(str(WILD_CARD_CATYOURLIST)):
-					remove(WILD_CARD_CATYOURLIST)
-			else:
-				if exists(str(CONFIG_PATH_CATEGORIES)):
-					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-						with open(WILD_CARD_CATYOURLIST, "w") as fw:
-							for lines in fr.readlines():
-								if "{" not in lines and "}" not in lines and "null" not in lines:
-									fw.write(lines)
-			self.iniMenu()
-		else:
-			self.iniMenu()
+	def backupPaths(self):
+		paths = []
+		for partition in harddiskmanager.getMountedPartitions():
+			path = normpath(partition.mountpoint)
+			if path != "/" and "net" not in path and "autofs" not in path and exists(path):
+				paths.append(path)
+		if not paths:
+			raise OSError(language.get(lang, "253"))
+		paths.sort(key=lambda path: (path != "/media/usb", path != "/media/hdd", path))
+		return [join(path, "IPToSAT", MODEL, "CategoryBackups", self.provider + ".json") for path in paths]
 
-	def keyYellow(self):
-		if config.plugins.IPToSAT.typecategories.value != "all":
-			message = language.get(lang, "26")
-		else:
-			message = language.get(lang, "162")
-		if self.categories and len(self.bouquets) > 0 and not fileContains(CONFIG_PATH_CATEGORIES, "null"):
-			self.session.openWithCallback(self.deleteBouquetsList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
+	def backup(self):
+		if self.entry is not None:
+			self.session.openWithCallback(self.doBackup, MessageBox, language.get(lang, "254"), MessageBox.TYPE_YESNO, default=False)
 
-	def restoreYourList(self, answer):
-		if answer:
-			try:
-				if not fileContains(WILD_CARD_CATYOURLIST, ":"):
-					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-						with open(WILD_CARD_CATYOURLIST, "a") as fw:
-							for lines in fr.readlines():
-								if "{" not in lines and "}" not in lines and "null" not in lines:
-									fw.write(lines)
-						with open(WILD_CARD_CATYOURLIST, "a") as fw:
-							for lines in fr.readlines():
-								lines = lines.replace("]", "],").replace("],,", "],")
-								fw.write(lines)
-				if config.plugins.IPToSAT.typecategories.value != "all":
-					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-						with open(WILD_CARD_CATYOURLIST, "a") as fw:
-							for lines in fr.readlines():
-								if not fileContains(WILD_CARD_CATYOURLIST, lines):
-									if "{" not in lines and "}" not in lines and "null" not in lines:
-										fw.write(lines)
-				else:
-					with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-						with open(WILD_CARD_CATYOURLIST, "w") as fw:
-							for lines in fr.readlines():
-								if "{" not in lines and "}" not in lines and "null" not in lines:
-									fw.write(lines)
-				with open(WILD_CARD_CATYOURLIST, "r") as fr:
-					with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-						fw.write("{" + '\n')
-					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-						for lines in fr.readlines():
-							lines = lines.replace("]", "],").replace("],,", "],")
-							fw.write(lines)
-					with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
-						with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
-							readcategoriesjson = fwildcardread.readlines()
-							if len(readcategoriesjson) > 1:
-								for last in readcategoriesjson[-2]:
-									last = last.replace(",", "")
-									fwildcardwrite.write(last)
-					with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-						fw.write("}")
-				if config.plugins.IPToSAT.typecategories.value != "all":
-					config.plugins.IPToSAT.typecategories.value = "all"
-					config.plugins.IPToSAT.typecategories.save()
-			except Exception:
-				self.exit()
-			self.exit()
+	def doBackup(self, answer):
+		if not answer or self.closed:
+			return
+		try:
+			path = self.backupPaths()[0]
+			makedirs(dirname(path), exist_ok=True)
+			save_json(path, {"provider": self.provider, "excluded": self.entry["excluded"]})
+			self.session.open(MessageBox, language.get(lang, "255") + "\n" + path, MessageBox.TYPE_INFO)
+		except (OSError, ValueError, TypeError) as error:
+			self.showError(language.get(lang, "249") + "\n" + str(error))
 
-	def keyBlue(self):
-		message = language.get(lang, "164")
-		if not fileContains(ALL_CATEGORIES, ":"):
-			if fileContains(CONFIG_PATH_CATEGORIES, ":"):
-				with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-					with open(ALL_CATEGORIES, "w") as fw:
-						fw.write("{" + '\n')
-					with open(ALL_CATEGORIES, "a") as fw:
-						for lines in fr.readlines():
-							lines = lines.replace("]", "],").replace("],,", "],")
-							fw.write(lines)
-		with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-			readcategoriesjson = fr.readlines()
-			if len(readcategoriesjson) > 3:
-				if fileContains(CONFIG_PATH_CATEGORIES, ":") and fileContains(WILD_CARD_CATYOURLIST, ":"):
-					self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
-					return
-			if len(readcategoriesjson) > 0:
-				if fileContains(CONFIG_PATH_CATEGORIES, ":") and fileContains(ALL_CATEGORIES, ":"):
-					copy(CONFIG_PATH_CATEGORIES, ALL_CATEGORIES)
-					if not fileContains(WILD_CARD_CATYOURLIST, ":"):
-						with open(CONFIG_PATH_CATEGORIES, "r") as fr:
-							with open(WILD_CARD_CATYOURLIST, "a") as fw:
-								for lines in fr.readlines():
-									if "{" not in lines and "}" not in lines and "null" not in lines:
-										fw.write(lines)
-							with open(WILD_CARD_CATYOURLIST, "a") as fw:
-								for lines in fr.readlines():
-									lines = lines.replace("]", "],").replace("],,", "],")
-									fw.write(lines)
-								if config.plugins.IPToSAT.typecategories.value != "all":
-									config.plugins.IPToSAT.typecategories.value = "all"
-									config.plugins.IPToSAT.typecategories.save()
-					self.session.openWithCallback(self.restoreYourList, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
-					return
+	def restore(self):
+		if self.entry is not None:
+			self.session.openWithCallback(self.doRestore, MessageBox, language.get(lang, "256"), MessageBox.TYPE_YESNO, default=False)
 
-	def doRestorecategories(self, answer):
-		if answer:
-			try:
-				if not exists(str(self.backup_categories)) and fileContains(WILD_CARD_CATYOURLIST, ":"):
-					copy(WILD_CARD_CATYOURLIST, self.backup_categories)
-				else:
-					if exists(str(self.backup_categories)):
-						copy(self.backup_categories, WILD_CARD_CATYOURLIST)
-						with open(self.backup_categories, "r") as fr:
-							with open(CONFIG_PATH_CATEGORIES, "w") as fw:
-								fw.write("{" + '\n')
-							with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-								for lines in fr.readlines():
-									lines = lines.replace("]", "],").replace("],,", "],")
-									fw.write(lines + "\n" + "}" if not fileContains(WILD_CARD_CATYOURLIST, ",") else lines)
-							with open(CONFIG_PATH_CATEGORIES, "r") as fwildcardread:
-								with open(CONFIG_PATH_CATEGORIES, "a") as fwildcardwrite:
-									readcategoriesjson = fwildcardread.readlines()
-									if len(readcategoriesjson) > 1:
-										for last in readcategoriesjson[-2]:
-											last = last.replace(",", "")
-											fwildcardwrite.write(last)
-							with open(CONFIG_PATH_CATEGORIES, "a") as fw:
-								fw.write("}")
-						if config.plugins.IPToSAT.typecategories.value != "all":
-							config.plugins.IPToSAT.typecategories.value = "all"
-							config.plugins.IPToSAT.typecategories.save()
-			except Exception:
-				self.exit()
-			self.exit()
-
-	def restoreCategories(self):
-		message = ""
-		if self.folderBackupCategories:
-			if not exists(str(self.folderBackupCategories)):
-				makedirs(self.folderBackupCategories)
-			if fileContains(WILD_CARD_CATYOURLIST, ":") and not exists(str(self.backup_categories)) or exists(str(self.backup_categories)):
-				if exists(str(self.backup_categories)):
-					message = language.get(lang, "182")
-				else:
-					message = language.get(lang, "174")
-				self.session.openWithCallback(self.doRestorecategories, MessageBox, message, MessageBox.TYPE_YESNO, default=False)
-				return
-
-	def deleteBackupCategories(self):
-		if exists(str(self.backup_categories)):
-			remove(self.backup_categories)
-			self.exit()
-
-	def keyRed(self, ret=None):
-		self.close(True)
-
-	def exit(self, ret=None):
-		self.close(True)
-
-	def goRight(self):
-		self["list"].pageDown()
-
-	def goLeft(self):
-		self["list"].pageUp()
-
-	def moveUp(self):
-		self["list"].up()
-
-	def moveDown(self):
-		self["list"].down()
-
-	def pageUp(self):
-		self["list"].self["list"].instance.pageUp
-
-	def pageDown(self):
-		self["list"].self["list"].instance.pageDown
+	def doRestore(self, answer):
+		if not answer or self.closed:
+			return
+		if self.updating():
+			self.showError(language.get(lang, "250"))
+			return
+		try:
+			paths = self.backupPaths()
+			path = next((path for path in paths if exists(path)), paths[0])
+			backup = read_json(path, None)
+			if not isinstance(backup, dict) or backup.get("provider") != self.provider or not isinstance(backup.get("excluded"), list) or not all(isinstance(name, str) for name in backup["excluded"]):
+				raise ValueError(language.get(lang, "257"))
+			save_provider(self.provider, self.entry["catalog"], backup["excluded"])
+			self.entry["excluded"] = backup["excluded"]
+			self.refreshList()
+			self.session.open(MessageBox, language.get(lang, "258"), MessageBox.TYPE_INFO)
+		except (OSError, ValueError, TypeError) as error:
+			self.showError(language.get(lang, "249") + "\n" + str(error))
 
 
 class InstallChannelsLists(Screen):
